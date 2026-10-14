@@ -18,6 +18,8 @@
 // Portado para C# a partir de sqlparser-rs v0.63.0, src/dialect/sqlite.rs.
 // Modificado: tradução de Rust para C#.
 
+using SqlParser.Core.Ast;
+
 namespace SqlParser.Core.Dialects;
 
 /// <summary>
@@ -53,9 +55,40 @@ public class SQLiteDialect : Dialect
 
     public override bool IsIdentifierPart(char ch) => IsIdentifierStart(ch) || (ch >= '0' && ch <= '9');
 
-    // PENDENTE (Fase 2, depende de Parser/AST): parse_statement (sqlite.rs:69).
+    public override Statement? ParseStatement(Parser parser)
+    {
+        if (parser.ParseKeyword(Keyword.REPLACE))
+        {
+            parser.PrevToken();
+            return parser.ParseInsert(parser.GetCurrentToken());
+        }
+        else
+        {
+            return null;
+        }
+    }
 
-    // PENDENTE (Fase 2, depende de Parser/AST): parse_infix (sqlite.rs:78).
+    public override Expr? ParseInfix(Parser parser, Expr expr, byte precedence)
+    {
+        // Parse MATCH, REGEXP and GLOB as operators
+        // See <https://www.sqlite.org/lang_expr.html#the_like_glob_regexp_match_and_extract_operators>
+        foreach (var (keyword, op) in new (Keyword, BinaryOperator)[]
+        {
+            (Keyword.REGEXP, new BinaryOperator.Regexp()),
+            (Keyword.MATCH, new BinaryOperator.Match()),
+            (Keyword.GLOB, new BinaryOperator.Glob()),
+        })
+        {
+            if (parser.ParseKeyword(keyword))
+            {
+                var left = expr;
+                // Rust: `Err(e) => return Some(Err(e))`: o erro propaga como exceção (caso 53).
+                var right = parser.ParseSubexpr(precedence);
+                return new Expr.BinaryOp(Left: left, Op: op, Right: right);
+            }
+        }
+        return null;
+    }
 
     public override bool SupportsInEmptyList => true;
 

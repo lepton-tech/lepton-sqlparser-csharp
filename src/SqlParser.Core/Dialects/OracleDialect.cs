@@ -55,7 +55,19 @@ public class OracleDialect : Dialect
 
     public override bool SupportsSetStmtWithoutOperator => true;
 
-    // PENDENTE (Fase 2, depende de Parser/AST): get_next_precedence (oracle.rs:88).
+    public override byte? GetNextPrecedence(Parser parser)
+    {
+        var t = parser.PeekTokenRef();
+        // debug!("get_next_precedence() {t:?}"); (log não traduzido, convencoes.md §13, caso 44)
+
+        switch (t.Token)
+        {
+            case Token.StringConcat:
+                return PrecValue(Precedence.PlusMinus);
+            default:
+                return null;
+        }
+    }
 
     public override bool SupportsGroupByExpr => true;
 

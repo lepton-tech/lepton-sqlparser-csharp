@@ -34,7 +34,8 @@ namespace SqlParser.Core;
 /// If the word was not quoted and it matched one of the known keywords,
 /// this will have one of the values from dialect::keywords, otherwise empty
 /// </param>
-public sealed record Word(string Value, char? QuoteStyle, Keyword Keyword) : IDisplay
+// `partial`: o `impl Word` de parser/mod.rs (to_ident, into_ident) está em Parser/Word.Parser.cs.
+public sealed partial record Word(string Value, char? QuoteStyle, Keyword Keyword) : IDisplay
 {
     /// <inheritdoc/>
     public void Fmt(Formatter f)

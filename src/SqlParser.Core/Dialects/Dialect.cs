@@ -22,7 +22,10 @@
 // - macros dialect_of! e dialect_is!: viram teste de tipo do C# (`dialect is A or B`);
 // - derive_dialect! (feature "derive-dialect"): vira herança (`class X : GenericDialect`);
 // - fn dialect() -> TypeId e `impl dyn Dialect { fn is<T> }`: a identidade do dialeto é o tipo C#.
-// O enum Precedence está em Precedence.cs. Os hooks que recebem Parser vão para Dialect.Parser.cs (Fase 2).
+// O enum Precedence está em Precedence.cs. Os hooks que recebem Parser ficam aqui mesmo, na posição
+// do Rust (convencoes.md §13, caso 53).
+
+using SqlParser.Core.Ast;
 
 namespace SqlParser.Core.Dialects;
 
@@ -482,7 +485,16 @@ public abstract partial class Dialect
     /// </summary>
     public virtual bool SupportsTripleQuotedString => false;
 
-    // PENDENTE (Fase 2, depende de Parser/AST; vai para Dialect.Parser.cs): parse_prefix (mod.rs:596).
+    /// <summary>Dialect-specific prefix parser override</summary>
+    /// <remarks>
+    /// Rust: <c>Option&lt;Result&lt;Expr, ParserError&gt;&gt;</c> → <c>null</c> para "use o comportamento padrão";
+    /// erro → <see cref="ParserException"/> (convencoes.md §13, caso 53).
+    /// </remarks>
+    public virtual Expr? ParsePrefix(Parser parser)
+    {
+        // return None to fall back to the default behavior
+        return null;
+    }
 
     /// <summary>
     /// Does the dialect support trailing commas around the query?
@@ -674,15 +686,234 @@ public abstract partial class Dialect
     /// </summary>
     public virtual bool SupportsSelectModifiers => false;
 
-    // PENDENTE (Fase 2, depende de Parser/AST; vai para Dialect.Parser.cs): parse_infix (mod.rs:784).
+    /// <summary>Dialect-specific infix parser override</summary>
+    /// <remarks>
+    /// This method is called to parse the next infix expression.
+    /// If <c>None</c> is returned, falls back to the default behavior.
+    /// </remarks>
+    public virtual Expr? ParseInfix(Parser parser, Expr expr, byte precedence)
+    {
+        // return None to fall back to the default behavior
+        return null;
+    }
 
-    // PENDENTE (Fase 2, depende de Parser/AST; vai para Dialect.Parser.cs): get_next_precedence (mod.rs:799).
+    /// <summary>Dialect-specific precedence override</summary>
+    /// <remarks>
+    /// This method is called to get the precedence of the next token.
+    /// If <c>None</c> is returned, falls back to the default behavior.
+    /// </remarks>
+    public virtual byte? GetNextPrecedence(Parser parser)
+    {
+        // return None to fall back to the default behavior
+        return null;
+    }
 
-    // PENDENTE (Fase 2, depende de Parser/AST; vai para Dialect.Parser.cs): get_next_precedence_default (mod.rs:813).
+    /// <summary>Get the precedence of the next token, looking at the full token stream.</summary>
+    /// <remarks>
+    /// A higher number =&gt; higher precedence.
+    /// See <see cref="GetNextPrecedence"/> to override the behavior for just the
+    /// next token.
+    /// The default implementation is used for many dialects, but can be
+    /// overridden to provide dialect-specific behavior.
+    /// </remarks>
+    public virtual byte GetNextPrecedenceDefault(Parser parser)
+    {
+        if (GetNextPrecedence(parser) is { } precedence)
+        {
+            return precedence;
+        }
 
-    // PENDENTE (Fase 2, depende de Parser/AST; vai para Dialect.Parser.cs): parse_statement (mod.rs:960).
+        // macro_rules! p → PrecValue(Precedence.X)
+        var token = parser.PeekTokenRef();
+        // Rust: debug!("get_next_precedence_full() {token:?}"): log não traduzido (caso 44).
+        switch (token.Token)
+        {
+            case Token.Word { Value: var w } when w.Keyword == Keyword.OR:
+                return PrecValue(Precedence.Or);
+            case Token.Word { Value: var w } when w.Keyword == Keyword.AND:
+                return PrecValue(Precedence.And);
+            case Token.Word { Value: var w } when w.Keyword == Keyword.XOR:
+                return PrecValue(Precedence.Xor);
 
-    // PENDENTE (Fase 2, depende de Parser/AST; vai para Dialect.Parser.cs): parse_column_option (mod.rs:970).
+            case Token.Word { Value: var w } when w.Keyword == Keyword.AT:
+                switch ((parser.PeekNthTokenRef(1).Token, parser.PeekNthTokenRef(2).Token))
+                {
+                    case (Token.Word { Value: var w1 }, Token.Word { Value: var w2 })
+                        when w1.Keyword == Keyword.TIME && w2.Keyword == Keyword.ZONE:
+                        return PrecValue(Precedence.AtTz);
+                    default:
+                        return PrecUnknown;
+                }
+
+            case Token.Word { Value: var w } when w.Keyword == Keyword.NOT:
+                switch (parser.PeekNthTokenRef(1).Token)
+                {
+                    // The precedence of NOT varies depending on keyword that
+                    // follows it. If it is followed by IN, BETWEEN, or LIKE,
+                    // it takes on the precedence of those tokens. Otherwise, it
+                    // is not an infix operator, and therefore has zero
+                    // precedence.
+                    case Token.Word { Value: var n } when n.Keyword == Keyword.IN:
+                        return PrecValue(Precedence.Between);
+                    case Token.Word { Value: var n } when n.Keyword == Keyword.BETWEEN:
+                        return PrecValue(Precedence.Between);
+                    case Token.Word { Value: var n } when n.Keyword == Keyword.LIKE:
+                        return PrecValue(Precedence.Like);
+                    case Token.Word { Value: var n } when n.Keyword == Keyword.ILIKE:
+                        return PrecValue(Precedence.Like);
+                    case Token.Word { Value: var n } when n.Keyword == Keyword.RLIKE:
+                        return PrecValue(Precedence.Like);
+                    case Token.Word { Value: var n } when n.Keyword == Keyword.REGEXP:
+                        return PrecValue(Precedence.Like);
+                    case Token.Word { Value: var n } when n.Keyword == Keyword.MATCH:
+                        return PrecValue(Precedence.Like);
+                    case Token.Word { Value: var n } when n.Keyword == Keyword.GLOB:
+                        return PrecValue(Precedence.Like);
+                    case Token.Word { Value: var n } when n.Keyword == Keyword.SIMILAR:
+                        return PrecValue(Precedence.Like);
+                    case Token.Word { Value: var n } when n.Keyword == Keyword.MEMBER:
+                        return PrecValue(Precedence.Like);
+                    case Token.Word { Value: var n }
+                        when n.Keyword == Keyword.NULL && !parser.InColumnDefinitionState():
+                        return PrecValue(Precedence.Is);
+                    default:
+                        return PrecUnknown;
+                }
+            case Token.Word { Value: var w } when w.Keyword == Keyword.NOTNULL && SupportsNotnullOperator:
+                return PrecValue(Precedence.Is);
+            case Token.Word { Value: var w } when w.Keyword == Keyword.IS:
+                return PrecValue(Precedence.Is);
+            case Token.Word { Value: var w } when w.Keyword == Keyword.IN:
+                return PrecValue(Precedence.Between);
+            case Token.Word { Value: var w } when w.Keyword == Keyword.BETWEEN:
+                return PrecValue(Precedence.Between);
+            case Token.Word { Value: var w } when w.Keyword == Keyword.OVERLAPS:
+                return PrecValue(Precedence.Between);
+            case Token.Word { Value: var w } when w.Keyword == Keyword.LIKE:
+                return PrecValue(Precedence.Like);
+            case Token.Word { Value: var w } when w.Keyword == Keyword.ILIKE:
+                return PrecValue(Precedence.Like);
+            case Token.Word { Value: var w } when w.Keyword == Keyword.RLIKE:
+                return PrecValue(Precedence.Like);
+            case Token.Word { Value: var w } when w.Keyword == Keyword.REGEXP:
+                return PrecValue(Precedence.Like);
+            case Token.Word { Value: var w } when w.Keyword == Keyword.MATCH:
+                return PrecValue(Precedence.Like);
+            case Token.Word { Value: var w } when w.Keyword == Keyword.GLOB:
+                return PrecValue(Precedence.Like);
+            case Token.Word { Value: var w } when w.Keyword == Keyword.SIMILAR:
+                return PrecValue(Precedence.Like);
+            case Token.Word { Value: var w } when w.Keyword == Keyword.MEMBER:
+                return PrecValue(Precedence.Like);
+            case Token.Word { Value: var w } when w.Keyword == Keyword.OPERATOR:
+                return PrecValue(Precedence.Between);
+            case Token.Word { Value: var w } when w.Keyword == Keyword.DIV:
+                return PrecValue(Precedence.MulDivModOp);
+            case Token.Period:
+                return PrecValue(Precedence.Period);
+            case Token.Assignment
+                or Token.Eq
+                or Token.Lt
+                or Token.LtEq
+                or Token.Neq
+                or Token.Gt
+                or Token.GtEq
+                or Token.DoubleEq
+                or Token.Tilde
+                or Token.TildeAsterisk
+                or Token.ExclamationMarkTilde
+                or Token.ExclamationMarkTildeAsterisk
+                or Token.DoubleTilde
+                or Token.DoubleTildeAsterisk
+                or Token.ExclamationMarkDoubleTilde
+                or Token.ExclamationMarkDoubleTildeAsterisk
+                or Token.Spaceship:
+                return PrecValue(Precedence.Eq);
+            case Token.Pipe
+                or Token.QuestionMarkDash
+                or Token.DoubleSharp
+                or Token.Overlap
+                or Token.AmpersandLeftAngleBracket
+                or Token.AmpersandRightAngleBracket
+                or Token.QuestionMarkDashVerticalBar
+                or Token.AmpersandLeftAngleBracketVerticalBar
+                or Token.VerticalBarAmpersandRightAngleBracket
+                or Token.TwoWayArrow
+                or Token.LeftAngleBracketCaret
+                or Token.RightAngleBracketCaret
+                or Token.QuestionMarkSharp
+                or Token.QuestionMarkDoubleVerticalBar
+                or Token.QuestionPipe
+                or Token.TildeEqual
+                or Token.AtSign
+                or Token.ShiftLeftVerticalBar
+                or Token.VerticalBarShiftRight:
+                return PrecValue(Precedence.Pipe);
+            case Token.Caret or Token.Sharp or Token.ShiftRight or Token.ShiftLeft:
+                return PrecValue(Precedence.Caret);
+            case Token.Ampersand:
+                return PrecValue(Precedence.Ampersand);
+            case Token.Plus or Token.Minus:
+                return PrecValue(Precedence.PlusMinus);
+            case Token.Mul or Token.Div or Token.DuckIntDiv or Token.Mod or Token.StringConcat:
+                return PrecValue(Precedence.MulDivModOp);
+            case Token.DoubleColon or Token.ExclamationMark or Token.LBracket or Token.CaretAt:
+                return PrecValue(Precedence.DoubleColon);
+            case Token.Colon:
+                switch (parser.PeekNthTokenRef(1).Token)
+                {
+                    // When colon is followed by a string or a number, it's usually in MAP syntax.
+                    case Token.SingleQuotedString or Token.Number:
+                        return PrecUnknown;
+                    // In other cases, it's used in semi-structured data traversal like in variant or JSON
+                    // string columns. See `JsonAccess`.
+                    default:
+                        return PrecValue(Precedence.Colon);
+                }
+            case Token.Arrow
+                or Token.LongArrow
+                or Token.HashArrow
+                or Token.HashLongArrow
+                or Token.AtArrow
+                or Token.ArrowAt
+                or Token.HashMinus
+                or Token.AtQuestion
+                or Token.AtAt
+                or Token.Question
+                or Token.QuestionAnd
+                or Token.CustomBinaryOperator:
+                return PrecValue(Precedence.PgOther);
+            default:
+                return PrecUnknown;
+        }
+    }
+
+    /// <summary>Dialect-specific statement parser override</summary>
+    /// <remarks>
+    /// This method is called to parse the next statement.
+    /// If <c>None</c> is returned, falls back to the default behavior.
+    /// </remarks>
+    public virtual Statement? ParseStatement(Parser parser)
+    {
+        // return None to fall back to the default behavior
+        return null;
+    }
+
+    /// <summary>Dialect-specific column option parser override</summary>
+    /// <remarks>
+    /// This method is called to parse the next column option.
+    /// If <c>None</c> is returned, falls back to the default behavior.
+    /// <para>
+    /// Rust: <c>Result&lt;Option&lt;Result&lt;Option&lt;ColumnOption&gt;, ParserError&gt;&gt;, ParserError&gt;</c>.
+    /// Os dois <c>Result</c> viram exceção; o <c>Option</c> externo vira <see cref="Option{T}"/> (casos 53 e 55):
+    /// <c>Option.None</c> = "use o comportamento padrão"; <c>Option.Some(null)</c> = "tratado, sem opção".
+    /// </para>
+    /// </remarks>
+    public virtual Option<ColumnOption?> ParseColumnOption(Parser parser)
+    {
+        // return None to fall back to the default behavior
+        return Option<ColumnOption?>.None;
+    }
 
     /// <summary>
     /// Decide the lexical Precedence of operators.
@@ -1056,9 +1287,10 @@ public abstract partial class Dialect
     /// Returns reserved keywords that may prefix a select item expression
     /// e.g. <c>SELECT CONNECT_BY_ROOT name FROM Tbl2</c> (Snowflake)
     /// </summary>
-    public virtual IReadOnlyList<Keyword> GetReservedKeywordsForSelectItemOperator => Array.Empty<Keyword>();
+    public virtual IReadOnlyList<Keyword> GetReservedKeywordsForSelectItemOperator => System.Array.Empty<Keyword>();
 
-    // PENDENTE (Fase 2, depende da AST): get_reserved_grantees_types (mod.rs:1327).
+    /// <summary>Returns grantee types that should be treated as identifiers</summary>
+    public virtual IReadOnlyList<GranteesType> GetReservedGranteesTypes => System.Array.Empty<GranteesType>();
 
     /// <summary>
     /// Returns true if this dialect supports the <c>TABLESAMPLE</c> option
@@ -1110,15 +1342,31 @@ public abstract partial class Dialect
     /// </summary>
     public virtual bool SupportsSetStmtWithoutOperator => false;
 
-    // PENDENTE (Fase 2, depende de Parser/AST; vai para Dialect.Parser.cs): is_column_alias (mod.rs:1379).
+    /// <summary>Returns true if the specified keyword should be parsed as a column identifier.</summary>
+    /// <remarks>See <see cref="Keywords.ReservedForColumnAlias"/></remarks>
+    public virtual bool IsColumnAlias(Keyword kw, Parser parser) => !Keywords.ReservedForColumnAlias.Contains(kw);
 
-    // PENDENTE (Fase 2, depende de Parser/AST; vai para Dialect.Parser.cs): is_select_item_alias (mod.rs:1386).
+    /// <summary>
+    /// Returns true if the specified keyword should be parsed as a select item alias.
+    /// When explicit is true, the keyword is preceded by an <c>AS</c> word. Parser is provided
+    /// to enable looking ahead if needed.
+    /// </summary>
+    public virtual bool IsSelectItemAlias(bool @explicit, Keyword kw, Parser parser) => @explicit || IsColumnAlias(kw, parser);
 
-    // PENDENTE (Fase 2, depende de Parser/AST; vai para Dialect.Parser.cs): is_table_factor (mod.rs:1392).
+    /// <summary>Returns true if the specified keyword should be parsed as a table factor identifier.</summary>
+    /// <remarks>See <see cref="Keywords.ReservedForTableFactor"/></remarks>
+    public virtual bool IsTableFactor(Keyword kw, Parser parser) => !Keywords.ReservedForTableFactor.Contains(kw);
 
-    // PENDENTE (Fase 2, depende de Parser/AST; vai para Dialect.Parser.cs): is_table_alias (mod.rs:1398).
+    /// <summary>Returns true if the specified keyword should be parsed as a table factor alias.</summary>
+    /// <remarks>See <see cref="Keywords.ReservedForTableAlias"/></remarks>
+    public virtual bool IsTableAlias(Keyword kw, Parser parser) => !Keywords.ReservedForTableAlias.Contains(kw);
 
-    // PENDENTE (Fase 2, depende de Parser/AST; vai para Dialect.Parser.cs): is_table_factor_alias (mod.rs:1405).
+    /// <summary>
+    /// Returns true if the specified keyword should be parsed as a table factor alias.
+    /// When explicit is true, the keyword is preceded by an <c>AS</c> word. Parser is provided
+    /// to enable looking ahead if needed.
+    /// </summary>
+    public virtual bool IsTableFactorAlias(bool @explicit, Keyword kw, Parser parser) => @explicit || IsTableAlias(kw, parser);
 
     /// <summary>
     /// Returns true if this dialect supports querying historical table data
@@ -1221,7 +1469,13 @@ public abstract partial class Dialect
     /// </summary>
     public virtual bool SupportsCommaSeparatedDropColumnList => false;
 
-    // PENDENTE (Fase 2, depende da AST): is_identifier_generating_function_name (mod.rs:1507).
+    /// <summary>
+    /// Returns true if the dialect considers the specified ident as a function
+    /// that returns an identifier. Typically used to generate identifiers
+    /// programmatically.
+    /// </summary>
+    /// <remarks>- <see href="https://docs.snowflake.com/en/sql-reference/identifier-literal">Snowflake</see></remarks>
+    public virtual bool IsIdentifierGeneratingFunctionName(Ident ident, IReadOnlyList<ObjectNamePart> nameParts) => false;
 
     /// <summary>
     /// Returns true if the dialect supports the <c>x NOTNULL</c>

@@ -9,6 +9,9 @@ Sumário:
 4. [`Option`, `if let`, `while let`](#4-option-if-let-while-let)
 5. [Trait `Dialect`: métodos abstratos, padrões e propriedades](#5-trait-dialect-métodos-abstratos-padrões-e-propriedades)
 6. [`dialect_of!`](#6-dialect_of)
+7. [AST: struct, enum sem dados com Display, `Vec` e pretty-print](#7-ast-struct-enum-sem-dados-com-display-vec-e-pretty-print)
+8. [AST: código real já portado (copie daqui)](#8-ast-código-real-já-portado-copie-daqui)
+9. [Parser: funções de parse](#9-parser-funções-de-parse)
 
 ---
 
@@ -76,7 +79,7 @@ public readonly record struct Location(long Line, long Column) : IDisplay, IComp
         {
             return;
         }
-        f.WriteStr(FormattableString.Invariant($" at Line: {Line}, Column: {Column}"));
+        f.Write($" at Line: {Line}, Column: {Column}");      // write!(f, ...) → f.Write($"...") (caso 30)
     }
 
     public override string ToString() => Formatter.Format(this);
@@ -286,3 +289,231 @@ if dialect_of!(self is PostgreSqlDialect | GenericDialect) { ... }
 ```csharp
 if (_dialect is PostgreSqlDialect or GenericDialect) { ... }
 ```
+
+## 7. AST: struct, enum sem dados com Display, `Vec` e pretty-print
+
+Regras: `convencoes.md` §13, casos 29 a 42.
+
+```rust
+// query.rs
+#[cfg_attr(feature = "visitor", visit(with = "visit_query"))]   // (exemplo de anotação de visitor)
+pub struct With {
+    /// Token for the `WITH` keyword
+    pub with_token: AttachedToken,
+    /// Whether the `WITH` is recursive (`WITH RECURSIVE`).
+    pub recursive: bool,
+    /// The list of CTEs declared by this `WITH` clause.
+    pub cte_tables: Vec<Cte>,
+}
+
+impl fmt::Display for With {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.write_str("WITH ")?;
+        if self.recursive {
+            f.write_str("RECURSIVE ")?;
+        }
+        display_comma_separated(&self.cte_tables).fmt(f)?;
+        Ok(())
+    }
+}
+
+/// Indicates whether a CTE is materialized or not.
+pub enum CteAsMaterialized {
+    /// The `WITH` statement specifies `AS MATERIALIZED` behavior
+    Materialized,
+    /// The `WITH` statement specifies `AS NOT MATERIALIZED` behavior
+    NotMaterialized,
+}
+
+impl fmt::Display for CteAsMaterialized {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            CteAsMaterialized::Materialized => { write!(f, "MATERIALIZED")?; }
+            CteAsMaterialized::NotMaterialized => { write!(f, "NOT MATERIALIZED")?; }
+        };
+        Ok(())
+    }
+}
+
+// trecho do Display de Select, com pretty-print:
+if let Some(ref selection) = self.selection {
+    SpaceOrNewline.fmt(f)?;
+    f.write_str("WHERE")?;
+    SpaceOrNewline.fmt(f)?;
+    Indent(selection).fmt(f)?;
+}
+indented_list(f, &self.projection)?;
+```
+
+```csharp
+using static SqlParser.Core.Ast.AstModule;   // display_separated, display_comma_separated...
+
+namespace SqlParser.Core.Ast;
+
+/// <summary>...</summary>
+/// <param name="WithToken">Token for the <c>WITH</c> keyword</param>
+/// <param name="Recursive">Whether the <c>WITH</c> is recursive (<c>WITH RECURSIVE</c>).</param>
+/// <param name="CteTables">The list of CTEs declared by this <c>WITH</c> clause.</param>
+public sealed record With(AttachedToken WithToken, bool Recursive, Sequence<Cte> CteTables) : IDisplay
+{
+    public void Fmt(Formatter f)
+    {
+        f.WriteStr("WITH ");
+        if (Recursive)
+        {
+            f.WriteStr("RECURSIVE ");
+        }
+        DisplayCommaSeparated(CteTables).Fmt(f);      // display_comma_separated(&x).fmt(f) → .Fmt(f) (repassa flags)
+    }
+
+    public override string ToString() => Formatter.Format(this);
+}
+
+/// <summary>Indicates whether a CTE is materialized or not.</summary>
+// Enum sem dados COM Display → records (caso 37), não enum C#.
+public abstract record CteAsMaterialized : IDisplay
+{
+    /// <summary>The <c>WITH</c> statement specifies <c>AS MATERIALIZED</c> behavior</summary>
+    public sealed record Materialized : CteAsMaterialized;
+    /// <summary>The <c>WITH</c> statement specifies <c>AS NOT MATERIALIZED</c> behavior</summary>
+    public sealed record NotMaterialized : CteAsMaterialized;
+
+    public void Fmt(Formatter f)
+    {
+        switch (this)
+        {
+            case Materialized:
+                f.Write($"MATERIALIZED");
+                break;
+            case NotMaterialized:
+                f.Write($"NOT MATERIALIZED");
+                break;
+            default:
+                throw new InvalidOperationException($"Variante de CteAsMaterialized não tratada: {GetType().Name}");
+        }
+    }
+
+    public sealed override string ToString() => Formatter.Format(this);
+}
+
+// trecho do Fmt de Select:
+if (Selection is { } selection)                       // if let Some(ref selection) = self.selection
+{
+    SpaceOrNewline.Instance.Fmt(f);
+    f.WriteStr("WHERE");
+    SpaceOrNewline.Instance.Fmt(f);
+    new Indent<Expr>(selection).Fmt(f);               // Indent(selection).fmt(f)
+}
+DisplayUtils.IndentedList(f, Projection);            // indented_list(f, &self.projection)
+```
+
+Construção (no parser e nos testes): `new With(WithToken: AttachedToken.From(tok), Recursive: false, CteTables: ctes.ToSequence())`, e `new CteAsMaterialized.Materialized()`.
+
+## 8. AST: código real já portado (copie daqui)
+
+Arquivos de referência, já compilados:
+
+| Arquivo | Mostra |
+|---|---|
+| `src/SqlParser.Core/Ast/Mod/Ident.cs` | `PartialEq`/`Hash` customizados que ignoram `Span`; construtor extra para `fn new`; `assert!`; `match` com guarda em `Display`; qualificação `Ast.Value` (caso 38) |
+| `src/SqlParser.Core/Ast/Mod/ObjectName.cs` | Tuple struct (`Value`); enum com dados + `Display` em `switch`; `impl From`; `display_separated`/`display_comma_separated` com `using static` |
+| `src/SqlParser.Core/Ast/Mod/Parens.cs` | Struct genérico; `Deref` não traduzido |
+| `src/SqlParser.Core/Ast/Mod/AstModule.cs` | Funções livres do módulo (`partial class AstModule`); `DisplaySeparated<T>` |
+| `src/SqlParser.Core/Ast/Helpers/AttachedToken.cs` | Igualdade "sempre verdadeira" (o campo some da igualdade dos records que o contêm) |
+| `src/SqlParser.Core/DisplayUtils/*.cs` | `Indent`, `NewLine`, `SpaceOrNewline`, `DisplayCommaSeparated` e `DisplayUtils.IndentedList` (pretty-print) |
+
+## 9. Parser: funções de parse
+
+Regras: `convencoes.md` §13, casos 43 a 54. Código real de referência: `src/SqlParser.Core/Parser/Parser.cs` e `Parser.TokenHelpers.cs`.
+
+```rust
+/// Parses `BETWEEN <low> AND <high>`, assuming the `BETWEEN` keyword was already consumed.
+pub fn parse_between(&mut self, expr: Expr, negated: bool) -> Result<Expr, ParserError> {
+    // Stop parsing subexpressions for <low> and <high> on tokens with
+    // precedence lower than that of `BETWEEN`, such as `AND`, `IS`, etc.
+    let low = self.parse_subexpr(self.dialect.prec_value(Precedence::Between))?;
+    self.expect_keyword_is(Keyword::AND)?;
+    let high = self.parse_subexpr(self.dialect.prec_value(Precedence::Between))?;
+    Ok(Expr::Between {
+        expr: Box::new(expr),
+        negated,
+        low: Box::new(low),
+        high: Box::new(high),
+    })
+}
+
+pub fn parse_statement(&mut self) -> Result<Statement, ParserError> {
+    let _guard = self.recursion_counter.try_decrease()?;
+    // allow the dialect to override statement parsing
+    if let Some(statement) = self.dialect.parse_statement(self) {
+        return statement;
+    }
+    let next_token = self.next_token();
+    match &next_token.token {
+        Token::Word(w) => match w.keyword {
+            Keyword::KILL => self.parse_kill(),
+            Keyword::SELECT | Keyword::WITH | Keyword::VALUES | Keyword::FROM => {
+                self.prev_token();
+                self.parse_query().map(Statement::Query)
+            }
+            _ => self.expected("an SQL statement", next_token),
+        },
+        Token::LParen => { self.prev_token(); self.parse_query().map(Statement::Query) }
+        _ => self.expected("an SQL statement", next_token),
+    }
+}
+
+let limit = self.maybe_parse(|p| p.parse_literal_uint())?;   // Option<u64>
+let name = if self.parse_keywords(&[Keyword::IF, Keyword::NOT, Keyword::EXISTS]) { .. }
+```
+
+```csharp
+/// <summary>Parses <c>BETWEEN &lt;low&gt; AND &lt;high&gt;</c>, assuming the <c>BETWEEN</c> keyword was already consumed.</summary>
+public Expr ParseBetween(Expr expr, bool negated)
+{
+    // Stop parsing subexpressions for <low> and <high> on tokens with
+    // precedence lower than that of `BETWEEN`, such as `AND`, `IS`, etc.
+    var low = ParseSubexpr(_dialect.PrecValue(Precedence.Between));
+    ExpectKeywordIs(Keyword.AND);
+    var high = ParseSubexpr(_dialect.PrecValue(Precedence.Between));
+    return new Expr.Between(Expr: expr, Negated: negated, Low: low, High: high);
+}
+
+public Statement ParseStatement()
+{
+    using var _guard = _recursionCounter.TryDecrease();
+    // allow the dialect to override statement parsing
+    if (_dialect.ParseStatement(this) is { } statement)
+    {
+        return statement;
+    }
+    var nextToken = NextToken();
+    switch (nextToken.Token)
+    {
+        case Token.Word { Value: var w }:
+            switch (w.Keyword)
+            {
+                case Keyword.KILL:
+                    return ParseKill();
+                case Keyword.SELECT or Keyword.WITH or Keyword.VALUES or Keyword.FROM:
+                    PrevToken();
+                    return new Statement.Query(ParseQuery());          // .map(Statement::Query)
+                default:
+                    return Expected<Statement>("an SQL statement", nextToken);
+            }
+        case Token.LParen:
+            PrevToken();
+            return new Statement.Query(ParseQuery());
+        default:
+            return Expected<Statement>("an SQL statement", nextToken);
+    }
+}
+
+var limit = MaybeParseValue(p => p.ParseLiteralUint());              // ulong? (caso 48)
+var name = ParseKeywords(Keyword.IF, Keyword.NOT, Keyword.EXISTS) ? ... : ...;   // params (caso 50)
+```
+
+Observações:
+- `Box::new(x)` some.
+- A construção usa argumentos nomeados, na ordem dos campos do Rust.
+- O nome do campo do `Expr::Between` é `expr`. Na variante aninhada `Expr.Between`, o parâmetro `Expr` tem o mesmo nome do tipo base, o que é permitido: o CS0542 só vale para o nome do **próprio** tipo, `Between`.

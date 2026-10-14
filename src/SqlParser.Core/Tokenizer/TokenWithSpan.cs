@@ -48,7 +48,7 @@ namespace SqlParser.Core;
 /// </example>
 /// <param name="Token">The token value.</param>
 /// <param name="Span">The span covering the token in the input.</param>
-public sealed record TokenWithSpan(Token Token, Span Span) : IDisplay
+public sealed partial record TokenWithSpan(Token Token, Span Span) : IDisplay
 {
     // fn new(token, span) -> Self → o próprio construtor primário (convencoes.md §13 #7).
 

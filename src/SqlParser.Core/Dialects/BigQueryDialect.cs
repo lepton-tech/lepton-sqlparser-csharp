@@ -18,6 +18,8 @@
 // Portado para C# a partir de sqlparser-rs v0.63.0, src/dialect/bigquery.rs.
 // Modificado: tradução de Rust para C#.
 
+using SqlParser.Core.Ast;
+
 namespace SqlParser.Core.Dialects;
 
 /// <summary>
@@ -29,7 +31,7 @@ public class BigQueryDialect : Dialect
     /// These keywords are disallowed as column identifiers. Such that
     /// <c>SELECT 5 AS &lt;col&gt; FROM T</c> is rejected by BigQuery.
     /// </summary>
-    // Constante de módulo no Rust (antes do struct); usada só por is_column_alias (Fase 2).
+    // Constante de módulo no Rust (antes do struct); usada só por is_column_alias.
     private static readonly Keyword[] ReservedForColumnAlias =
     {
         Keyword.WITH,
@@ -49,7 +51,22 @@ public class BigQueryDialect : Dialect
         Keyword.END,
     };
 
-    // PENDENTE (Fase 2, depende de Parser/AST): parse_statement (bigquery.rs:50).
+    public override Statement? ParseStatement(Parser parser)
+    {
+        if (parser.ParseKeyword(Keyword.BEGIN))
+        {
+            if (parser.PeekKeyword(Keyword.TRANSACTION)
+                || parser.PeekTokenRef().Token is Token.SemiColon
+                || parser.PeekTokenRef().Token is Token.EOF)
+            {
+                parser.PrevToken();
+                return null;
+            }
+            return parser.ParseBeginExceptionEnd();
+        }
+
+        return null;
+    }
 
     /// <summary>
     /// See <see href="https://cloud.google.com/bigquery/docs/reference/standard-sql/lexical#identifiers"/>
@@ -132,7 +149,7 @@ public class BigQueryDialect : Dialect
     // See <https://cloud.google.com/bigquery/docs/reference/standard-sql/query-syntax#group_by_clause>
     public override bool SupportsGroupByExpr => true;
 
-    // PENDENTE (Fase 2, depende de Parser/AST): is_column_alias (bigquery.rs:162).
+    public override bool IsColumnAlias(Keyword kw, Parser parser) => !ReservedForColumnAlias.Contains(kw);
 
     public override bool SupportsPipeOperator => true;
 

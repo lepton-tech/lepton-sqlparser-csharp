@@ -18,6 +18,8 @@
 // Portado para C# a partir de sqlparser-rs v0.63.0, src/dialect/spark.rs.
 // Modificado: tradução de Rust para C#.
 
+using SqlParser.Core.Ast;
+
 namespace SqlParser.Core.Dialects;
 
 /// <summary>
@@ -110,5 +112,29 @@ public class SparkSqlDialect : Dialect
     /// </summary>
     public override bool SupportsPipeOperator => true;
 
-    // PENDENTE (Fase 2, depende de Parser/AST): parse_infix (spark.rs:136).
+    /// <summary>Parse the <c>DIV</c> keyword as integer division.</summary>
+    /// <remarks>
+    /// Example: <c>SELECT 10 DIV 3</c> returns <c>3</c>.
+    /// <para>
+    /// See <see href="https://spark.apache.org/docs/latest/sql-ref-functions-builtin-math.html"/>
+    /// </para>
+    /// </remarks>
+    public override Expr? ParseInfix(Parser parser, Expr expr, byte precedence)
+    {
+        if (parser.ParseKeyword(Keyword.DIV))
+        {
+            var left = expr;
+            // Rust: `match parser.parse_subexpr(precedence) { Ok(expr) => expr, Err(e) => return Some(Err(e)) }`:
+            // o erro propaga como exceção (convencoes.md §13, caso 53).
+            var right = parser.ParseSubexpr(precedence);
+            return new Expr.BinaryOp(
+                Left: left,
+                Op: new BinaryOperator.MyIntegerDivide(),
+                Right: right);
+        }
+        else
+        {
+            return null;
+        }
+    }
 }

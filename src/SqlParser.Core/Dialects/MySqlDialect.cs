@@ -18,6 +18,8 @@
 // Portado para C# a partir de sqlparser-rs v0.63.0, src/dialect/mysql.rs.
 // Modificado: tradução de Rust para C#.
 
+using SqlParser.Core.Ast;
+
 namespace SqlParser.Core.Dialects;
 
 /// <summary>
@@ -25,7 +27,7 @@ namespace SqlParser.Core.Dialects;
 /// </summary>
 public class MySqlDialect : Dialect
 {
-    // Constante de módulo no Rust (antes do struct); usada só por is_table_factor_alias (Fase 2).
+    // Constante de módulo no Rust (antes do struct); usada só por is_table_factor_alias.
     private static readonly Keyword[] ReservedForTableAliasMysql =
     {
         Keyword.USE,
@@ -74,9 +76,41 @@ public class MySqlDialect : Dialect
     /// </summary>
     public override bool SupportsMultilineCommentHints => true;
 
-    // PENDENTE (Fase 2, depende de Parser/AST): parse_infix (mysql.rs:97).
+    public override Expr? ParseInfix(Parser parser, Expr expr, byte precedence)
+    {
+        // Parse DIV as an operator
+        if (parser.ParseKeyword(Keyword.DIV))
+        {
+            var left = expr;
+            // Rust: `match parser.parse_subexpr(precedence) { Ok(expr) => expr, Err(e) => return Some(Err(e)) }`:
+            // o erro propaga como exceção (convencoes.md §13, caso 53).
+            var right = parser.ParseSubexpr(precedence);
+            return new Expr.BinaryOp(
+                Left: left,
+                Op: new BinaryOperator.MyIntegerDivide(),
+                Right: right);
+        }
+        else
+        {
+            return null;
+        }
+    }
 
-    // PENDENTE (Fase 2, depende de Parser/AST): parse_statement (mysql.rs:120).
+    public override Statement? ParseStatement(Parser parser)
+    {
+        if (parser.ParseKeywords(Keyword.LOCK, Keyword.TABLES))
+        {
+            return ParseLockTables(parser);
+        }
+        else if (parser.ParseKeywords(Keyword.UNLOCK, Keyword.TABLES))
+        {
+            return ParseUnlockTables(parser);
+        }
+        else
+        {
+            return null;
+        }
+    }
 
     public override bool RequireIntervalQualifier => true;
 
@@ -94,7 +128,10 @@ public class MySqlDialect : Dialect
 
     public override bool SupportsUserHostGrantee => true;
 
-    // PENDENTE (Fase 2, depende de Parser/AST): is_table_factor_alias (mysql.rs:152).
+    public override bool IsTableFactorAlias(bool @explicit, Keyword kw, Parser parser) =>
+        @explicit
+            || (!Keywords.ReservedForTableAlias.Contains(kw)
+                && !ReservedForTableAliasMysql.Contains(kw));
 
     public override bool SupportsTableHints => true;
 
@@ -147,6 +184,65 @@ public class MySqlDialect : Dialect
 
     public override bool SupportsLeftAssociativeJoinsWithoutParens => false;
 
-    // PENDENTE (Fase 2, depende de Parser/AST): funções livres de mysql.rs: parse_lock_tables (mysql.rs:232),
-    // parse_lock_table (mysql.rs:238), parse_lock_tables_type (mysql.rs:252) e parse_unlock_tables (mysql.rs:272).
+    // Rust: funções livres de mysql.rs (depois do `impl Dialect`) → membros `static` do tipo do arquivo
+    // (convencoes.md §13, caso 5); `fn` privada → `internal` (casos 20 e 52).
+
+    /// <summary>
+    /// <c>LOCK TABLES</c>
+    /// <see href="https://dev.mysql.com/doc/refman/8.0/en/lock-tables.html"/>
+    /// </summary>
+    internal static Statement ParseLockTables(Parser parser)
+    {
+        var tables = parser.ParseCommaSeparated<LockTable>(ParseLockTable);
+        return new Statement.LockTables(Tables: tables);
+    }
+
+    // tbl_name [[AS] alias] lock_type
+    internal static LockTable ParseLockTable(Parser parser)
+    {
+        var table = parser.ParseIdentifier();
+        var alias =
+            parser.ParseOptionalAlias(Keyword.READ, Keyword.WRITE, Keyword.LOW_PRIORITY);
+        var lockType = ParseLockTablesType(parser);
+
+        return new LockTable(
+            Table: table,
+            Alias: alias,
+            LockType: lockType);
+    }
+
+    // READ [LOCAL] | [LOW_PRIORITY] WRITE
+    internal static LockTableType ParseLockTablesType(Parser parser)
+    {
+        if (parser.ParseKeyword(Keyword.READ))
+        {
+            if (parser.ParseKeyword(Keyword.LOCAL))
+            {
+                return new LockTableType.Read(Local: true);
+            }
+            else
+            {
+                return new LockTableType.Read(Local: false);
+            }
+        }
+        else if (parser.ParseKeyword(Keyword.WRITE))
+        {
+            return new LockTableType.Write(
+                LowPriority: false);
+        }
+        else if (parser.ParseKeywords(Keyword.LOW_PRIORITY, Keyword.WRITE))
+        {
+            return new LockTableType.Write(LowPriority: true);
+        }
+        else
+        {
+            return parser.ExpectedRef<LockTableType>("an lock type in LOCK TABLES", parser.PeekTokenRef());
+        }
+    }
+
+    /// <summary>
+    /// UNLOCK TABLES
+    /// <see href="https://dev.mysql.com/doc/refman/8.0/en/lock-tables.html"/>
+    /// </summary>
+    internal static Statement ParseUnlockTables(Parser _parser) => new Statement.UnlockTables();
 }

@@ -26,7 +26,7 @@ namespace SqlParser.Core.Dialects;
 public class PostgreSqlDialect : Dialect
 {
     // Constantes de módulo no Rust (antes e depois do struct). RESERVED_EXCLUSIONS_FOR_TABLE_ALIAS,
-    // BRACKET_PREC e COLLATE_PREC são usadas só por is_table_alias/get_next_precedence (Fase 2).
+    // BRACKET_PREC e COLLATE_PREC são usadas só por is_table_alias/get_next_precedence.
 
     /// <summary>
     /// Keywords in <c>keywords::RESERVED_FOR_TABLE_ALIAS</c> because of other dialects, yet are safe for aliasing in PostgreSQL.
@@ -91,7 +91,9 @@ public class PostgreSqlDialect : Dialect
         }
     }
 
-    // PENDENTE (Fase 2, depende de Parser/AST): is_table_alias (postgresql.rs:108).
+    public override bool IsTableAlias(Keyword kw, Parser parser) =>
+        !Keywords.ReservedForTableAlias.Contains(kw)
+            || ReservedExclusionsForTableAlias.Contains(kw);
 
     /// <summary>
     /// See <see href="https://www.postgresql.org/docs/current/sql-createoperator.html"/>
@@ -114,7 +116,48 @@ public class PostgreSqlDialect : Dialect
             or '`'
             or '?';
 
-    // PENDENTE (Fase 2, depende de Parser/AST): get_next_precedence (postgresql.rs:136).
+    public override byte? GetNextPrecedence(Parser parser)
+    {
+        var token = parser.PeekTokenRef();
+        // debug!("get_next_precedence() {token:?}"); (log não traduzido, convencoes.md §13, caso 44)
+
+        // we only return some custom value here when the behaviour (not merely the numeric value) differs
+        // from the default implementation
+        switch (token.Token)
+        {
+            case Token.Word { Value: var w }
+                when w.Keyword == Keyword.COLLATE && !parser.InColumnDefinitionState():
+                return CollatePrec;
+            case Token.LBracket:
+                return BracketPrec;
+            case Token.Arrow
+                or Token.LongArrow
+                or Token.HashArrow
+                or Token.HashLongArrow
+                or Token.AtArrow
+                or Token.ArrowAt
+                or Token.HashMinus
+                or Token.AtQuestion
+                or Token.AtAt
+                or Token.Question
+                or Token.QuestionAnd
+                or Token.QuestionPipe
+                or Token.ExclamationMark
+                or Token.Overlap
+                or Token.CaretAt
+                or Token.StringConcat
+                or Token.Sharp
+                or Token.ShiftRight
+                or Token.ShiftLeft
+                or Token.CustomBinaryOperator:
+                return PgOtherPrec;
+            // lowest prec to prevent it from turning into a binary op
+            case Token.Colon:
+                return PrecUnknown;
+            default:
+                return null;
+        }
+    }
 
     public override bool SupportsFilterDuringAggregation => true;
 

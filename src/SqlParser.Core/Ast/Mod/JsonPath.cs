@@ -1,0 +1,76 @@
+// Licensed to the Apache Software Foundation (ASF) under one
+// or more contributor license agreements.  See the NOTICE file
+// distributed with this work for additional information
+// regarding copyright ownership.  The ASF licenses this file
+// to you under the Apache License, Version 2.0 (the
+// "License"); you may not use this file except in compliance
+// with the License.  You may obtain a copy of the License at
+//
+//   http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+//
+// Portado para C# a partir de sqlparser-rs v0.63.0, src/ast/mod.rs.
+// Modificado: tradução de Rust para C#.
+
+namespace SqlParser.Core.Ast;
+
+/// <summary>A JSON path.</summary>
+/// <remarks>
+/// See <see href="https://docs.snowflake.com/en/user-guide/querying-semistructured"/>.
+/// See <see href="https://docs.databricks.com/en/sql/language-manual/sql-ref-json-path-expression.html"/>.
+/// </remarks>
+/// <param name="Path">Sequence of path elements that form the JSON path.</param>
+public sealed partial record JsonPath(Sequence<JsonPathElem> Path) : IDisplay
+{
+    public void Fmt(Formatter f)
+    {
+        for (var i = 0; i < Path.Count; i++)
+        {
+            var elem = Path[i];
+            switch (elem)
+            {
+                case JsonPathElem.Dot { Key: var key, Quoted: var quoted }:
+                {
+                    if (i == 0)
+                    {
+                        f.Write($":");
+                    }
+                    else
+                    {
+                        f.Write($".");
+                    }
+
+                    if (quoted)
+                    {
+                        f.Write($"\"{Value.EscapeDoubleQuoteString(key)}\"");
+                    }
+                    else
+                    {
+                        f.Write($"{key}");
+                    }
+                    break;
+                }
+                case JsonPathElem.Bracket { Key: var key }:
+                {
+                    f.Write($"[{key}]");
+                    break;
+                }
+                case JsonPathElem.ColonBracket { Key: var key }:
+                {
+                    f.Write($":[{key}]");
+                    break;
+                }
+                default:
+                    throw new InvalidOperationException($"Variante de JsonPathElem não tratada: {elem.GetType().Name}");
+            }
+        }
+    }
+
+    public override string ToString() => Formatter.Format(this);
+}

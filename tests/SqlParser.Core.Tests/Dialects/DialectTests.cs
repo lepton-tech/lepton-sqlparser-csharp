@@ -139,37 +139,74 @@ public class DialectTests
         }
     }
 
-    [Fact(Skip = "PENDENTE: depende do Parser (Fase 2)")]
+    /// <summary>
+    /// Wrapper for a dialect. In a real-world example, this wrapper
+    /// would tweak the behavior of the dialect. For the test case,
+    /// it wraps all methods unaltered.
+    /// </summary>
+    /// <remarks>
+    /// Rust: <c>#[derive(Debug)] struct WrappedDialect(MySqlDialect);</c>, declarado dentro da função de
+    /// teste (em C#, classe privada aninhada). O wrapper herda de <see cref="MySqlDialect"/> para que
+    /// <c>is MySqlDialect</c> continue verdadeiro, o equivalente ao <c>fn dialect()</c> que devolve o
+    /// <c>TypeId</c> do dialeto interno (convencoes.md §13, caso 8). Consequência: os membros que o
+    /// Rust não repassa caem no padrão do trait, e aqui caem no <see cref="MySqlDialect"/> (DIV-002).
+    /// </remarks>
+    private sealed class WrappedDialect : MySqlDialect
+    {
+        /// <summary>Rust: campo <c>.0</c>.</summary>
+        private readonly MySqlDialect _inner;
+
+        public WrappedDialect(MySqlDialect inner) => _inner = inner;
+
+        // fn dialect(&self) -> std::any::TypeId { self.0.dialect() }: sem tradução (caso 8; ver acima).
+
+        public override bool IsIdentifierStart(char ch) => _inner.IsIdentifierStart(ch);
+
+        public override bool IsDelimitedIdentifierStart(char ch) => _inner.IsDelimitedIdentifierStart(ch);
+
+        public override bool IsNestedDelimitedIdentifierStart(char ch) => _inner.IsNestedDelimitedIdentifierStart(ch);
+
+        public override (char QuoteStart, char? NestedQuoteStart)? PeekNestedDelimitedIdentifierQuotes(PeekableChars chars) =>
+            _inner.PeekNestedDelimitedIdentifierQuotes(chars);
+
+        public override char? IdentifierQuoteStyle(string identifier) => _inner.IdentifierQuoteStyle(identifier);
+
+        public override bool SupportsStringLiteralBackslashEscape => _inner.SupportsStringLiteralBackslashEscape;
+
+        public override bool SupportsFilterDuringAggregation => _inner.SupportsFilterDuringAggregation;
+
+        public override bool SupportsWithinAfterArrayAggregation => _inner.SupportsWithinAfterArrayAggregation;
+
+        public override bool SupportsGroupByExpr => _inner.SupportsGroupByExpr;
+
+        public override bool SupportsInEmptyList => _inner.SupportsInEmptyList;
+
+        public override bool SupportsInUnparenthesizedExpr => _inner.SupportsInUnparenthesizedExpr;
+
+        public override bool ConvertTypeBeforeValue => _inner.ConvertTypeBeforeValue;
+
+        public override Ast.Expr? ParsePrefix(Parser parser) => _inner.ParsePrefix(parser);
+
+        public override Ast.Expr? ParseInfix(Parser parser, Ast.Expr expr, byte precedence) =>
+            _inner.ParseInfix(parser, expr, precedence);
+
+        public override byte? GetNextPrecedence(Parser parser) => _inner.GetNextPrecedence(parser);
+
+        public override Ast.Statement? ParseStatement(Parser parser) => _inner.ParseStatement(parser);
+
+        public override bool IsIdentifierPart(char ch) => _inner.IsIdentifierPart(ch);
+    }
+
+    [Fact]
     public void parse_with_wrapped_dialect()
     {
-        // Esboço da tradução, para a Fase 2. No Rust, WrappedDialect(MySqlDialect) delega todos os
-        // membros ao dialeto interno e sobrescreve `dialect()` para devolver o TypeId do MySqlDialect.
-        // Em C# (convencoes.md §13), o wrapper herda de MySqlDialect (assim `is MySqlDialect` continua
-        // verdadeiro) e delega cada membro a uma instância interna:
-        //
-        //   private sealed class WrappedDialect : MySqlDialect
-        //   {
-        //       private readonly MySqlDialect _inner;
-        //       public WrappedDialect(MySqlDialect inner) => _inner = inner;
-        //       public override bool IsIdentifierStart(char ch) => _inner.IsIdentifierStart(ch);
-        //       public override bool IsDelimitedIdentifierStart(char ch) => _inner.IsDelimitedIdentifierStart(ch);
-        //       public override bool IsNestedDelimitedIdentifierStart(char ch) => _inner.IsNestedDelimitedIdentifierStart(ch);
-        //       // peek_nested_delimited_identifier_quotes: pendente (depende do tokenizer)
-        //       public override char? IdentifierQuoteStyle(string identifier) => _inner.IdentifierQuoteStyle(identifier);
-        //       public override bool SupportsStringLiteralBackslashEscape => _inner.SupportsStringLiteralBackslashEscape;
-        //       public override bool SupportsFilterDuringAggregation => _inner.SupportsFilterDuringAggregation;
-        //       public override bool SupportsWithinAfterArrayAggregation => _inner.SupportsWithinAfterArrayAggregation;
-        //       public override bool SupportsGroupByExpr => _inner.SupportsGroupByExpr;
-        //       public override bool SupportsInEmptyList => _inner.SupportsInEmptyList;
-        //       public override bool SupportsInUnparenthesizedExpr => _inner.SupportsInUnparenthesizedExpr;
-        //       public override bool ConvertTypeBeforeValue => _inner.ConvertTypeBeforeValue;
-        //       // parse_prefix, parse_infix, get_next_precedence, parse_statement: Fase 2
-        //       public override bool IsIdentifierPart(char ch) => _inner.IsIdentifierPart(ch);
-        //   }
-        //
-        //   var statement = """SELECT 'Wayne\'s World'""";
-        //   var res1 = Parser.ParseSql(new MySqlDialect(), statement);
-        //   var res2 = Parser.ParseSql(new WrappedDialect(new MySqlDialect()), statement);
-        //   Assert.Equal(res1, res2);   // res1.is_ok(): ParseSql não lançou
+        // #[allow(clippy::needless_raw_string_hashes)]: não traduzido.
+        // r#"SELECT 'Wayne\'s World'"# → string verbatim (a barra invertida é literal).
+        var statement = @"SELECT 'Wayne\'s World'";
+        // Parser::parse_sql devolve Result; em C#, ParseSql lança em caso de erro, e
+        // `assert!(res1.is_ok())` equivale a a chamada não lançar.
+        var res1 = Parser.ParseSql(new MySqlDialect(), statement);
+        var res2 = Parser.ParseSql(new WrappedDialect(new MySqlDialect()), statement);
+        Assert.Equal(res1, res2);
     }
 }

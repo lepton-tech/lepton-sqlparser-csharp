@@ -33,6 +33,27 @@ internal static class RustChar
     public static char ToAsciiUppercase(char c) => IsAsciiLowercase(c) ? (char)(c - ('a' - 'A')) : c;
 
     /// <summary>
+    /// Rust: <c>str::eq_ignore_ascii_case</c>: igualdade que ignora maiúsculas/minúsculas só em
+    /// <c>a-z</c>/<c>A-Z</c>; os demais caracteres precisam ser idênticos (diferente de
+    /// <c>StringComparison.OrdinalIgnoreCase</c>, que também dobra letras fora do ASCII).
+    /// </summary>
+    public static bool EqIgnoreAsciiCase(string a, string b)
+    {
+        if (a.Length != b.Length)
+        {
+            return false;
+        }
+        for (var i = 0; i < a.Length; i++)
+        {
+            if (ToAsciiUppercase(a[i]) != ToAsciiUppercase(b[i]))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /// <summary>
     /// Rust: <c>char::to_digit(radix)</c> (radix 2..=36): o valor do dígito ou <c>null</c>.
     /// Só dígitos ASCII e letras ASCII contam, como no Rust.
     /// </summary>
