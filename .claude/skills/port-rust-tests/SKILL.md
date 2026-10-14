@@ -36,6 +36,31 @@ Mantenha a **ordem** dos testes igual à do arquivo Rust. O upstream acrescenta 
 | Helper local `fn compare(...)` dentro do `mod tests` | Método `private static` na mesma classe, mesmo nome em PascalCase |
 | Helpers de `test_utils.rs` (`verified_stmt`, `all_dialects()`, …) | Métodos em `TestUtils/`, com nome PascalCase (`VerifiedStmt`, `AllDialects()`) e comportamento idêntico ao Rust |
 
+### Padrões dos testes de integração (`tests/sqlparser_*.rs`)
+
+A API de teste já portada fica em `tests/SqlParser.Core.Tests/TestUtils/` (`TestedDialects`, `TestUtils`). Use-a sempre.
+
+| Rust | C# |
+|---|---|
+| `all_dialects().verified_stmt(sql)` | `TestUtils.AllDialects().VerifiedStmt(sql)` |
+| `all_dialects_where(\|d\| d.supports_x())` | `TestUtils.AllDialectsWhere(d => d.SupportsX)` |
+| `TestedDialects::new(vec![Box::new(GenericDialect {}), ..])` | `new TestedDialects(new List<Dialect> { new GenericDialect(), .. })` |
+| `TestedDialects::new_with_options(.., ParserOptions::new().with_trailing_commas(true))` | `TestedDialects.NewWithOptions(.., new ParserOptions().WithTrailingCommas(true))` |
+| Funções-atalho do arquivo (`fn verified_stmt(sql) -> Statement { all_dialects().verified_stmt(sql) }`, `fn pg() -> TestedDialects { .. }`) | Métodos `private static` da classe de teste, com nome mecânico (`VerifiedStmt`, `Pg()`) |
+| `one_statement_parses_to(sql, canonical)` / `verified_query` / `verified_only_select` / `verified_expr` / `expr_parses_to` | `OneStatementParsesTo` / `VerifiedQuery` / `VerifiedOnlySelect` / `VerifiedExpr` / `ExprParsesTo` |
+| `let res = parse_sql_statements(sql); assert_eq!(ParserError::ParserError("msg".to_string()), res.unwrap_err());` | `var ex = Assert.Throws<ParserException>(() => ParseSqlStatements(sql)); Assert.Equal(new ParserError.ParserErrorValue("msg"), ex.Error);` |
+| `assert!(parse_sql_statements(sql).is_err())` | `Assert.Throws<ParserException>(() => ParseSqlStatements(sql));` |
+| `match stmt { Statement::Query(q) => .., _ => unreachable!() }` | `var q = Assert.IsType<Statement.Query>(stmt).Value;` ou `switch` com `default: throw ..` |
+| AST esperada: `Expr::BinaryOp { left: Box::new(Expr::Identifier(Ident::new("a"))), op: BinaryOperator::Eq, right: .. }` | `new Expr.BinaryOp(Left: new Expr.Identifier(new Ident("a")), Op: new BinaryOperator.Eq(), Right: ..)`. Abra o arquivo C# do record para ver os nomes exatos; exceções em `docs/port/nomes.md` |
+| `Expr::value(number("1"))`, `Value::SingleQuotedString(..)` | `Expr.MakeValue(TestUtils.Number("1"))`, `new Value.SingleQuotedString(..)` |
+| `vec![a, b]` / `vec![]` / `Box::new(x)` | `Sequence.Of(a, b)` / `Sequence<T>.Empty` / `x` |
+| `#[should_panic]` | `Assert.ThrowsAny<Exception>(..)` |
+
+**Teste que falha depois de portado:**
+- Não altere o `src/` (vários agentes trabalham em paralelo).
+- Registre a falha nas suas notas, com o teste, a asserção, a saída obtida × esperada e o arquivo/função suspeita no Core.
+- Deixe o teste **falhando** (sem `Skip`), para que a falha continue visível até ser corrigida.
+
 **Strings Rust com escapes** (`"\u{1F600}"`, `"\x41"`, `"\'"`): converta com cuidado para o equivalente C#. `"\u{1F600}"` (fora do BMP) vira `"\U0001F600"`. Um erro aqui produz um teste "verde" que testa outra coisa.
 
 ## Quando o teste portado falha
