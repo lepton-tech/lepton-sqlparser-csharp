@@ -24,7 +24,7 @@ namespace SqlParser.Core.Ast;
 
 /// <summary>A <c>CSV</c> option in <c>COPY</c> statement before PostgreSQL version 9.0.</summary>
 /// <remarks><see href="https://www.postgresql.org/docs/8.4/sql-copy.html"/></remarks>
-public abstract record CopyLegacyCsvOption : IDisplay
+public abstract partial record CopyLegacyCsvOption : IDisplay
 {
     /// <summary>HEADER</summary>
     public sealed record Header : CopyLegacyCsvOption;

@@ -41,7 +41,8 @@ git -C upstream/sqlparser-rs show --stat --format="%h %s" <hash>
 | `src/keywords.rs` | keywords | Rodar `pwsh tools/codegen/Generate-Keywords.ps1` (nunca editar `Keywords.g.cs` à mão) |
 | `src/tokenizer.rs` | tokenizer | Portar o diff em `src/SqlParser.Core/Tokenizer/` |
 | `src/dialect/*.rs` | dialetos | Portar. Atenção a flags `supports_*` novas ou renomeadas |
-| `src/ast/**` | AST | Portar a mudança de tipo/campo/variante e ajustar o `Display` |
+| `src/ast/**` | AST | Portar a mudança de tipo/campo/variante e ajustar o `Display`. Tipo novo é `partial`. Depois, rodar `pwsh tools/codegen/Generate-Visitor.ps1`: ele confere a AST C# contra o Rust (campos, ordem, `visit(with)`) e regenera o visitor |
+| `src/ast/visitor.rs`, `derive/src/visit.rs` | visitor | Portar a mudança em `Ast/Visitor/*.cs` (à mão) ou no gerador `tools/codegen/VisitorGen` (derive) e regenerar (`docs/adr/0007-visitor.md`) |
 | `src/parser/**` | parser | Portar o diff da(s) função(ões) |
 | só `tests/**` | testes | Portar os testes novos (skill `port-rust-tests`) |
 | `docs/`, `.github/`, `Cargo.toml`, `changelog/`, `fuzz/` | infra | Normalmente "não aplicável". Registrar mesmo assim |

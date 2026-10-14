@@ -41,7 +41,7 @@ namespace SqlParser.Core.Ast;
 /// </code>
 /// </summary>
 // Enum sem dados com Display: records (convencoes.md §13, caso 37).
-public abstract record UserDefinedTypeStorage : IDisplay
+public abstract partial record UserDefinedTypeStorage : IDisplay
 {
     /// <summary>No compression or out-of-line storage: <c>STORAGE = plain</c></summary>
     public sealed record Plain : UserDefinedTypeStorage;

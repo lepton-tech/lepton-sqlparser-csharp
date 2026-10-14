@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Password specification variants used in user-related statements.</summary>
-public abstract record Password
+public abstract partial record Password
 {
     /// <summary>A concrete password expression.</summary>
     /// <remarks>

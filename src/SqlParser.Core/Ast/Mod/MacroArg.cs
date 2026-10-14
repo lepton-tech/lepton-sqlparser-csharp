@@ -27,7 +27,7 @@ namespace SqlParser.Core.Ast;
 /// </remarks>
 /// <param name="Name">The argument name.</param>
 /// <param name="DefaultExpr">Optional default expression for the argument.</param>
-public sealed record MacroArg(Ident Name, Expr? DefaultExpr) : IDisplay
+public sealed partial record MacroArg(Ident Name, Expr? DefaultExpr) : IDisplay
 {
     /// <summary>Returns an argument with name.</summary>
     /// <remarks>Rust: <c>fn new(name: &amp;str) -&gt; Self</c> (convencoes.md §13, caso 7).</remarks>

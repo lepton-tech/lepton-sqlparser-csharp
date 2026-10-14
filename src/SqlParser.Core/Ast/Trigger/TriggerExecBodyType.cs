@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Types of trigger body execution body.</summary>
-public abstract record TriggerExecBodyType : IDisplay
+public abstract partial record TriggerExecBodyType : IDisplay
 {
     /// <summary>Execute a function</summary>
     public sealed record Function : TriggerExecBodyType;

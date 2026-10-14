@@ -26,7 +26,7 @@ namespace SqlParser.Core.Ast;
 /// <remarks><see href="https://www.postgresql.org/docs/current/sql-createfunction.html">PostgreSQL</see></remarks>
 /// <param name="Name">The name of the configuration parameter.</param>
 /// <param name="Value">The value to set for the parameter.</param>
-public sealed record FunctionDefinitionSetParam(ObjectName Name, FunctionSetValue Value) : IDisplay
+public sealed partial record FunctionDefinitionSetParam(ObjectName Name, FunctionSetValue Value) : IDisplay
 {
     public void Fmt(Formatter f)
     {

@@ -28,7 +28,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="Name">Name of the policy to drop.</param>
 /// <param name="TableName">Name of the table the policy applies to.</param>
 /// <param name="DropBehavior">Optional drop behavior (<c>CASCADE</c> or <c>RESTRICT</c>).</param>
-public sealed record DropPolicy(
+public sealed partial record DropPolicy(
     bool IfExists,
     Ident Name,
     [property: VisitWith("visit_relation")] ObjectName TableName,

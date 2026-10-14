@@ -22,7 +22,7 @@ namespace SqlParser.Core.Ast;
 
 /// <summary>Type of index hint (e.g., <c>USE</c>, <c>IGNORE</c>, <c>FORCE</c>).</summary>
 /// <remarks>Enum sem dados com <c>Display</c> → records (convencoes.md §13, caso 37).</remarks>
-public abstract record TableIndexHintType : IDisplay
+public abstract partial record TableIndexHintType : IDisplay
 {
     /// <summary><c>USE</c> hint.</summary>
     public sealed record Use : TableIndexHintType;

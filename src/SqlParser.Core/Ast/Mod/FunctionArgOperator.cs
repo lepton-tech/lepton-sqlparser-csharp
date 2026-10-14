@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Operator used to separate function arguments</summary>
-public abstract record FunctionArgOperator : IDisplay
+public abstract partial record FunctionArgOperator : IDisplay
 {
     /// <summary>function(arg1 = value1)</summary>
     /// <remarks>

@@ -24,7 +24,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="Parenthesized">Whether the quantity was wrapped in parentheses.</param>
 /// <param name="Value">The numeric expression specifying the quantity.</param>
 /// <param name="Unit">Optional unit (e.g. <c>PERCENT</c>, <c>ROWS</c>).</param>
-public sealed record TableSampleQuantity(bool Parenthesized, Expr Value, TableSampleUnit? Unit) : IDisplay
+public sealed partial record TableSampleQuantity(bool Parenthesized, Expr Value, TableSampleUnit? Unit) : IDisplay
 {
     public void Fmt(Formatter f)
     {

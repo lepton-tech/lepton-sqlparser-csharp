@@ -27,7 +27,7 @@ namespace SqlParser.Core.Ast;
 /// <remarks>
 /// See <see href="https://unicode.org/reports/tr15/">Unicode Normalization Forms</see> for details.
 /// </remarks>
-public abstract record NormalizationForm : IDisplay
+public abstract partial record NormalizationForm : IDisplay
 {
     /// <summary>Canonical Decomposition, followed by Canonical Composition.</summary>
     public sealed record NFC : NormalizationForm;

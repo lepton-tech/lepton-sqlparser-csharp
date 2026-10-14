@@ -67,7 +67,7 @@ namespace SqlParser.Core.Ast;
 /// - <see href="https://dev.mysql.com/doc/refman/8.4/en/select.html">MySQL SELECT modifiers</see>
 /// - <see href="https://dev.mysql.com/doc/refman/8.4/en/information-functions.html#function_found-rows"><c>FOUND_ROWS()</c></see>
 /// </param>
-public sealed record SelectModifiers(
+public sealed partial record SelectModifiers(
     bool HighPriority,
     bool StraightJoin,
     bool SqlSmallResult,

@@ -23,7 +23,7 @@ using static SqlParser.Core.Ast.AstModule;
 namespace SqlParser.Core.Ast;
 
 /// <summary>An <c>ALTER ROLE</c> (<c>Statement::AlterRole</c>) operation</summary>
-public abstract record AlterRoleOperation : IDisplay
+public abstract partial record AlterRoleOperation : IDisplay
 {
     /// <summary>Generic</summary>
     /// <param name="RoleName">Role name to rename.</param>

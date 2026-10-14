@@ -24,7 +24,7 @@ namespace SqlParser.Core.Ast;
 /// <remarks><see href="https://docs.snowflake.com/en/sql-reference/sql/create-database"/></remarks>
 /// <param name="Purpose">The purpose label for the contact entry.</param>
 /// <param name="Contact">The contact information associated with the purpose.</param>
-public sealed record ContactEntry(string Purpose, string Contact) : IDisplay
+public sealed partial record ContactEntry(string Purpose, string Contact) : IDisplay
 {
     public void Fmt(Formatter f)
     {

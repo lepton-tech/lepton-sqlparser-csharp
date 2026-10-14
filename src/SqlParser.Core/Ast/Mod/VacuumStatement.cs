@@ -35,7 +35,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="TableName">Optional table to run <c>VACUUM</c> on.</param>
 /// <param name="Threshold">Optional threshold value (percent) for <c>TO threshold PERCENT</c>.</param>
 /// <param name="Boost">Whether <c>BOOST</c> was specified.</param>
-public sealed record VacuumStatement(
+public sealed partial record VacuumStatement(
     bool Full,
     bool SortOnly,
     bool DeleteOnly,

@@ -24,7 +24,7 @@ namespace SqlParser.Core.Ast;
 
 /// <summary>Represents a Map expression.</summary>
 /// <param name="Entries">Entries of the map as key/value pairs.</param>
-public sealed record Map(Sequence<MapEntry> Entries) : IDisplay
+public sealed partial record Map(Sequence<MapEntry> Entries) : IDisplay
 {
     public void Fmt(Formatter f)
     {

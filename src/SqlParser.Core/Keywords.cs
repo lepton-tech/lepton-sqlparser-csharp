@@ -25,32 +25,47 @@ namespace SqlParser.Core;
 /// </summary>
 public static partial class Keywords
 {
+    // Os arrays gerados (Keywords.g.cs) ficam internos; as propriedades públicas devolvem um wrapper
+    // somente leitura em cache, porque um array exposto como IReadOnlyList<T> poderia ser alterado por cast
+    // para T[] (convencoes.md §13, caso 10). Criação preguiçosa: a ordem de inicialização dos campos
+    // estáticos entre os arquivos de uma classe partial não é definida.
+    private static IReadOnlyList<string>? _allKeywords;
+    private static IReadOnlyList<Keyword>? _allKeywordsIndex;
+    private static IReadOnlyList<Keyword>? _reservedForTableAlias;
+    private static IReadOnlyList<Keyword>? _reservedForColumnAlias;
+    private static IReadOnlyList<Keyword>? _reservedForTableFactor;
+    private static IReadOnlyList<Keyword>? _reservedForIdentifier;
+
     /// <summary>All SQL keywords as strings, sorted ordinally (Rust: <c>ALL_KEYWORDS</c>).</summary>
-    public static IReadOnlyList<string> AllKeywords => AllKeywordsArray;
+    public static IReadOnlyList<string> AllKeywords => _allKeywords ??= Array.AsReadOnly(AllKeywordsArray);
 
     /// <summary>All <see cref="Keyword"/> values in declaration order (Rust: <c>ALL_KEYWORDS_INDEX</c>).</summary>
-    public static IReadOnlyList<Keyword> AllKeywordsIndex => AllKeywordsIndexArray;
+    public static IReadOnlyList<Keyword> AllKeywordsIndex => _allKeywordsIndex ??= Array.AsReadOnly(AllKeywordsIndexArray);
 
     /// <summary>
     /// These keywords can't be used as a table alias, so that <c>FROM table_name alias</c>
     /// can be parsed unambiguously without looking ahead (Rust: <c>RESERVED_FOR_TABLE_ALIAS</c>).
     /// </summary>
-    public static IReadOnlyList<Keyword> ReservedForTableAlias => ReservedForTableAliasArray;
+    public static IReadOnlyList<Keyword> ReservedForTableAlias =>
+        _reservedForTableAlias ??= Array.AsReadOnly(ReservedForTableAliasArray);
 
     /// <summary>
     /// Can't be used as a column alias, so that <c>SELECT &lt;expr&gt; alias</c>
     /// can be parsed unambiguously without looking ahead (Rust: <c>RESERVED_FOR_COLUMN_ALIAS</c>).
     /// </summary>
-    public static IReadOnlyList<Keyword> ReservedForColumnAlias => ReservedForColumnAliasArray;
+    public static IReadOnlyList<Keyword> ReservedForColumnAlias =>
+        _reservedForColumnAlias ??= Array.AsReadOnly(ReservedForColumnAliasArray);
 
     /// <summary>Global list of reserved keywords allowed after FROM (Rust: <c>RESERVED_FOR_TABLE_FACTOR</c>).</summary>
-    public static IReadOnlyList<Keyword> ReservedForTableFactor => ReservedForTableFactorArray;
+    public static IReadOnlyList<Keyword> ReservedForTableFactor =>
+        _reservedForTableFactor ??= Array.AsReadOnly(ReservedForTableFactorArray);
 
     /// <summary>
     /// Global list of reserved keywords that cannot be parsed as identifiers
     /// without special handling like quoting (Rust: <c>RESERVED_FOR_IDENTIFIER</c>).
     /// </summary>
-    public static IReadOnlyList<Keyword> ReservedForIdentifier => ReservedForIdentifierArray;
+    public static IReadOnlyList<Keyword> ReservedForIdentifier =>
+        _reservedForIdentifier ??= Array.AsReadOnly(ReservedForIdentifierArray);
 
     /// <summary>
     /// Procura a keyword correspondente a uma palavra já convertida para maiúsculas.

@@ -22,7 +22,7 @@ namespace SqlParser.Core.Ast;
 
 /// <summary><c>MATCH</c> type for constraint references</summary>
 /// <remarks>See: <see href="https://www.postgresql.org/docs/current/sql-createtable.html#SQL-CREATETABLE-PARMS-REFERENCES"/></remarks>
-public abstract record ConstraintReferenceMatchKind : IDisplay
+public abstract partial record ConstraintReferenceMatchKind : IDisplay
 {
     /// <summary><c>MATCH FULL</c></summary>
     public sealed record Full : ConstraintReferenceMatchKind;

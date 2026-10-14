@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>New owner specification for <c>ALTER TABLE ... OWNER TO ...</c></summary>
-public abstract record Owner : IDisplay
+public abstract partial record Owner : IDisplay
 {
     /// <summary>A specific user/role identifier.</summary>
     // A variante esconde o tipo de topo homônimo: tipo qualificado (convencoes.md §6 e §13, caso 38).

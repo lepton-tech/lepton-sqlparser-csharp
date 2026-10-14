@@ -39,7 +39,7 @@ namespace SqlParser.Core.Ast;
 /// The fractional seconds precision, when specified.
 /// <para>See SQL <c>SECOND(n)</c> or <c>SECOND(m, n)</c> forms.</para>
 /// </param>
-public sealed record Interval(
+public sealed partial record Interval(
     Expr Value,
     DateTimeField? LeadingField,
     ulong? LeadingPrecision,

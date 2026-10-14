@@ -29,7 +29,10 @@ public class SnowflakeDialect : Dialect
 {
     // Constantes de módulo no Rust (antes do struct). RESERVED_KEYWORDS_FOR_TABLE_FACTOR é usada só
     // por is_table_factor. As funções livres do módulo estão no fim da classe (caso 5).
-    private static readonly Keyword[] ReservedKeywordsForSelectItemOperator = { Keyword.CONNECT_BY_ROOT };
+    // Devolvida por GetReservedKeywordsForSelectItemOperator: lista somente leitura, não array
+    // (convencoes.md §13, casos 10 e 11).
+    private static readonly IReadOnlyList<Keyword> ReservedKeywordsForSelectItemOperator =
+        System.Array.AsReadOnly(new[] { Keyword.CONNECT_BY_ROOT });
 
     // See: <https://docs.snowflake.com/en/sql-reference/reserved-keywords>
     private static readonly Keyword[] ReservedKeywordsForTableFactor =

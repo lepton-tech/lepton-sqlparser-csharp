@@ -23,7 +23,7 @@ namespace SqlParser.Core.Ast;
 /// <summary>Options for an <c>ORDER BY</c> expression.</summary>
 /// <param name="Sort">Optional sort order: <c>ASC</c>, <c>DESC</c>, or <c>USING &lt;operator&gt;</c>.</param>
 /// <param name="NullsFirst">Optional <c>NULLS FIRST</c> (<c>Some(true)</c>) or <c>NULLS LAST</c> (<c>Some(false)</c>).</param>
-public sealed record OrderByOptions(OrderBySort? Sort, bool? NullsFirst) : IDisplay
+public sealed partial record OrderByOptions(OrderBySort? Sort, bool? NullsFirst) : IDisplay
 {
     /// <summary>Rust: <c>#[derive(Default)]</c> (convencoes.md §13, caso 42).</summary>
     public static OrderByOptions Default() => new OrderByOptions(Sort: null, NullsFirst: null);

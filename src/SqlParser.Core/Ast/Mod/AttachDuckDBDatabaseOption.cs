@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Options supported by DuckDB for <c>ATTACH DATABASE</c>.</summary>
-public abstract record AttachDuckDBDatabaseOption : IDisplay
+public abstract partial record AttachDuckDBDatabaseOption : IDisplay
 {
     /// <summary>READ_ONLY option, optional boolean value.</summary>
     public sealed record ReadOnly(bool? Value) : AttachDuckDBDatabaseOption;

@@ -27,7 +27,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="ReferType">The referencing type (<c>OLD TABLE</c> or <c>NEW TABLE</c>).</param>
 /// <param name="IsAs">True if the <c>AS</c> keyword is present in the referencing clause.</param>
 /// <param name="TransitionRelationName">The transition relation name provided by the referencing clause.</param>
-public sealed record TriggerReferencing(
+public sealed partial record TriggerReferencing(
     TriggerReferencingType ReferType,
     bool IsAs,
     ObjectName TransitionRelationName) : IDisplay

@@ -23,7 +23,7 @@ namespace SqlParser.Core.Ast;
 /// <summary><c>SEED</c> or <c>REPEATABLE</c> clause used with sampling.</summary>
 /// <param name="Modifier">Seed modifier (e.g. <c>REPEATABLE</c> or <c>SEED</c>).</param>
 /// <param name="Value">The seed value expression.</param>
-public sealed record TableSampleSeed(TableSampleSeedModifier Modifier, ValueWithSpan Value) : IDisplay
+public sealed partial record TableSampleSeed(TableSampleSeedModifier Modifier, ValueWithSpan Value) : IDisplay
 {
     public void Fmt(Formatter f)
     {

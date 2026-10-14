@@ -22,7 +22,7 @@ namespace SqlParser.Core.Ast;
 
 /// <summary>Security attribute for functions: SECURITY DEFINER or SECURITY INVOKER.</summary>
 /// <remarks><see href="https://www.postgresql.org/docs/current/sql-createfunction.html">PostgreSQL</see></remarks>
-public abstract record FunctionSecurity : IDisplay
+public abstract partial record FunctionSecurity : IDisplay
 {
     /// <summary>Execute the function with the privileges of the user who defined it.</summary>
     public sealed record Definer : FunctionSecurity;

@@ -26,7 +26,7 @@ namespace SqlParser.Core.Ast;
 /// Operation for <c>ALTER TEXT SEARCH ...</c>.
 /// <para>See <see href="https://www.postgresql.org/docs/current/sql-altertsdictionary.html">PostgreSQL</see>.</para>
 /// </summary>
-public abstract record AlterTextSearchOperation : IDisplay
+public abstract partial record AlterTextSearchOperation : IDisplay
 {
     /// <summary><c>RENAME TO new_name</c></summary>
     /// <param name="NewName">New name.</param>

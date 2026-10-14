@@ -26,10 +26,15 @@ namespace SqlParser.Core.Ast;
 // O `match` inteiro vira um único `switch`, na mesma ordem dos braços do Rust.
 public abstract partial record Expr
 {
-    // Rust: #[cfg_attr(feature = "recursive-protection", recursive::recursive)]. Não traduzido:
-    // o C# não tem crescimento de pilha sob demanda (ver "Divergências" em docs/port/onda-a/A1.md).
     public void Fmt(Formatter f)
     {
+        // Rust: #[cfg_attr(feature = "recursive-protection", recursive::recursive)] (convencoes.md §13, caso 123).
+        if (StackGuard.IsStackLow())
+        {
+            StackGuard.Grow(this, f, static (expr, formatter) => expr.Fmt(formatter));
+            return;
+        }
+
         switch (this)
         {
             case Identifier s:

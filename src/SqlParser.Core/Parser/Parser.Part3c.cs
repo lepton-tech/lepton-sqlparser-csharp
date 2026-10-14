@@ -1148,6 +1148,12 @@ public sealed partial class Parser
 
     internal (DataType DataType, MatchedTrailingBracket TrailingBracket) ParseDataTypeHelper()
     {
+        // Rust: #[cfg_attr(feature = "recursive-protection", recursive::recursive)] (convencoes.md §13, caso 123).
+        if (StackGuard.IsStackLow())
+        {
+            return StackGuard.Grow(this, static parser => parser.ParseDataTypeHelper());
+        }
+
         using var _guard = _recursionCounter.TryDecrease();
 
         var dialect = _dialect;

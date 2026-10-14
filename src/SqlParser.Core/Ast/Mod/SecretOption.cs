@@ -23,7 +23,7 @@ namespace SqlParser.Core.Ast;
 /// <summary>A key/value identifier pair used for secret or key-based options.</summary>
 /// <param name="Key">The option key identifier.</param>
 /// <param name="Value">The option value identifier.</param>
-public sealed record SecretOption(Ident Key, Ident Value) : IDisplay
+public sealed partial record SecretOption(Ident Key, Ident Value) : IDisplay
 {
     public void Fmt(Formatter f)
     {

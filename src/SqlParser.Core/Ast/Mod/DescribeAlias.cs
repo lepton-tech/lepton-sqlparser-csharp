@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Aliases accepted for describe-style commands.</summary>
-public abstract record DescribeAlias : IDisplay
+public abstract partial record DescribeAlias : IDisplay
 {
     /// <summary><c>DESCRIBE</c> alias.</summary>
     public sealed record Describe : DescribeAlias;

@@ -39,7 +39,7 @@ namespace SqlParser.Core.Ast;
 /// <see href="https://docs.snowflake.com/en/sql-reference/sql/create-table">Snowflake</see>
 /// </param>
 /// <param name="Tags">List of tags to attach to the column.</param>
-public sealed record TagsColumnOption(bool With, Sequence<Tag> Tags) : IDisplay
+public sealed partial record TagsColumnOption(bool With, Sequence<Tag> Tags) : IDisplay
 {
     public void Fmt(Formatter f)
     {

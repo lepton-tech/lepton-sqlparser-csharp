@@ -23,7 +23,7 @@ namespace SqlParser.Core.Ast;
 /// <summary>A single row delimiter specification for Hive <c>ROW FORMAT</c>.</summary>
 /// <param name="Delimiter">The delimiter kind (fields/lines/etc.).</param>
 /// <param name="Char">The delimiter character identifier.</param>
-public sealed record HiveRowDelimiter(HiveDelimiter Delimiter, Ident Char) : IDisplay
+public sealed partial record HiveRowDelimiter(HiveDelimiter Delimiter, Ident Char) : IDisplay
 {
     public void Fmt(Formatter f)
     {

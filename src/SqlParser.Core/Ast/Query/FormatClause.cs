@@ -24,7 +24,7 @@ namespace SqlParser.Core.Ast;
 /// <remarks>
 /// [ClickHouse]: <see href="https://clickhouse.com/docs/en/sql-reference/statements/select/format"/>
 /// </remarks>
-public abstract record FormatClause : IDisplay
+public abstract partial record FormatClause : IDisplay
 {
     /// <summary>The format identifier.</summary>
     public sealed record Identifier(Ident Value) : FormatClause;

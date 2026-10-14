@@ -34,6 +34,8 @@ copies or substantial portions of the Software.
 |---|---|---|
 | _(nenhum até o momento)_ | | |
 
+Os arquivos de `src/SqlParser/` (API pública, fase 1: `SqlQueryParser.cs`, `SqlParseException.cs`, `SqlParseResult.cs`, `SqlWritingExtensions.cs`) **imitam nomes e formato de uso** do SqlParser-cs (`SqlQueryParser`, `Parse(sql, dialect, options)`, `ToSql`, `SqlWritingExtensions`, `Line`/`Column` na exceção) como referência de desenho, **sem cópia de código** ([ADR-0008](docs/adr/0008-api-publica-fase-1.md)).
+
 ## Ferramentas de build (não distribuídas)
 
 | Pacote | Licença | Uso |

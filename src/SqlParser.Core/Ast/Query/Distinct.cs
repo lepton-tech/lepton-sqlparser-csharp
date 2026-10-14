@@ -23,7 +23,7 @@ using static SqlParser.Core.Ast.AstModule;
 namespace SqlParser.Core.Ast;
 
 /// <summary><c>ALL</c>, <c>DISTINCT</c>, or <c>DISTINCT ON (...)</c> modifiers for <c>SELECT</c> lists.</summary>
-public abstract record Distinct : IDisplay
+public abstract partial record Distinct : IDisplay
 {
     /// <summary>
     /// <c>ALL</c> (keep duplicate rows)

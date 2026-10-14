@@ -27,7 +27,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="ObjectType">The specific text search object type.</param>
 /// <param name="Name">Object name.</param>
 /// <param name="Operation">Operation to apply.</param>
-public sealed record AlterTextSearch(
+public sealed partial record AlterTextSearch(
     TextSearchObjectType ObjectType,
     ObjectName Name,
     AlterTextSearchOperation Operation) : IDisplay, ISpanned

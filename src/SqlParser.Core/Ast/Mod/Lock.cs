@@ -29,7 +29,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="Tables">List of tables to lock.</param>
 /// <param name="LockMode">Lock mode.</param>
 /// <param name="Nowait">Whether <c>NOWAIT</c> was specified.</param>
-public sealed record Lock(Sequence<LockTableTarget> Tables, LockTableMode? LockMode, bool Nowait) : IDisplay
+public sealed partial record Lock(Sequence<LockTableTarget> Tables, LockTableMode? LockMode, bool Nowait) : IDisplay
 {
     public void Fmt(Formatter f)
     {

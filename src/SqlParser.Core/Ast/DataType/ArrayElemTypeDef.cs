@@ -28,7 +28,7 @@ namespace SqlParser.Core.Ast;
 /// For example: Bigquery/Hive use <c>ARRAY&lt;INT&gt;</c> whereas snowflake uses ARRAY.
 /// <para>Sem <c>Display</c> no Rust (o texto é montado pelo <c>Display</c> de <c>DataType::Array</c>).</para>
 /// </remarks>
-public abstract record ArrayElemTypeDef
+public abstract partial record ArrayElemTypeDef
 {
     /// <summary>Use <c>ARRAY</c> style without an explicit element type.</summary>
     public sealed record None : ArrayElemTypeDef;

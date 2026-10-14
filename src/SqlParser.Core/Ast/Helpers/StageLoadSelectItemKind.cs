@@ -24,7 +24,7 @@ namespace SqlParser.Core.Ast;
 /// This enum enables support for both standard SQL select item expressions
 /// and Snowflake-specific ones for data loading.
 /// </summary>
-public abstract record StageLoadSelectItemKind : IDisplay
+public abstract partial record StageLoadSelectItemKind : IDisplay
 {
     /// <summary>A standard SQL select item expression.</summary>
     public sealed record SelectItem(Ast.SelectItem Value) : StageLoadSelectItemKind;

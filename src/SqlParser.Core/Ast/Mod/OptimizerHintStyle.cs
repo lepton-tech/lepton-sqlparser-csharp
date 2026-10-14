@@ -22,7 +22,7 @@ namespace SqlParser.Core.Ast;
 
 /// <summary>The commentary style of an <see cref="OptimizerHint">optimizer hint</see></summary>
 /// <remarks>Sem <c>impl Display</c> no Rust: quem formata é <see cref="OptimizerHint"/>.</remarks>
-public abstract record OptimizerHintStyle
+public abstract partial record OptimizerHintStyle
 {
     /// <summary>
     /// A hint corresponding to a single line comment,

@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>A value in a multi-table INSERT VALUES clause.</summary>
-public abstract record MultiTableInsertValue : IDisplay
+public abstract partial record MultiTableInsertValue : IDisplay
 {
     /// <summary>A column reference or expression from the source</summary>
     public sealed record Expr(Ast.Expr Value) : MultiTableInsertValue;

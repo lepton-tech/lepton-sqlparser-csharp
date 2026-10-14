@@ -32,7 +32,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="IfNotExists"><c>IF NOT EXISTS</c> flag.</param>
 /// <param name="Name">Warehouse name.</param>
 /// <param name="Options">Warehouse properties and parameters (e.g. <c>WAREHOUSE_SIZE = 'XSMALL'</c>).</param>
-public sealed record CreateWarehouse(bool OrReplace, bool IfNotExists, ObjectName Name, KeyValueOptions Options) : IDisplay
+public sealed partial record CreateWarehouse(bool OrReplace, bool IfNotExists, ObjectName Name, KeyValueOptions Options) : IDisplay
 {
     public void Fmt(Formatter f)
     {

@@ -27,7 +27,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="Seed">Optional seed clause.</param>
 /// <param name="Bucket">Optional bucket specification for <c>BUCKET ... OUT OF ...</c>-style sampling.</param>
 /// <param name="Offset">Optional offset expression for sampling.</param>
-public sealed record TableSample(
+public sealed partial record TableSample(
     TableSampleModifier Modifier,
     TableSampleMethod? Name,
     TableSampleQuantity? Quantity,

@@ -40,7 +40,7 @@ namespace SqlParser.Core.Ast;
 /// ) AS jt;
 /// </code>
 /// </remarks>
-public abstract record JsonTableColumn : IDisplay
+public abstract partial record JsonTableColumn : IDisplay
 {
     /// <summary>A named column with a JSON path</summary>
     public sealed record Named(JsonTableNamedColumn Value) : JsonTableColumn;

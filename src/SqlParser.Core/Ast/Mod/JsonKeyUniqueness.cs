@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Optional duplicate-key handling for <c>IS JSON</c>.</summary>
-public abstract record JsonKeyUniqueness : IDisplay
+public abstract partial record JsonKeyUniqueness : IDisplay
 {
     /// <summary><c>WITH UNIQUE KEYS</c> form.</summary>
     public sealed record WithUniqueKeys : JsonKeyUniqueness;

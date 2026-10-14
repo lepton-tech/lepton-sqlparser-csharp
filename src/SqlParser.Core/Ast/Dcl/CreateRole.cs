@@ -48,7 +48,7 @@ namespace SqlParser.Core.Ast;
 /// O campo Rust <c>create_role</c> tem o nome do tipo que o contém (CS0542): sufixo <c>Value</c>
 /// (convencoes.md §13, caso 41) → <c>CreateRoleValue</c>.
 /// </remarks>
-public sealed record CreateRole(
+public sealed partial record CreateRole(
     Sequence<ObjectName> Names,
     bool IfNotExists,
     // Postgres

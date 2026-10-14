@@ -23,4 +23,4 @@ namespace SqlParser.Core.Ast;
 /// <summary>Optional alias for an <c>INSERT</c> table; i.e. the table to be inserted into</summary>
 /// <param name="Explicit"><c>true</c> if the aliases was explicitly introduced with the "AS" keyword</param>
 /// <param name="Alias">the alias name itself</param>
-public sealed record TableAliasWithoutColumns(bool Explicit, Ident Alias);
+public sealed partial record TableAliasWithoutColumns(bool Explicit, Ident Alias);

@@ -29,6 +29,12 @@ public sealed partial class Parser
     /// <summary>A table name or a parenthesized subquery, followed by optional <c>[AS] alias</c></summary>
     public TableFactor ParseTableFactor()
     {
+        // Rust: #[cfg_attr(feature = "recursive-protection", recursive::recursive)] (convencoes.md §13, caso 123).
+        if (StackGuard.IsStackLow())
+        {
+            return StackGuard.Grow(this, static parser => parser.ParseTableFactor());
+        }
+
         using var _guard = _recursionCounter.TryDecrease();
         if (ParseKeyword(Keyword.LATERAL))
         {

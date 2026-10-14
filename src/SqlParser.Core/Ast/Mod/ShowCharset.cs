@@ -26,7 +26,7 @@ namespace SqlParser.Core.Ast;
 /// true means CHARSET was used and false means CHARACTER SET was used
 /// </param>
 /// <param name="Filter">Optional <c>LIKE</c>/<c>WHERE</c>-style filter for the statement.</param>
-public sealed record ShowCharset(bool IsShorthand, ShowStatementFilter? Filter) : IDisplay
+public sealed partial record ShowCharset(bool IsShorthand, ShowStatementFilter? Filter) : IDisplay
 {
     public void Fmt(Formatter f)
     {

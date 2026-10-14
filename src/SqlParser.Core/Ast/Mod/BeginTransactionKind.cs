@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Transaction started with [ TRANSACTION | WORK | TRAN ]</summary>
-public abstract record BeginTransactionKind : IDisplay
+public abstract partial record BeginTransactionKind : IDisplay
 {
     /// <summary>Standard <c>TRANSACTION</c> keyword.</summary>
     public sealed record Transaction : BeginTransactionKind;

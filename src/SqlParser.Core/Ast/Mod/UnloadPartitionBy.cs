@@ -30,7 +30,7 @@ namespace SqlParser.Core.Ast;
 /// </summary>
 /// <param name="Columns">Columns used to partition the unload output.</param>
 /// <param name="Include">Whether to include the partition in the output.</param>
-public sealed record UnloadPartitionBy(Sequence<Ident> Columns, bool Include) : IDisplay
+public sealed partial record UnloadPartitionBy(Sequence<Ident> Columns, bool Include) : IDisplay
 {
     public void Fmt(Formatter f)
     {

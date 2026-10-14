@@ -30,7 +30,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="Names">One or more operator families to drop</param>
 /// <param name="Using">Index method (btree, hash, gist, gin, etc.)</param>
 /// <param name="DropBehavior"><c>CASCADE or RESTRICT</c></param>
-public sealed record DropOperatorFamily(
+public sealed partial record DropOperatorFamily(
     bool IfExists,
     Sequence<ObjectName> Names,
     Ident Using,

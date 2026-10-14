@@ -22,7 +22,7 @@ namespace SqlParser.Core.Ast;
 
 /// <summary>MySQL <c>CREATE VIEW</c> algorithm parameter: [ALGORITHM = {UNDEFINED | MERGE | TEMPTABLE}]</summary>
 /// <remarks>MySQL <c>CREATE VIEW</c> algorithm options.</remarks>
-public abstract record CreateViewAlgorithm : IDisplay
+public abstract partial record CreateViewAlgorithm : IDisplay
 {
     /// <summary><c>UNDEFINED</c> algorithm.</summary>
     public sealed record Undefined : CreateViewAlgorithm;

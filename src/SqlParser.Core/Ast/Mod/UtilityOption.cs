@@ -47,7 +47,7 @@ namespace SqlParser.Core.Ast;
 /// </remarks>
 /// <param name="Name">The option name (identifier).</param>
 /// <param name="Arg">Optional argument for the option (number, string, keyword, etc.).</param>
-public sealed record UtilityOption(Ident Name, Expr? Arg) : IDisplay
+public sealed partial record UtilityOption(Ident Name, Expr? Arg) : IDisplay
 {
     public void Fmt(Formatter f)
     {

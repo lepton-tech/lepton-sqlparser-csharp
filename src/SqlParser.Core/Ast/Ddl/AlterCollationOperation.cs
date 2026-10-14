@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Operations supported by <c>ALTER COLLATION</c>.</summary>
-public abstract record AlterCollationOperation : IDisplay
+public abstract partial record AlterCollationOperation : IDisplay
 {
     /// <summary>
     /// Rename the collation.

@@ -23,7 +23,7 @@ using static SqlParser.Core.Ast.AstModule;
 namespace SqlParser.Core.Ast;
 
 /// <summary>The kind of update used within a <c>MERGE</c> statement.</summary>
-public abstract record MergeUpdateKind : IDisplay
+public abstract partial record MergeUpdateKind : IDisplay
 {
     /// <summary>Standard update with explicit assignments.</summary>
     /// <remarks>

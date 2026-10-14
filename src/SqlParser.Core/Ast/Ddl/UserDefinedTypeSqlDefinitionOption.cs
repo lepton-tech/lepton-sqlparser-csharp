@@ -40,7 +40,7 @@ namespace SqlParser.Core.Ast;
 /// );
 /// </code>
 /// </summary>
-public abstract record UserDefinedTypeSqlDefinitionOption : IDisplay
+public abstract partial record UserDefinedTypeSqlDefinitionOption : IDisplay
 {
     /// <summary>Function to convert from external text representation to internal: <c>INPUT = input_function</c></summary>
     public sealed record Input(ObjectName Value) : UserDefinedTypeSqlDefinitionOption;

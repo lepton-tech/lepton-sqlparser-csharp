@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>The mode of an argument in CREATE FUNCTION.</summary>
-public abstract record ArgMode : IDisplay
+public abstract partial record ArgMode : IDisplay
 {
     /// <summary><c>IN</c> mode.</summary>
     public sealed record In : ArgMode;

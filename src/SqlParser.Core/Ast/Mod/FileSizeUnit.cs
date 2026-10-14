@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Units for <c>FileSize</c> (MB or GB).</summary>
-public abstract record FileSizeUnit : IDisplay
+public abstract partial record FileSizeUnit : IDisplay
 {
     /// <summary>Megabytes.</summary>
     public sealed record MB : FileSizeUnit;

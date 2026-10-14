@@ -22,7 +22,7 @@ namespace SqlParser.Core.Ast;
 
 /// <summary>Modifier specifying whether <c>SAMPLE</c> or <c>TABLESAMPLE</c> keyword was used.</summary>
 /// <remarks>Enum sem dados com <c>Display</c> → records (convencoes.md §13, caso 37).</remarks>
-public abstract record TableSampleModifier : IDisplay
+public abstract partial record TableSampleModifier : IDisplay
 {
     /// <summary><c>SAMPLE</c> modifier.</summary>
     public sealed record Sample : TableSampleModifier;

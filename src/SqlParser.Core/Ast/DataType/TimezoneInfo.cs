@@ -25,7 +25,7 @@ namespace SqlParser.Core.Ast;
 /// This is more related to a display information than real differences between each variant. To
 /// guarantee compatibility with the input query we must maintain its exact information.
 /// </remarks>
-public abstract record TimezoneInfo : IDisplay
+public abstract partial record TimezoneInfo : IDisplay
 {
     /// <summary>No information about time zone, e.g. TIMESTAMP</summary>
     public sealed record None : TimezoneInfo;

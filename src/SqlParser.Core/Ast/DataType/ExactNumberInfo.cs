@@ -24,7 +24,7 @@ namespace SqlParser.Core.Ast;
 /// Additional information for <c>NUMERIC</c>, <c>DECIMAL</c>, and <c>DEC</c> data types
 /// following the 2016 <see href="https://jakewheat.github.io/sql-overview/sql-2016-foundation-grammar.html#exact-numeric-type">SQL Standard</see>.
 /// </summary>
-public abstract record ExactNumberInfo : IDisplay
+public abstract partial record ExactNumberInfo : IDisplay
 {
     /// <summary>No additional information, e.g. <c>DECIMAL</c>.</summary>
     public sealed record None : ExactNumberInfo;

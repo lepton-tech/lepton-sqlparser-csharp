@@ -25,8 +25,10 @@ namespace SqlParser.Core.Dialects;
 /// </summary>
 public class OracleDialect : Dialect
 {
-    // Constante de módulo no Rust (antes do struct).
-    private static readonly Keyword[] ReservedKeywordsForSelectItemOperator = { Keyword.CONNECT_BY_ROOT };
+    // Constante de módulo no Rust (antes do struct). É devolvida por GetReservedKeywordsForSelectItemOperator:
+    // lista somente leitura, não array (convencoes.md §13, casos 10 e 11).
+    private static readonly IReadOnlyList<Keyword> ReservedKeywordsForSelectItemOperator =
+        System.Array.AsReadOnly(new[] { Keyword.CONNECT_BY_ROOT });
 
     // ~ appears not to be called anywhere
     public override char? IdentifierQuoteStyle(string identifier) => '"';

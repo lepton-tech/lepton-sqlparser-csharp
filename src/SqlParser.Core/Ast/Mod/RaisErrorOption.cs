@@ -25,7 +25,7 @@ namespace SqlParser.Core.Ast;
 /// See <see href="https://learn.microsoft.com/en-us/sql/t-sql/language-elements/raiserror-transact-sql?view=sql-server-ver16#options"/>
 /// </summary>
 // Enum sem dados COM Display → records (convencoes.md §13, caso 37).
-public abstract record RaisErrorOption : IDisplay
+public abstract partial record RaisErrorOption : IDisplay
 {
     /// <summary>Log the error.</summary>
     public sealed record Log : RaisErrorOption;

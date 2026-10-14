@@ -27,7 +27,7 @@ namespace SqlParser.Core.Ast;
 /// </code>
 /// </summary>
 /// <remarks>Sem <c>impl Display</c> no Rust: quem formata é o <c>Display</c> de <c>CreateTable</c>.</remarks>
-public abstract record CreateTableLikeKind
+public abstract partial record CreateTableLikeKind
 {
     /// <summary>
     /// <code>

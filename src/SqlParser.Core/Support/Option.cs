@@ -1,6 +1,7 @@
 // Código próprio do port: equivalente mínimo de `core::option::Option<T>`, usado SÓ onde o C# não
 // consegue representar a distinção com `T?`: Option aninhado (`Option<Option<T>>`,
-// `Option<Result<Option<T>>>`). Nos demais casos, `Option<T>` vira `T?` (convencoes.md §5; caso 55).
+// `Option<Result<Option<T>>>`) e o retorno de `next()`/`next_back()` dos iteradores portados, com `T`
+// genérico sem restrição (caso 65). Nos demais casos, `Option<T>` vira `T?` (convencoes.md §5; caso 55).
 
 namespace SqlParser.Core;
 

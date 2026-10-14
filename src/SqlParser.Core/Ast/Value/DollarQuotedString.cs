@@ -23,7 +23,7 @@ namespace SqlParser.Core.Ast;
 /// <summary>A dollar-quoted string literal, e.g. <c>$$...$$</c> or <c>$tag$...$tag$</c>.</summary>
 /// <param name="Value">Inner string contents.</param>
 /// <param name="Tag">Optional tag used in the opening/closing delimiter.</param>
-public sealed record DollarQuotedString(string Value, string? Tag) : IDisplay
+public sealed partial record DollarQuotedString(string Value, string? Tag) : IDisplay
 {
     /// <inheritdoc/>
     public void Fmt(Formatter f)

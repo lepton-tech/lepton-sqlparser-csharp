@@ -27,7 +27,7 @@ namespace SqlParser.Core.Ast;
 /// for more details.
 /// </para>
 /// </summary>
-public abstract record SqliteOnConflict : IDisplay
+public abstract partial record SqliteOnConflict : IDisplay
 {
     /// <summary>Use ROLLBACK on conflict.</summary>
     public sealed record Rollback : SqliteOnConflict;

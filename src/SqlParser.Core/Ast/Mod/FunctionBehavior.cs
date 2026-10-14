@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>These attributes inform the query optimizer about the behavior of the function.</summary>
-public abstract record FunctionBehavior : IDisplay
+public abstract partial record FunctionBehavior : IDisplay
 {
     /// <summary>Function is immutable.</summary>
     public sealed record Immutable : FunctionBehavior;

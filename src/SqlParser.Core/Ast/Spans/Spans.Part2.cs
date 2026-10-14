@@ -521,8 +521,17 @@ public abstract partial record Expr : ISpanned
     /// <item><c>Expr::Lambda</c></item>
     /// </list>
     /// </remarks>
-    public Span Span() =>
-        this switch
+    public Span Span()
+    {
+        // PORT-DEVIATION DIV-005: o Rust não marca este método com #[recursive::recursive], mas aqui cada
+        // nível de uma cadeia `a + b + c ...` (não limitada pelo contador de recursão) gasta KBs de pilha;
+        // recebe a mesma proteção do Display de Expr (convencoes.md §13, caso 123).
+        if (StackGuard.IsStackLow())
+        {
+            return StackGuard.Grow(this, static expr => expr.Span());
+        }
+
+        return this switch
         {
             Identifier ident => ident.Value.Span,
             CompoundIdentifier vec => UnionSpans(vec.Value.Select(i => i.Span)),
@@ -654,6 +663,7 @@ public abstract partial record Expr : ISpanned
             MemberOf memberOf => memberOf.Value.Value.Span().Union(memberOf.Value.Array.Span()),
             _ => throw new InvalidOperationException($"Variante de Expr não tratada: {GetType().Name}"),
         };
+    }
 }
 
 // impl Spanned for Subscript (spans.rs:1695)

@@ -27,7 +27,7 @@ namespace SqlParser.Core.Ast;
 /// </summary>
 /// <param name="Size">Numeric size value.</param>
 /// <param name="Unit">Optional unit for the size (MB or GB).</param>
-public sealed record FileSize(ValueWithSpan Size, FileSizeUnit? Unit) : IDisplay
+public sealed partial record FileSize(ValueWithSpan Size, FileSizeUnit? Unit) : IDisplay
 {
     public void Fmt(Formatter f)
     {

@@ -25,7 +25,7 @@ namespace SqlParser.Core.Ast;
 /// PostgreSQL/Redshift for spatial operations and geometry-related computations.
 /// </summary>
 /// <remarks><see href="https://www.postgresql.org/docs/9.5/functions-geometry.html">PostgreSQL</see></remarks>
-public abstract record GeometricTypeKind : IDisplay
+public abstract partial record GeometricTypeKind : IDisplay
 {
     /// <summary>Point geometry</summary>
     public sealed record Point : GeometricTypeKind;

@@ -26,7 +26,7 @@ namespace SqlParser.Core.Ast;
 /// <see href="https://learn.microsoft.com/en-us/sql/t-sql/statements/create-function-transact-sql">MsSql functions</see>
 /// </remarks>
 /// <param name="Value">Optional return value expression.</param>
-public sealed record ReturnStatement(ReturnStatementValue? Value) : IDisplay
+public sealed partial record ReturnStatement(ReturnStatementValue? Value) : IDisplay
 {
     public void Fmt(Formatter f)
     {

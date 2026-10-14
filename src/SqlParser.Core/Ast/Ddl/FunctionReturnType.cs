@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>The return type of a <c>CREATE FUNCTION</c> statement.</summary>
-public abstract record FunctionReturnType : IDisplay
+public abstract partial record FunctionReturnType : IDisplay
 {
     /// <summary><c>RETURNS &lt;type&gt;</c></summary>
     // Variante tupla cujo tipo tem o mesmo nome: tipo qualificado (convencoes.md §6 e §13, caso 38).

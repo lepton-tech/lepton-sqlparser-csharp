@@ -24,7 +24,7 @@ namespace SqlParser.Core.Ast;
 /// PostgreSQL lock modes for <c>LOCK TABLE</c>.
 /// <para>See <see href="https://www.postgresql.org/docs/current/sql-lock.html"/></para>
 /// </summary>
-public abstract record LockTableMode : IDisplay
+public abstract partial record LockTableMode : IDisplay
 {
     /// <summary><c>ACCESS SHARE</c></summary>
     public sealed record AccessShare : LockTableMode;

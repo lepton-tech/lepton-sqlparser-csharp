@@ -23,7 +23,7 @@ using static SqlParser.Core.Ast.AstModule;
 namespace SqlParser.Core.Ast;
 
 /// <summary>SQL user defined type definition</summary>
-public abstract record UserDefinedTypeRepresentation : IDisplay
+public abstract partial record UserDefinedTypeRepresentation : IDisplay
 {
     /// <summary>Composite type: <c>CREATE TYPE name AS (attributes)</c></summary>
     /// <param name="Attributes">List of attributes for the composite type.</param>

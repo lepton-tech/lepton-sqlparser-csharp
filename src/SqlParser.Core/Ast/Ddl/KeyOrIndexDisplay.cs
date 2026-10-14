@@ -34,7 +34,7 @@ namespace SqlParser.Core.Ast;
 /// (<c>write!(f, "UNIQUE{:>}", x)</c>) corresponde a <see cref="FmtAlignRight(Formatter)"/>.
 /// </remarks>
 // Enum sem dados com métodos e Display: records (convencoes.md §13, caso 37).
-public abstract record KeyOrIndexDisplay : IDisplay
+public abstract partial record KeyOrIndexDisplay : IDisplay
 {
     /// <summary>Nothing to display</summary>
     public sealed record None : KeyOrIndexDisplay;

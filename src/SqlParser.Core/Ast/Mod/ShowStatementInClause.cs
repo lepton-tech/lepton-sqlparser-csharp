@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Clause types used with SHOW ... IN/FROM.</summary>
-public abstract record ShowStatementInClause : IDisplay
+public abstract partial record ShowStatementInClause : IDisplay
 {
     /// <summary>Use the <c>IN</c> clause.</summary>
     public sealed record IN : ShowStatementInClause;

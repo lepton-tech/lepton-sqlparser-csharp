@@ -24,7 +24,7 @@ namespace SqlParser.Core.Ast;
 /// <remarks>[DuckDB]: https://duckdb.org/docs/sql/data_types/map.html#creating-maps</remarks>
 /// <param name="Key">Key expression of the map entry.</param>
 /// <param name="Value">Value expression of the map entry.</param>
-public sealed record MapEntry(Expr Key, Expr Value) : IDisplay
+public sealed partial record MapEntry(Expr Key, Expr Value) : IDisplay
 {
     public void Fmt(Formatter f)
     {

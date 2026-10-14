@@ -30,7 +30,7 @@ namespace SqlParser.Core.Ast;
 /// </remarks>
 /// <param name="Policy">The fully-qualified policy object name.</param>
 /// <param name="On">Identifiers for the columns or objects the policy applies to.</param>
-public sealed record RowAccessPolicy(ObjectName Policy, Sequence<Ident> On) : IDisplay
+public sealed partial record RowAccessPolicy(ObjectName Policy, Sequence<Ident> On) : IDisplay
 {
     public void Fmt(Formatter f)
     {

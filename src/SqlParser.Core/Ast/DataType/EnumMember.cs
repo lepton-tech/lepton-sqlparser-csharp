@@ -22,7 +22,7 @@ namespace SqlParser.Core.Ast;
 
 /// <summary>A member of an ENUM type.</summary>
 /// <remarks>Sem <c>Display</c> no Rust (o texto é montado pelo <c>Display</c> de <c>DataType::Enum</c>).</remarks>
-public abstract record EnumMember
+public abstract partial record EnumMember
 {
     /// <summary>Just a name.</summary>
     public sealed record Name(string Value) : EnumMember;

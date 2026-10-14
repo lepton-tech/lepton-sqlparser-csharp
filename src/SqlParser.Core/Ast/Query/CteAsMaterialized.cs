@@ -22,7 +22,7 @@ namespace SqlParser.Core.Ast;
 
 /// <summary>Indicates whether a CTE is materialized or not.</summary>
 /// <remarks>Enum sem dados com <c>Display</c> → records (convencoes.md §13, caso 37).</remarks>
-public abstract record CteAsMaterialized : IDisplay
+public abstract partial record CteAsMaterialized : IDisplay
 {
     /// <summary>The <c>WITH</c> statement specifies <c>AS MATERIALIZED</c> behavior</summary>
     public sealed record Materialized : CteAsMaterialized;

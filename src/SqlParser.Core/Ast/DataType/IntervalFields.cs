@@ -23,7 +23,7 @@ namespace SqlParser.Core.Ast;
 /// <summary>
 /// Fields for <see href="https://www.postgresql.org/docs/17/datatype-datetime.html">Postgres</see> <c>INTERVAL</c> type.
 /// </summary>
-public abstract record IntervalFields : IDisplay
+public abstract partial record IntervalFields : IDisplay
 {
     /// <summary><c>YEAR</c> field</summary>
     public sealed record Year : IntervalFields;

@@ -22,7 +22,7 @@ namespace SqlParser.Core.Ast;
 
 /// <summary><c>PRINT</c> statement for producing debug/output messages.</summary>
 /// <param name="Message">The expression producing the message to print.</param>
-public sealed record PrintStatement(Expr Message) : IDisplay
+public sealed partial record PrintStatement(Expr Message) : IDisplay
 {
     public void Fmt(Formatter f)
     {

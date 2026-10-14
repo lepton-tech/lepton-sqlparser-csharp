@@ -28,7 +28,7 @@ namespace SqlParser.Core.Ast;
 /// for more details.
 /// </para>
 /// </summary>
-public abstract record MysqlInsertPriority : IDisplay
+public abstract partial record MysqlInsertPriority : IDisplay
 {
     /// <summary>LOW_PRIORITY modifier for INSERT/REPLACE.</summary>
     public sealed record LowPriority : MysqlInsertPriority;

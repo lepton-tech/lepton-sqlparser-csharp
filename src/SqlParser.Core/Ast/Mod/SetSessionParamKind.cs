@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Kind of session parameter being set by <c>SET SESSION</c>.</summary>
-public abstract record SetSessionParamKind : IDisplay
+public abstract partial record SetSessionParamKind : IDisplay
 {
     /// <summary>Generic session parameter (name/value pair).</summary>
     public sealed record Generic(SetSessionParamGeneric Value) : SetSessionParamKind;

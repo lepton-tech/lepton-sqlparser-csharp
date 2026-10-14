@@ -23,7 +23,7 @@ namespace SqlParser.Core.Ast;
 /// <summary>Represents a SET SESSION AUTHORIZATION statement</summary>
 /// <param name="Scope">The scope for the <c>SET SESSION AUTHORIZATION</c> (e.g., GLOBAL/SESSION).</param>
 /// <param name="Kind">The specific authorization parameter kind.</param>
-public sealed record SetSessionAuthorizationParam(ContextModifier Scope, SetSessionAuthorizationParamKind Kind) : IDisplay
+public sealed partial record SetSessionAuthorizationParam(ContextModifier Scope, SetSessionAuthorizationParamKind Kind) : IDisplay
 {
     public void Fmt(Formatter f)
     {

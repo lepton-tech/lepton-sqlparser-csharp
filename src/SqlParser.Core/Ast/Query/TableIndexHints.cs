@@ -27,7 +27,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="IndexType">The index type (e.g., <c>INDEX</c>).</param>
 /// <param name="ForClause">Optional <c>FOR</c> clause specifying the scope (JOIN / ORDER BY / GROUP BY).</param>
 /// <param name="IndexNames">List of index names referred to by the hint.</param>
-public sealed record TableIndexHints(
+public sealed partial record TableIndexHints(
     TableIndexHintType HintType,
     TableIndexType IndexType,
     TableIndexHintForClause? ForClause,

@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>The <c>ON OVERFLOW</c> clause of a LISTAGG invocation</summary>
-public abstract record ListAggOnOverflow : IDisplay
+public abstract partial record ListAggOnOverflow : IDisplay
 {
     /// <summary><c>ON OVERFLOW ERROR</c></summary>
     public sealed record Error : ListAggOnOverflow;

@@ -30,7 +30,7 @@ namespace SqlParser.Core.Ast;
 /// <see href="https://learn.microsoft.com/en-us/sql/t-sql/statements/create-function-transact-sql">MsSql</see>
 /// <para>Sem <c>impl Display</c> no Rust: quem formata é o <c>Display</c> de <c>CreateFunction</c>.</para>
 /// </remarks>
-public abstract record CreateFunctionBody
+public abstract partial record CreateFunctionBody
 {
     /// <summary>
     /// A function body expression using the 'AS' keyword and shows up

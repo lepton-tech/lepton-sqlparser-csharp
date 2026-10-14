@@ -24,7 +24,7 @@ namespace SqlParser.Core.Ast;
 /// <remarks>Enum sem dados com <c>Display</c> → records (convencoes.md §13, caso 37).</remarks>
 // TODO: Restrict parsing specific SetQuantifier in some specific dialects.
 // For example, BigQuery does not support `DISTINCT` for `EXCEPT` and `INTERSECT`
-public abstract record SetQuantifier : IDisplay
+public abstract partial record SetQuantifier : IDisplay
 {
     /// <summary><c>ALL</c> quantifier</summary>
     public sealed record All : SetQuantifier;

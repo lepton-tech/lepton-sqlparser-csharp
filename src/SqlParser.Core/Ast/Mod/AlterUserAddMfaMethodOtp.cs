@@ -27,4 +27,4 @@ namespace SqlParser.Core.Ast;
 /// </summary>
 /// <remarks>Sem <c>impl Display</c> no Rust: quem formata é <see cref="AlterUser"/>.</remarks>
 /// <param name="Count">Optional OTP count parameter.</param>
-public sealed record AlterUserAddMfaMethodOtp(ValueWithSpan? Count);
+public sealed partial record AlterUserAddMfaMethodOtp(ValueWithSpan? Count);

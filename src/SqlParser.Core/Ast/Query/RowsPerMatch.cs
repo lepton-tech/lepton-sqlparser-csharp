@@ -24,7 +24,7 @@ namespace SqlParser.Core.Ast;
 /// <remarks>
 /// See <see href="https://docs.snowflake.com/en/sql-reference/constructs/match_recognize#row-s-per-match-specifying-the-rows-to-return"/>.
 /// </remarks>
-public abstract record RowsPerMatch : IDisplay
+public abstract partial record RowsPerMatch : IDisplay
 {
     /// <summary><c>ONE ROW PER MATCH</c></summary>
     public sealed record OneRow : RowsPerMatch;

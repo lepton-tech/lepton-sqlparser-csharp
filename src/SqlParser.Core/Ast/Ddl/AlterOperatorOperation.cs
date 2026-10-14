@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>An <see cref="AlterOperator"/> operation</summary>
-public abstract record AlterOperatorOperation : IDisplay
+public abstract partial record AlterOperatorOperation : IDisplay
 {
     /// <summary><c>OWNER TO { new_owner | CURRENT_ROLE | CURRENT_USER | SESSION_USER }</c></summary>
     public sealed record OwnerTo(Owner Value) : AlterOperatorOperation;

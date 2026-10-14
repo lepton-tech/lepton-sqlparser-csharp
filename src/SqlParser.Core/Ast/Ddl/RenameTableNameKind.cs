@@ -24,7 +24,7 @@ namespace SqlParser.Core.Ast;
 /// <c>RenameTableNameKind</c> is the kind used in an <c>ALTER TABLE _ RENAME</c> statement.
 /// <para>Note: <see href="https://dev.mysql.com/doc/refman/8.4/en/alter-table.html">MySQL</see> is the only database that supports the AS keyword for this operation.</para>
 /// </summary>
-public abstract record RenameTableNameKind : IDisplay, ISpanned
+public abstract partial record RenameTableNameKind : IDisplay, ISpanned
 {
     /// <summary><c>AS new_table_name</c></summary>
     public sealed record As(ObjectName Value) : RenameTableNameKind;

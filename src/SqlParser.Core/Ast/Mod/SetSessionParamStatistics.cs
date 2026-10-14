@@ -23,7 +23,7 @@ namespace SqlParser.Core.Ast;
 /// <summary>Statistics-related session parameter specifying topic and value.</summary>
 /// <param name="Topic">Statistics topic to set (IO/PROFILE/TIME/XML).</param>
 /// <param name="Value">Value (ON/OFF) for the statistics topic.</param>
-public sealed record SetSessionParamStatistics(SessionParamStatsTopic Topic, SessionParamValue Value) : IDisplay
+public sealed partial record SetSessionParamStatistics(SessionParamStatsTopic Topic, SessionParamValue Value) : IDisplay
 {
     public void Fmt(Formatter f)
     {

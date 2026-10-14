@@ -28,7 +28,7 @@ namespace SqlParser.Core.Ast;
 /// As funções livres privadas de <c>data_type.rs</c> (<c>format_type_with_optional_length</c> etc.) são
 /// membros estáticos privados deste tipo homônimo (convencoes.md §13, caso 5).
 /// </remarks>
-public abstract record DataType : IDisplay
+public abstract partial record DataType : IDisplay
 {
     /// <summary>
     /// Table type in <see href="https://www.postgresql.org/docs/15/sql-createfunction.html">PostgreSQL</see>,

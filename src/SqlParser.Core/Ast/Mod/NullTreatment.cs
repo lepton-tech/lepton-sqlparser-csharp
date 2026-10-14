@@ -26,7 +26,7 @@ namespace SqlParser.Core.Ast;
 /// <c>FIRST_VALUE(column2) IGNORE NULLS OVER (PARTITION BY column1)</c>
 /// </summary>
 /// <remarks>How NULL values are treated in certain window functions.</remarks>
-public abstract record NullTreatment : IDisplay
+public abstract partial record NullTreatment : IDisplay
 {
     /// <summary>Ignore NULL values (e.g. <c>IGNORE NULLS</c>).</summary>
     public sealed record IgnoreNulls : NullTreatment;

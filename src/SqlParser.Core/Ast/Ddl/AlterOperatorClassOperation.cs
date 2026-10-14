@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>An <see cref="AlterOperatorClass"/> operation</summary>
-public abstract record AlterOperatorClassOperation : IDisplay
+public abstract partial record AlterOperatorClassOperation : IDisplay
 {
     /// <summary>
     /// <c>RENAME TO new_name</c>

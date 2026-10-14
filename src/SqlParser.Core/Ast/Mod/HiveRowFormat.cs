@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Row format specification for Hive tables (SERDE or DELIMITED).</summary>
-public abstract record HiveRowFormat
+public abstract partial record HiveRowFormat
 {
     /// <summary>SerDe class specification with the implementing class name.</summary>
     /// <param name="Class">The SerDe implementation class name.</param>

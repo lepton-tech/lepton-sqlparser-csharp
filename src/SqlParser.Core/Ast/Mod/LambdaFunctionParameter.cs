@@ -26,7 +26,7 @@ namespace SqlParser.Core.Ast;
 /// The optional data type of the parameter
 /// <see href="https://docs.snowflake.com/en/sql-reference/functions/filter#arguments">Snowflake Syntax</see>
 /// </param>
-public sealed record LambdaFunctionParameter(Ident Name, DataType? DataType) : IDisplay
+public sealed partial record LambdaFunctionParameter(Ident Name, DataType? DataType) : IDisplay
 {
     public void Fmt(Formatter f)
     {

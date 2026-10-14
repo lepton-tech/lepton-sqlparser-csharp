@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>A symbol in a <c>MATCH_RECOGNIZE</c> pattern.</summary>
-public abstract record MatchRecognizeSymbol : IDisplay
+public abstract partial record MatchRecognizeSymbol : IDisplay
 {
     /// <summary>A named symbol, e.g. <c>S1</c>.</summary>
     public sealed record Named(Ident Value) : MatchRecognizeSymbol;

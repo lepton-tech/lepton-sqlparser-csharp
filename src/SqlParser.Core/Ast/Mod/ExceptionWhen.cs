@@ -32,7 +32,7 @@ namespace SqlParser.Core.Ast;
 /// </remarks>
 /// <param name="Idents">Identifiers that trigger this branch (error conditions).</param>
 /// <param name="Statements">Statements to execute when the condition matches.</param>
-public sealed record ExceptionWhen(Sequence<Ident> Idents, Sequence<Statement> Statements) : IDisplay
+public sealed partial record ExceptionWhen(Sequence<Ident> Idents, Sequence<Statement> Statements) : IDisplay
 {
     public void Fmt(Formatter f)
     {

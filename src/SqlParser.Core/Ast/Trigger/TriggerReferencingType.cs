@@ -24,7 +24,7 @@ namespace SqlParser.Core.Ast;
 /// This clause indicates whether the following relation name is for the before-image transition relation
 /// or the after-image transition relation
 /// </summary>
-public abstract record TriggerReferencingType : IDisplay
+public abstract partial record TriggerReferencingType : IDisplay
 {
     /// <summary>The transition relation containing the old rows affected by the triggering statement</summary>
     public sealed record OldTable : TriggerReferencingType;

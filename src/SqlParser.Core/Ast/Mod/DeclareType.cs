@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Represents the type of a <c>DECLARE</c> statement.</summary>
-public abstract record DeclareType : IDisplay
+public abstract partial record DeclareType : IDisplay
 {
     /// <summary>
     /// Cursor variable type. e.g. [Snowflake] [PostgreSQL] [MsSql]

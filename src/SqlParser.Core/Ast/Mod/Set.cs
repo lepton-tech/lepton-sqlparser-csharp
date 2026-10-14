@@ -23,7 +23,7 @@ using static SqlParser.Core.Ast.AstModule;
 namespace SqlParser.Core.Ast;
 
 /// <summary>Variants for the <c>SET</c> family of statements.</summary>
-public abstract record Set : IDisplay
+public abstract partial record Set : IDisplay
 {
     /// <summary>
     /// SQL Standard-style

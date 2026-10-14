@@ -22,7 +22,7 @@ namespace SqlParser.Core.Ast;
 
 /// <summary>The side on which <c>TRIM</c> should be applied.</summary>
 /// <remarks>Corresponds to <c>TRIM(BOTH|LEADING|TRAILING)</c> SQL syntax.</remarks>
-public abstract record TrimWhereField : IDisplay
+public abstract partial record TrimWhereField : IDisplay
 {
     /// <summary><c>BOTH</c> (trim from both ends)</summary>
     public sealed record Both : TrimWhereField;

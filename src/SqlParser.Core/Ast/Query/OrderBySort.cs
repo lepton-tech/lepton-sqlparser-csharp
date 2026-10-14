@@ -26,7 +26,7 @@ namespace SqlParser.Core.Ast;
 /// <see href="https://www.postgresql.org/docs/current/sql-select.html"/>
 /// <para>Sem <c>Display</c> no Rust (o texto é gerado por <c>OrderByOptions</c>): o tipo não implementa <c>IDisplay</c>.</para>
 /// </remarks>
-public abstract record OrderBySort
+public abstract partial record OrderBySort
 {
     /// <summary><c>ASC</c></summary>
     public sealed record Asc : OrderBySort;

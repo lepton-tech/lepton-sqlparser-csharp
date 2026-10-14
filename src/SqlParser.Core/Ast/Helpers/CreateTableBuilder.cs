@@ -54,7 +54,7 @@ namespace SqlParser.Core.Ast;
 /// vira <c>CloneValue</c> (CS8859).
 /// </para>
 /// </remarks>
-public sealed record CreateTableBuilder
+public sealed partial record CreateTableBuilder
 {
     /// <summary>Create a new <c>CreateTableBuilder</c> for the given table name.</summary>
     public CreateTableBuilder(ObjectName name)

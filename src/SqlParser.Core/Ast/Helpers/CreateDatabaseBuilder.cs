@@ -38,7 +38,7 @@ namespace SqlParser.Core.Ast;
 /// prefixo <c>Set</c> (CS0102); o campo <c>clone</c> vira <c>CloneValue</c> (CS8859).
 /// </para>
 /// </remarks>
-public sealed record CreateDatabaseBuilder
+public sealed partial record CreateDatabaseBuilder
 {
     /// <summary>
     /// Create a new <c>CreateDatabaseBuilder</c> with the given database name.

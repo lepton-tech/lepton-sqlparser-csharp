@@ -24,7 +24,7 @@ namespace SqlParser.Core.Ast;
 /// <remarks><c>namespace_uri AS namespace_name</c></remarks>
 /// <param name="Uri">The namespace URI (a text expression).</param>
 /// <param name="Name">The alias for the namespace (a simple identifier).</param>
-public sealed record XmlNamespaceDefinition(Expr Uri, Ident Name) : IDisplay
+public sealed partial record XmlNamespaceDefinition(Expr Uri, Ident Name) : IDisplay
 {
     public void Fmt(Formatter f)
     {

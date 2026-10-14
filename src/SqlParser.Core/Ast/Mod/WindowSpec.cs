@@ -33,7 +33,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="PartitionBy"><c>OVER (PARTITION BY ...)</c></param>
 /// <param name="OrderBy"><c>OVER (ORDER BY ...)</c></param>
 /// <param name="WindowFrame"><c>OVER (window frame)</c></param>
-public sealed record WindowSpec(
+public sealed partial record WindowSpec(
     Ident? WindowName,
     Sequence<Expr> PartitionBy,
     Sequence<OrderByExpr> OrderBy,

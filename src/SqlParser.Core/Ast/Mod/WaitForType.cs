@@ -22,7 +22,7 @@ namespace SqlParser.Core.Ast;
 
 /// <summary>The type of <c>WAITFOR</c> statement (MSSQL).</summary>
 /// <remarks>See: <see href="https://learn.microsoft.com/en-us/sql/t-sql/language-elements/waitfor-transact-sql"/></remarks>
-public abstract record WaitForType : IDisplay
+public abstract partial record WaitForType : IDisplay
 {
     /// <summary><c>WAITFOR DELAY 'time_to_pass'</c></summary>
     public sealed record Delay : WaitForType;

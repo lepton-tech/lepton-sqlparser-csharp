@@ -24,7 +24,7 @@ namespace SqlParser.Core.Ast;
 /// See <see href="https://docs.snowflake.com/en/sql-reference/sql/grant-privilege"/>
 /// under <c>globalPrivileges</c> in the <c>MONITOR</c> privilege.
 /// </summary>
-public abstract record ActionMonitorType : IDisplay
+public abstract partial record ActionMonitorType : IDisplay
 {
     /// <summary>Monitor execution.</summary>
     public sealed record Execution : ActionMonitorType;

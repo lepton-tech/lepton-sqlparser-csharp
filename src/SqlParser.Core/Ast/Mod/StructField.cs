@@ -30,7 +30,7 @@ namespace SqlParser.Core.Ast;
 /// Struct field options (e.g., <c>OPTIONS(...)</c> on BigQuery).
 /// See <see href="https://cloud.google.com/bigquery/docs/reference/standard-sql/data-definition-language#column_name_and_column_schema">BigQuery</see>
 /// </param>
-public sealed record StructField(Ident? FieldName, DataType FieldType, Sequence<SqlOption>? Options) : IDisplay
+public sealed partial record StructField(Ident? FieldName, DataType FieldType, Sequence<SqlOption>? Options) : IDisplay
 {
     public void Fmt(Formatter f)
     {

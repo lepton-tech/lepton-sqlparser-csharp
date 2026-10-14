@@ -25,7 +25,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="SerdeProperties">Optional SerDe properties expressed as SQL options.</param>
 /// <param name="Storage">Optional input/output storage format details.</param>
 /// <param name="Location">Optional location (URI or path) for table data.</param>
-public sealed record HiveFormat(
+public sealed partial record HiveFormat(
     HiveRowFormat? RowFormat,
     Sequence<SqlOption>? SerdeProperties,
     HiveIOFormat? Storage,

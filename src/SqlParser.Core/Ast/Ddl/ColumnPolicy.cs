@@ -31,7 +31,7 @@ namespace SqlParser.Core.Ast;
 /// </code>
 /// <see href="https://docs.snowflake.com/en/sql-reference/sql/create-table">Snowflake</see>
 /// </summary>
-public abstract record ColumnPolicy : IDisplay
+public abstract partial record ColumnPolicy : IDisplay
 {
     /// <summary><c>MASKING POLICY (&lt;property&gt;)</c></summary>
     public sealed record MaskingPolicy(ColumnPolicyProperty Value) : ColumnPolicy;

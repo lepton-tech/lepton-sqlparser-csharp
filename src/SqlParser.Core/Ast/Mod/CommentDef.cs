@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Helper to indicate if a comment includes the <c>=</c> in the display form</summary>
-public abstract record CommentDef : IDisplay
+public abstract partial record CommentDef : IDisplay
 {
     /// <summary>
     /// Includes <c>=</c> when printing the comment, as <c>COMMENT = 'comment'</c>

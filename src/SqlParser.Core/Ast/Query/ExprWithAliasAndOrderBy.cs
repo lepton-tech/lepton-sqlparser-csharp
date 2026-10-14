@@ -29,7 +29,7 @@ namespace SqlParser.Core.Ast;
 /// </remarks>
 /// <param name="Expr">Expression with optional alias.</param>
 /// <param name="OrderBy">Ordering options applied to the expression.</param>
-public sealed record ExprWithAliasAndOrderBy(ExprWithAlias Expr, OrderByOptions OrderBy) : IDisplay
+public sealed partial record ExprWithAliasAndOrderBy(ExprWithAlias Expr, OrderByOptions OrderBy) : IDisplay
 {
     public void Fmt(Formatter f)
     {

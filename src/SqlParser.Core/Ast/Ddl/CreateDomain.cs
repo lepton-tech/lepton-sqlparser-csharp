@@ -41,7 +41,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="Collation">The collation of the domain.</param>
 /// <param name="Default">The default value of the domain.</param>
 /// <param name="Constraints">The constraints of the domain.</param>
-public sealed record CreateDomain(
+public sealed partial record CreateDomain(
     ObjectName Name,
     DataType DataType,
     Ident? Collation,

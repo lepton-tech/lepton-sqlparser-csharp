@@ -28,7 +28,7 @@ namespace SqlParser.Core.Ast;
 /// </summary>
 /// <remarks>No Rust, o <c>impl Display for ResetStatement</c> vem depois do de <c>OptimizerHint</c>; aqui fica no próprio tipo.</remarks>
 /// <param name="Reset">The reset action to perform (either <c>ALL</c> or a specific configuration parameter).</param>
-public sealed record ResetStatement(Reset Reset) : IDisplay
+public sealed partial record ResetStatement(Reset Reset) : IDisplay
 {
     public void Fmt(Formatter f)
     {

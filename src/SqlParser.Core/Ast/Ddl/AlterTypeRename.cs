@@ -22,4 +22,4 @@ namespace SqlParser.Core.Ast;
 
 /// <summary>See <see cref="AlterTypeOperation.Rename"/></summary>
 /// <param name="NewName">The new name for the type.</param>
-public sealed record AlterTypeRename(Ident NewName);
+public sealed partial record AlterTypeRename(Ident NewName);

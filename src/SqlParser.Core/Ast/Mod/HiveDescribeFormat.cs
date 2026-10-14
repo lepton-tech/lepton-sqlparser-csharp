@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Describe output format options for Hive <c>DESCRIBE</c>/<c>EXPLAIN</c>.</summary>
-public abstract record HiveDescribeFormat : IDisplay
+public abstract partial record HiveDescribeFormat : IDisplay
 {
     /// <summary>Extended describe output.</summary>
     public sealed record Extended : HiveDescribeFormat;

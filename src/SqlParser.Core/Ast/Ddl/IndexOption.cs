@@ -25,7 +25,7 @@ namespace SqlParser.Core.Ast;
 /// <see href="https://dev.mysql.com/doc/refman/8.4/en/create-index.html"><c>CREATE INDEX</c></see>, and
 /// <see href="https://dev.mysql.com/doc/refman/8.4/en/alter-table.html"><c>ALTER TABLE</c></see>.
 /// </summary>
-public abstract record IndexOption : IDisplay
+public abstract partial record IndexOption : IDisplay
 {
     /// <summary>
     /// <c>USING { BTREE | HASH }</c>: Index type to use for the index.

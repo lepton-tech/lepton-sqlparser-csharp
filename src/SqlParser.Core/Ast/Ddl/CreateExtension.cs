@@ -29,7 +29,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="Cascade">Whether <c>CASCADE</c> was specified for the CREATE EXTENSION.</param>
 /// <param name="Schema">Optional schema name for the extension.</param>
 /// <param name="Version">Optional version for the extension.</param>
-public sealed record CreateExtension(
+public sealed partial record CreateExtension(
     Ident Name,
     bool IfNotExists,
     bool Cascade,

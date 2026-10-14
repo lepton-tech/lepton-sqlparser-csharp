@@ -24,7 +24,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="Name">Attribute name.</param>
 /// <param name="DataType">Attribute data type.</param>
 /// <param name="Collation">Optional collation for the attribute.</param>
-public sealed record UserDefinedTypeCompositeAttributeDef(Ident Name, DataType DataType, ObjectName? Collation) : IDisplay
+public sealed partial record UserDefinedTypeCompositeAttributeDef(Ident Name, DataType DataType, ObjectName? Collation) : IDisplay
 {
     public void Fmt(Formatter f)
     {

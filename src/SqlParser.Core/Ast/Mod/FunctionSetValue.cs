@@ -25,7 +25,7 @@ namespace SqlParser.Core.Ast;
 /// <see href="https://www.postgresql.org/docs/current/sql-createfunction.html">PostgreSQL</see>
 /// <para>Sem <c>impl Display</c> no Rust: quem formata é <see cref="FunctionDefinitionSetParam"/>.</para>
 /// </remarks>
-public abstract record FunctionSetValue
+public abstract partial record FunctionSetValue
 {
     /// <summary>SET param = DEFAULT / SET param TO DEFAULT</summary>
     public sealed record Default : FunctionSetValue;

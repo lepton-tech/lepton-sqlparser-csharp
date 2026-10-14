@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Function action in <c>ALTER FUNCTION ... action [ ... ] [ RESTRICT ]</c>.</summary>
-public abstract record AlterFunctionAction : IDisplay
+public abstract partial record AlterFunctionAction : IDisplay
 {
     /// <summary><c>CALLED ON NULL INPUT</c> / <c>RETURNS NULL ON NULL INPUT</c> / <c>STRICT</c></summary>
     public sealed record CalledOnNull(FunctionCalledOnNull Value) : AlterFunctionAction;

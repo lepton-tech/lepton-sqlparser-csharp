@@ -31,7 +31,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="Grantees">The grantees (users/roles) to whom the denial applies.</param>
 /// <param name="GrantedBy">Optional identifier of the principal that performed the grant.</param>
 /// <param name="Cascade">Optional cascade option controlling dependent objects.</param>
-public sealed record DenyStatement(
+public sealed partial record DenyStatement(
     Privileges Privileges,
     GrantObjects Objects,
     Sequence<Grantee> Grantees,

@@ -1007,6 +1007,11 @@ public sealed partial class Parser
     /// <summary>Parse a new expression.</summary>
     public Expr ParseExpr() => ParseSubexpr(_dialect.PrecUnknown);
 
+    // Rust: o literal `&[Keyword::ASC, Keyword::DESC, Keyword::GROUP]` de `validator` (abaixo), em cache
+    // para não alocar a cada alias (convencoes.md §13, caso 11).
+    private static readonly Keyword[] ParseExprWithAliasAndOrderByValidatorKeywords =
+        { Keyword.ASC, Keyword.DESC, Keyword.GROUP };
+
     /// <summary>Parse expression with optional alias and order by.</summary>
     public ExprWithAliasAndOrderBy ParseExprWithAliasAndOrderBy()
     {
@@ -1014,7 +1019,7 @@ public sealed partial class Parser
 
         // Rust: `fn validator(..)` aninhada → função local estática (convencoes.md §13, caso 67).
         static bool Validator(bool @explicit, Keyword kw, Parser _parser) =>
-            @explicit || !new[] { Keyword.ASC, Keyword.DESC, Keyword.GROUP }.Contains(kw);
+            @explicit || !ParseExprWithAliasAndOrderByValidatorKeywords.Contains(kw);
 
         var alias = ParseOptionalAliasInner(null, Validator);
         var orderBy = new OrderByOptions(
@@ -1028,6 +1033,12 @@ public sealed partial class Parser
     /// <summary>Parse tokens until the precedence changes.</summary>
     public Expr ParseSubexpr(byte precedence)
     {
+        // Rust: #[cfg_attr(feature = "recursive-protection", recursive::recursive)] (convencoes.md §13, caso 123).
+        if (StackGuard.IsStackLow())
+        {
+            return StackGuard.Grow(this, precedence, static (parser, p) => parser.ParseSubexpr(p));
+        }
+
         using var _guard = _recursionCounter.TryDecrease();
         // Rust: debug!("parsing expr"): log não traduzido (caso 44).
         var expr = ParsePrefix();

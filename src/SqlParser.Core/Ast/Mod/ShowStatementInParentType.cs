@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Parent object types usable with <c>SHOW ... IN &lt;parent&gt;</c> clauses.</summary>
-public abstract record ShowStatementInParentType : IDisplay
+public abstract partial record ShowStatementInParentType : IDisplay
 {
     /// <summary>ACCOUNT parent type for SHOW statements.</summary>
     public sealed record Account : ShowStatementInParentType;

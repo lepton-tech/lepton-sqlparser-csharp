@@ -24,7 +24,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="Scope">Optional context scope (e.g., SESSION or LOCAL).</param>
 /// <param name="Name">Assignment target name.</param>
 /// <param name="Value">Assigned expression value.</param>
-public sealed record SetAssignment(ContextModifier? Scope, ObjectName Name, Expr Value) : IDisplay
+public sealed partial record SetAssignment(ContextModifier? Scope, ObjectName Name, Expr Value) : IDisplay
 {
     public void Fmt(Formatter f)
     {

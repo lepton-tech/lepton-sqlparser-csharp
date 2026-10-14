@@ -35,7 +35,7 @@ namespace SqlParser.Core.Ast;
 /// indicates the shorthand form (e.g. <c>ROWS 1 PRECEDING</c>), which must
 /// behave the same as <c>end_bound = WindowFrameBound::CurrentRow</c>.
 /// </param>
-public sealed record WindowFrame(WindowFrameUnits Units, WindowFrameBound StartBound, WindowFrameBound? EndBound)
+public sealed partial record WindowFrame(WindowFrameUnits Units, WindowFrameBound StartBound, WindowFrameBound? EndBound)
 {
     // TBD: EXCLUDE
 

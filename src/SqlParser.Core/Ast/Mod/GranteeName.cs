@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Users/roles designated in a GRANT/REVOKE</summary>
-public abstract record GranteeName : IDisplay
+public abstract partial record GranteeName : IDisplay
 {
     /// <summary>A bare identifier</summary>
     public sealed record ObjectName(Ast.ObjectName Value) : GranteeName;

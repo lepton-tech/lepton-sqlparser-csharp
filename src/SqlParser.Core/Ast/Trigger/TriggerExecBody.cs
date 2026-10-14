@@ -26,7 +26,7 @@ namespace SqlParser.Core.Ast;
 /// </summary>
 /// <param name="ExecType">Whether the body is a <c>FUNCTION</c> or <c>PROCEDURE</c> invocation.</param>
 /// <param name="FuncDesc">Description of the function/procedure to execute.</param>
-public sealed record TriggerExecBody(TriggerExecBodyType ExecType, FunctionDesc FuncDesc) : IDisplay
+public sealed partial record TriggerExecBody(TriggerExecBodyType ExecType, FunctionDesc FuncDesc) : IDisplay
 {
     public void Fmt(Formatter f)
     {

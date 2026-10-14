@@ -23,7 +23,7 @@ namespace SqlParser.Core.Ast;
 /// <summary>Hive-specific <c>SET LOCATION</c> helper used in some <c>LOAD DATA</c> statements.</summary>
 /// <param name="HasSet">Whether the <c>SET</c> keyword was present.</param>
 /// <param name="Location">The location identifier.</param>
-public sealed record HiveSetLocation(bool HasSet, Ident Location) : IDisplay
+public sealed partial record HiveSetLocation(bool HasSet, Ident Location) : IDisplay
 {
     public void Fmt(Formatter f)
     {

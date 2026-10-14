@@ -22,7 +22,7 @@ namespace SqlParser.Core.Ast;
 
 /// <summary>The mode for handling empty matches in a <c>MATCH_RECOGNIZE</c> operation.</summary>
 /// <remarks>Enum sem dados com <c>Display</c> → records (convencoes.md §13, caso 37).</remarks>
-public abstract record EmptyMatchesMode : IDisplay
+public abstract partial record EmptyMatchesMode : IDisplay
 {
     /// <summary><c>SHOW EMPTY MATCHES</c></summary>
     public sealed record Show : EmptyMatchesMode;

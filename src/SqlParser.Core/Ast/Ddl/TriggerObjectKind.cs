@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Whether the syntax used for the trigger object (ROW or STATEMENT) is <c>FOR</c> or <c>FOR EACH</c>.</summary>
-public abstract record TriggerObjectKind : IDisplay
+public abstract partial record TriggerObjectKind : IDisplay
 {
     /// <summary>The <c>FOR</c> syntax is used.</summary>
     public sealed record For(TriggerObject Value) : TriggerObjectKind;

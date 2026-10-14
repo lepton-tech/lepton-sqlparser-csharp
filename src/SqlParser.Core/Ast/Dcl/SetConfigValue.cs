@@ -28,7 +28,7 @@ namespace SqlParser.Core.Ast;
 /// </list>
 /// </summary>
 /// <remarks>Sem <c>Display</c> no Rust (o texto é montado por <c>AlterRoleOperation</c>).</remarks>
-public abstract record SetConfigValue
+public abstract partial record SetConfigValue
 {
     /// <summary>Use the default value.</summary>
     public sealed record Default : SetConfigValue;

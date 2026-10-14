@@ -25,7 +25,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="Name">Optional argument identifier/name.</param>
 /// <param name="DataType">The data type of the argument.</param>
 /// <param name="DefaultExpr">Optional default expression for the argument.</param>
-public sealed record OperateFunctionArg(ArgMode? Mode, Ident? Name, DataType DataType, Expr? DefaultExpr) : IDisplay
+public sealed partial record OperateFunctionArg(ArgMode? Mode, Ident? Name, DataType DataType, Expr? DefaultExpr) : IDisplay
 {
     /// <summary>Returns an unnamed argument.</summary>
     public static OperateFunctionArg Unnamed(DataType dataType) =>

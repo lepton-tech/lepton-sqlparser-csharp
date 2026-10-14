@@ -27,7 +27,7 @@ namespace SqlParser.Core.Ast;
 /// </remarks>
 /// <param name="Key">The tag key (can be qualified).</param>
 /// <param name="Value">The tag value as a string.</param>
-public sealed record Tag(ObjectName Key, string Value) : IDisplay
+public sealed partial record Tag(ObjectName Key, string Value) : IDisplay
 {
     public void Fmt(Formatter f)
     {

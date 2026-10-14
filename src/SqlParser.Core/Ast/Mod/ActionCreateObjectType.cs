@@ -24,7 +24,7 @@ namespace SqlParser.Core.Ast;
 /// See <see href="https://docs.snowflake.com/en/sql-reference/sql/grant-privilege"/>
 /// under <c>globalPrivileges</c> in the <c>CREATE</c> privilege.
 /// </summary>
-public abstract record ActionCreateObjectType : IDisplay
+public abstract partial record ActionCreateObjectType : IDisplay
 {
     /// <summary>An account-level object.</summary>
     public sealed record Account : ActionCreateObjectType;

@@ -28,7 +28,7 @@ namespace SqlParser.Core.Ast;
 /// <see href="https://www.postgresql.org/docs/current/sql-createpolicy.html">PostgreSQL</see>
 /// </summary>
 // Enum sem dados com Display → records (convencoes.md §13, caso 37).
-public abstract record CreatePolicyCommand : IDisplay
+public abstract partial record CreatePolicyCommand : IDisplay
 {
     /// <summary>Applies to all commands.</summary>
     public sealed record All : CreatePolicyCommand;

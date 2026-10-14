@@ -48,18 +48,12 @@ namespace SqlParser.Core.Ast;
 ///
 /// assert_eq!(one.into_iter().chain(many).collect::&lt;Vec&lt;_&gt;&gt;(), vec!["a", "a", "b"] );
 /// </code>
-/// <para>
-/// No C#, <c>impl Deref&lt;Target = [T]&gt;</c>, <c>impl AsRef&lt;[T]&gt;</c> e os dois <c>impl IntoIterator</c>
-/// (por referência e por valor) viram a implementação de <see cref="IReadOnlyList{T}"/> na base:
-/// <c>one.len()</c> → <see cref="Count"/>, <c>one[0]</c> → indexador, <c>for x in &amp;one</c> → <c>foreach</c>.
-/// O iterador por valor <c>OneOrManyWithParensIntoIter&lt;T&gt;</c> (com o enum privado
-/// <c>OneOrManyWithParensIntoIterInner&lt;T&gt;</c> e os <c>impl Iterator</c>, <c>FusedIterator</c>,
-/// <c>ExactSizeIterator</c> e <c>DoubleEndedIterator</c>) não é portado: o enumerador de
-/// <see cref="GetEnumerator"/> cumpre o papel, e <c>next_back</c>/<c>rev</c>, <c>count</c> e <c>fold</c>
-/// correspondem a <c>Reverse()</c>, <c>Count()</c> e <c>Aggregate()</c> do LINQ. Ver docs/port/onda-a/A1.md.
-/// </para>
 /// </remarks>
-public abstract record OneOrManyWithParens<T> : IDisplay, IReadOnlyList<T>
+// No C#, `impl Deref<Target = [T]>`, `impl AsRef<[T]>` e `impl IntoIterator for &OneOrManyWithParens<T>`
+// viram a implementação de IReadOnlyList<T> na base: `one.len()` → Count, `one[0]` → indexador,
+// `for x in &one` → foreach. `impl IntoIterator for OneOrManyWithParens<T>` (por valor) → IntoIter(), que
+// devolve OneOrManyWithParensIntoIter<T> (convencoes.md §13, caso 65).
+public abstract partial record OneOrManyWithParens<T> : IDisplay, IReadOnlyList<T>
 {
     /// <summary>A single <c>T</c>, unparenthesized.</summary>
     /// <param name="Value">Rust: campo <c>.0</c>.</param>
@@ -85,10 +79,23 @@ public abstract record OneOrManyWithParens<T> : IDisplay, IReadOnlyList<T>
     /// <summary>Rust: <c>self[index]</c> sobre o slice obtido por <c>Deref</c>.</summary>
     public T this[int index] => AsSlice()[index];
 
-    /// <summary>Rust: <c>impl IntoIterator for &amp;OneOrManyWithParens&lt;T&gt;</c> e <c>impl IntoIterator for OneOrManyWithParens&lt;T&gt;</c>.</summary>
+    /// <summary>Rust: <c>impl IntoIterator for &amp;OneOrManyWithParens&lt;T&gt;</c> (<c>self.iter()</c>).</summary>
     public IEnumerator<T> GetEnumerator() => AsSlice().GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+    /// <summary>Rust: <c>impl IntoIterator for OneOrManyWithParens&lt;T&gt;</c> (<c>into_iter(self)</c>, por valor).</summary>
+    public OneOrManyWithParensIntoIter<T> IntoIter()
+    {
+        OneOrManyWithParensIntoIterInner<T> inner = this switch
+        {
+            One one => new OneOrManyWithParensIntoIterInner<T>.One(new OnceIter<T>(one.Value)), // core::iter::once(one)
+            Many many => new OneOrManyWithParensIntoIterInner<T>.Many(new VecIntoIter<T>(many.Value)), // many.into_iter()
+            _ => throw new InvalidOperationException($"Variante de OneOrManyWithParens não tratada: {GetType().Name}"),
+        };
+
+        return new OneOrManyWithParensIntoIter<T>(inner);
+    }
 
     public void Fmt(Formatter f)
     {

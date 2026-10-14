@@ -26,7 +26,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="Options">Options for the export operation.</param>
 /// <param name="Query">The query producing the data to export.</param>
 /// <param name="Connection">Optional named connection to use for export.</param>
-public sealed record ExportData(Sequence<SqlOption> Options, Query Query, ObjectName? Connection) : IDisplay
+public sealed partial record ExportData(Sequence<SqlOption> Options, Query Query, ObjectName? Connection) : IDisplay
 {
     public void Fmt(Formatter f)
     {

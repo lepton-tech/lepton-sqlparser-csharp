@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary><c>FOR XML</c> or <c>FOR JSON</c> clause (MSSQL): formats the output of a query as XML or JSON.</summary>
-public abstract record ForClause : IDisplay
+public abstract partial record ForClause : IDisplay
 {
     /// <summary><c>FOR BROWSE</c> clause.</summary>
     public sealed record Browse : ForClause;

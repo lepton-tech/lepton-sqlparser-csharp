@@ -22,7 +22,7 @@ namespace SqlParser.Core.Ast;
 
 /// <summary>Specifies the behavior of the initial refresh of the dynamic table.</summary>
 /// <remarks><see href="https://docs.snowflake.com/en/sql-reference/sql/create-dynamic-table">Snowflake</see></remarks>
-public abstract record InitializeKind : IDisplay
+public abstract partial record InitializeKind : IDisplay
 {
     /// <summary>Initialize on creation (<c>ON CREATE</c>).</summary>
     public sealed record OnCreate : InitializeKind;

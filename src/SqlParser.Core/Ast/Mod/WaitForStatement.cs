@@ -24,7 +24,7 @@ namespace SqlParser.Core.Ast;
 /// <remarks>See: <see href="https://learn.microsoft.com/en-us/sql/t-sql/language-elements/waitfor-transact-sql"/></remarks>
 /// <param name="WaitType"><c>DELAY</c> or <c>TIME</c>.</param>
 /// <param name="Expr">The time expression.</param>
-public sealed record WaitForStatement(WaitForType WaitType, Expr Expr) : IDisplay
+public sealed partial record WaitForStatement(WaitForType WaitType, Expr Expr) : IDisplay
 {
     public void Fmt(Formatter f)
     {

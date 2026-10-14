@@ -34,7 +34,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="Options">Key/value options for user creation.</param>
 /// <param name="WithTags">Whether tags are specified using <c>WITH TAG</c>.</param>
 /// <param name="Tags">Tags for the user.</param>
-public sealed record CreateUser(
+public sealed partial record CreateUser(
     bool OrReplace,
     bool IfNotExists,
     Ident Name,

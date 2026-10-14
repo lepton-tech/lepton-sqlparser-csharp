@@ -30,7 +30,7 @@ namespace SqlParser.Core.Ast;
 /// </para>
 /// <para>Sem <c>Display</c> no Rust (o texto é montado por <c>KeyValueOption</c>).</para>
 /// </remarks>
-public abstract record KeyValueOptionKind
+public abstract partial record KeyValueOptionKind
 {
     /// <summary>A single value.</summary>
     public sealed record Single(ValueWithSpan Value) : KeyValueOptionKind;

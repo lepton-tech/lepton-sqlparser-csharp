@@ -30,7 +30,7 @@ namespace SqlParser.Core;
 /// </remarks>
 // #[derive(Copy, Eq, Hash, Ord)] → readonly record struct + IComparable (ordem lexicográfica
 // dos campos, como o derive do Rust). Ver convencoes.md §13 #6.
-public readonly record struct Location(long Line, long Column) : IDisplay, IComparable<Location>
+public readonly partial record struct Location(long Line, long Column) : IDisplay, IComparable<Location>
 {
     /// <summary>
     /// Line number, starting from 1.

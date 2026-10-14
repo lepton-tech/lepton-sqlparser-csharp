@@ -31,7 +31,7 @@ namespace SqlParser.Core.Ast;
 /// </remarks>
 /// <param name="Condition">The condition for this WHEN clause</param>
 /// <param name="IntoClauses">The INTO clauses to execute when the condition is true</param>
-public sealed record MultiTableInsertWhenClause(Expr Condition, Sequence<MultiTableInsertIntoClause> IntoClauses) : IDisplay
+public sealed partial record MultiTableInsertWhenClause(Expr Condition, Sequence<MultiTableInsertIntoClause> IntoClauses) : IDisplay
 {
     public void Fmt(Formatter f)
     {

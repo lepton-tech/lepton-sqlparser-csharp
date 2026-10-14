@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>How the <c>ANALYZE</c>/<c>EXPLAIN ANALYZE</c> format is specified.</summary>
-public abstract record AnalyzeFormatKind : IDisplay
+public abstract partial record AnalyzeFormatKind : IDisplay
 {
     /// <summary>Format provided as a keyword, e.g. <c>FORMAT JSON</c>.</summary>
     public sealed record Keyword(AnalyzeFormat Value) : AnalyzeFormatKind;

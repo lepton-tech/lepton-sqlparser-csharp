@@ -23,7 +23,7 @@ namespace SqlParser.Core.Ast;
 /// <summary>Operator argument types for CREATE OPERATOR CLASS</summary>
 /// <param name="Left">Left-hand operand data type for the operator.</param>
 /// <param name="Right">Right-hand operand data type for the operator.</param>
-public sealed record OperatorArgTypes(DataType Left, DataType Right) : IDisplay
+public sealed partial record OperatorArgTypes(DataType Left, DataType Right) : IDisplay
 {
     public void Fmt(Formatter f)
     {

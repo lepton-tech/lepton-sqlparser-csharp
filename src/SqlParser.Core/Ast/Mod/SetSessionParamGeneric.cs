@@ -25,7 +25,7 @@ namespace SqlParser.Core.Ast;
 /// <summary>Generic <c>SET SESSION</c> parameter represented as name(s) and value.</summary>
 /// <param name="Names">Names of the session parameters being set.</param>
 /// <param name="Value">The value to assign to the parameter(s).</param>
-public sealed record SetSessionParamGeneric(Sequence<string> Names, string Value) : IDisplay
+public sealed partial record SetSessionParamGeneric(Sequence<string> Names, string Value) : IDisplay
 {
     public void Fmt(Formatter f)
     {

@@ -32,4 +32,4 @@ namespace SqlParser.Core.Ast;
 /// <param name="Key">The option key (identifier) for this named list.</param>
 /// <param name="Name">Optional secondary name associated with the key.</param>
 /// <param name="Values">The list of identifier values for the key.</param>
-public sealed record NamedParenthesizedList(Ident Key, Ident? Name, Sequence<Ident> Values);
+public sealed partial record NamedParenthesizedList(Ident Key, Ident? Name, Sequence<Ident> Values);

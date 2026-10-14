@@ -22,7 +22,7 @@ namespace SqlParser.Core.Ast;
 
 /// <summary>Defines the options for an XmlTable column: Named or ForOrdinality</summary>
 /// <remarks>Sem <c>Display</c> no Rust (o texto é gerado por <c>XmlTableColumn</c>): o tipo não implementa <c>IDisplay</c>.</remarks>
-public abstract record XmlTableColumnOption
+public abstract partial record XmlTableColumnOption
 {
     /// <summary>A named column with a type, optional path, and default value.</summary>
     /// <param name="Type">The type of the column to be extracted.</param>

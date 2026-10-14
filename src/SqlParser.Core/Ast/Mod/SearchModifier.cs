@@ -22,7 +22,7 @@ namespace SqlParser.Core.Ast;
 
 /// <summary>Fulltext search modifiers ([1]).</summary>
 /// <remarks>[1]: <see href="https://dev.mysql.com/doc/refman/8.0/en/fulltext-search.html#function_match"/></remarks>
-public abstract record SearchModifier : IDisplay
+public abstract partial record SearchModifier : IDisplay
 {
     /// <summary><c>IN NATURAL LANGUAGE MODE</c>.</summary>
     public sealed record InNaturalLanguageMode : SearchModifier;

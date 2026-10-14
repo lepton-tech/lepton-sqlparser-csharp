@@ -34,7 +34,7 @@ namespace SqlParser.Core.Ast;
 /// sintetizada, exatamente como o <c>#[derive(PartialEq)]</c> do Rust.
 /// </para>
 /// </remarks>
-public sealed record AttachedToken(TokenWithSpan Value)
+public sealed partial record AttachedToken(TokenWithSpan Value)
 {
     /// <summary>Return a new Empty AttachedToken</summary>
     public static AttachedToken Empty() => new AttachedToken(TokenWithSpan.NewEof());

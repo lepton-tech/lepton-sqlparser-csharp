@@ -25,7 +25,7 @@ namespace SqlParser.Core;
 /// </summary>
 /// <remarks>See <c>Spanned</c> (crate::ast::Spanned) for more information.</remarks>
 // #[derive(Copy, Eq, Hash, Ord)] → readonly record struct + IComparable (convencoes.md §13 #6).
-public readonly record struct Span(Location Start, Location End) : IComparable<Span>
+public readonly partial record struct Span(Location Start, Location End) : IComparable<Span>
 {
     /// <summary>Start <c>Location</c> (inclusive).</summary>
     public Location Start { get; init; } = Start;

@@ -22,7 +22,7 @@ namespace SqlParser.Core.Ast;
 
 /// <summary>A set operator for combining two <c>SetExpr</c>s.</summary>
 /// <remarks>Enum sem dados com <c>Display</c> → records (convencoes.md §13, caso 37).</remarks>
-public abstract record SetOperator : IDisplay
+public abstract partial record SetOperator : IDisplay
 {
     /// <summary><c>UNION</c> set operator</summary>
     public sealed record Union : SetOperator;

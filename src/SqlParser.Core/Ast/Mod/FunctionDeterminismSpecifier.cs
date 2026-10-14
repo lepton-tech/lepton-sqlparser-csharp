@@ -22,7 +22,7 @@ namespace SqlParser.Core.Ast;
 
 /// <summary>[BigQuery] Determinism specifier used in a UDF definition.</summary>
 /// <remarks><see href="https://cloud.google.com/bigquery/docs/reference/standard-sql/data-definition-language#syntax_11">BigQuery</see></remarks>
-public abstract record FunctionDeterminismSpecifier : IDisplay
+public abstract partial record FunctionDeterminismSpecifier : IDisplay
 {
     /// <summary>Function is deterministic.</summary>
     public sealed record Deterministic : FunctionDeterminismSpecifier;

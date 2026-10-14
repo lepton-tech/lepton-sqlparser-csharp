@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Specific direction for FETCH statement</summary>
-public abstract record FetchDirection : IDisplay
+public abstract partial record FetchDirection : IDisplay
 {
     /// <summary>Fetch a specific count of rows.</summary>
     /// <param name="Limit">The limit value for the count.</param>

@@ -24,7 +24,7 @@ namespace SqlParser.Core.Ast;
 /// See <see href="https://docs.snowflake.com/en/sql-reference/sql/grant-privilege"/>
 /// under <c>globalPrivileges</c> in the <c>MANAGE</c> privilege.
 /// </summary>
-public abstract record ActionManageType : IDisplay
+public abstract partial record ActionManageType : IDisplay
 {
     /// <summary>Account support cases management.</summary>
     public sealed record AccountSupportCases : ActionManageType;

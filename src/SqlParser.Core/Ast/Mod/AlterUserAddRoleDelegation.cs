@@ -28,4 +28,4 @@ namespace SqlParser.Core.Ast;
 /// <remarks>Sem <c>impl Display</c> no Rust: quem formata é <see cref="AlterUser"/>.</remarks>
 /// <param name="Role">Role name to delegate.</param>
 /// <param name="Integration">Security integration receiving the delegation.</param>
-public sealed record AlterUserAddRoleDelegation(Ident Role, Ident Integration);
+public sealed partial record AlterUserAddRoleDelegation(Ident Role, Ident Integration);

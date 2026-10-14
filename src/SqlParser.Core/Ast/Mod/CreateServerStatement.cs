@@ -32,7 +32,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="Version">Optional server version identifier.</param>
 /// <param name="ForeignDataWrapper">Foreign-data wrapper object name.</param>
 /// <param name="Options">Optional list of server options.</param>
-public sealed record CreateServerStatement(
+public sealed partial record CreateServerStatement(
     ObjectName Name,
     bool IfNotExists,
     Ident? ServerType,

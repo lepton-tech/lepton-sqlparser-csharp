@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>These attributes describe the behavior of the function when called with a null argument.</summary>
-public abstract record FunctionCalledOnNull : IDisplay
+public abstract partial record FunctionCalledOnNull : IDisplay
 {
     /// <summary>Function is called even when inputs are null.</summary>
     public sealed record CalledOnNullInput : FunctionCalledOnNull;

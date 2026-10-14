@@ -24,4 +24,4 @@ namespace SqlParser.Core.Ast;
 /// <param name="Seed">The initial seed expression for the identity column.</param>
 /// <param name="Increment">The increment expression for the identity column.</param>
 /// <remarks>Sem <c>impl Display</c> no Rust: o texto é escrito por <see cref="IdentityPropertyFormatKind"/>.</remarks>
-public sealed record IdentityParameters(Expr Seed, Expr Increment);
+public sealed partial record IdentityParameters(Expr Seed, Expr Increment);

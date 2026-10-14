@@ -26,7 +26,7 @@ namespace SqlParser.Core.Ast;
 /// deste tipo homônimo (convencoes.md §13, casos 5 e 29). <c>#[derive(PartialOrd, Ord)]</c> não é
 /// traduzido (caso 23).
 /// </remarks>
-public abstract record Value : IDisplay
+public abstract partial record Value : IDisplay
 {
     /// <summary>Numeric literal</summary>
     /// <remarks>

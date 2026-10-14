@@ -28,4 +28,4 @@ namespace SqlParser.Core.Ast;
 /// <remarks>Sem <c>impl Display</c> no Rust: quem formata é <see cref="AlterUser"/>.</remarks>
 /// <param name="PolicyKind">The kind of user policy being set (authentication/password/session).</param>
 /// <param name="Policy">The identifier of the policy to apply.</param>
-public sealed record AlterUserSetPolicy(UserPolicyKind PolicyKind, Ident Policy);
+public sealed partial record AlterUserSetPolicy(UserPolicyKind PolicyKind, Ident Policy);

@@ -29,7 +29,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="IfExists"><c>IF EXISTS</c> clause</param>
 /// <param name="Operators">One or more operators to drop with their signatures</param>
 /// <param name="DropBehavior"><c>CASCADE or RESTRICT</c></param>
-public sealed record DropOperator(
+public sealed partial record DropOperator(
     bool IfExists,
     Sequence<DropOperatorSignature> Operators,
     DropBehavior? DropBehavior) : IDisplay, ISpanned

@@ -38,7 +38,7 @@ namespace SqlParser.Core.Ast;
 /// (seed , increment)
 /// </code>
 /// </summary>
-public abstract record IdentityPropertyFormatKind : IDisplay
+public abstract partial record IdentityPropertyFormatKind : IDisplay
 {
     /// <summary>
     /// A parameters of identity column declared like parameters of function call

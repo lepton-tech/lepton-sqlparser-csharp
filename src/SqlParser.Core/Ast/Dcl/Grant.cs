@@ -37,7 +37,7 @@ namespace SqlParser.Core.Ast;
 /// Optional <c>CURRENT GRANTS</c> modifier.
 /// <para><see href="https://docs.snowflake.com/en/sql-reference/sql/grant-privilege">Snowflake</see></para>
 /// </param>
-public sealed record Grant(
+public sealed partial record Grant(
     Privileges Privileges,
     GrantObjects? Objects,
     Sequence<Grantee> Grantees,

@@ -27,7 +27,7 @@ namespace SqlParser.Core.Ast;
 /// </param>
 /// <param name="Percent">Apply <c>PERCENT</c> extension.</param>
 /// <param name="Quantity">The optional quantity (expression or constant) following <c>TOP</c>.</param>
-public sealed record Top(bool WithTies, bool Percent, TopQuantity? Quantity) : IDisplay
+public sealed partial record Top(bool WithTies, bool Percent, TopQuantity? Quantity) : IDisplay
 {
     // Rust: o `impl fmt::Display for Top` vem depois de `TopQuantity` no arquivo.
     public void Fmt(Formatter f)

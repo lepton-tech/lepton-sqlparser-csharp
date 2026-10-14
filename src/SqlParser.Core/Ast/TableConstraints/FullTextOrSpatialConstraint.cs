@@ -40,7 +40,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="IndexTypeDisplay">Whether the type is followed by the keyword <c>KEY</c>, <c>INDEX</c>, or no keyword at all.</param>
 /// <param name="OptIndexName">Optional index name.</param>
 /// <param name="Columns">Referred column identifier list.</param>
-public sealed record FullTextOrSpatialConstraint(
+public sealed partial record FullTextOrSpatialConstraint(
     bool Fulltext,
     KeyOrIndexDisplay IndexTypeDisplay,
     Ident? OptIndexName,
@@ -57,15 +57,9 @@ public sealed record FullTextOrSpatialConstraint(
             f.Write($"SPATIAL");
         }
 
-        // write!(f, "{:>}", self.index_type_display): `{:>}` liga o alinhamento à direita, que o Display
-        // de KeyOrIndexDisplay lê com f.align() para escrever um espaço antes de KEY/INDEX quando não é
-        // None. O Formatter não tem alinhamento: o espaço é escrito aqui, com o mesmo critério.
-        // PORT-TODO: unificar com a tradução de f.align() em KeyOrIndexDisplay (ddl.rs).
-        if (!IndexTypeDisplay.IsNone())
-        {
-            f.WriteChar(' ');
-        }
-        f.Write($"{IndexTypeDisplay}");
+        // write!(f, "{:>}", self.index_type_display): a lacuna `{:>}` (alinhamento à direita) não existe
+        // no Formatter; KeyOrIndexDisplay.FmtAlignRight a reproduz (convencoes.md §13, caso 66).
+        IndexTypeDisplay.FmtAlignRight(f);
 
         if (OptIndexName is { } name)
         {

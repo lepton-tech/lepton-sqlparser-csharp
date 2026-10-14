@@ -63,7 +63,7 @@ namespace SqlParser.Core.Ast;
 /// Some(false) = WITHOUT HOLD, specifies that the cursor cannot be used outside of the transaction that created it
 /// </param>
 /// <param name="ForQuery"><c>FOR &lt;query&gt;</c> clause in a CURSOR declaration.</param>
-public sealed record Declare(
+public sealed partial record Declare(
     Sequence<Ident> Names,
     DataType? DataType,
     DeclareAssignment? Assignment,

@@ -24,7 +24,7 @@ namespace SqlParser.Core.Ast;
 /// Information about <see href="https://jakewheat.github.io/sql-overview/sql-2016-foundation-grammar.html#character-length">character length</see>,
 /// including length and possibly unit.
 /// </summary>
-public abstract record CharacterLength : IDisplay
+public abstract partial record CharacterLength : IDisplay
 {
     /// <summary>Integer length with optional unit (e.g. <c>CHAR(10)</c> or <c>VARCHAR(10 CHARACTERS)</c>).</summary>
     /// <param name="Length">Default (if VARYING) or maximum (if not VARYING) length</param>

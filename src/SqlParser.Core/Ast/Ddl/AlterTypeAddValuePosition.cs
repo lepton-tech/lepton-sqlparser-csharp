@@ -22,7 +22,7 @@ namespace SqlParser.Core.Ast;
 
 /// <summary>See <see cref="AlterTypeAddValue"/></summary>
 /// <remarks>Sem <c>impl Display</c> no Rust: o texto é escrito por <see cref="AlterTypeOperation"/>.</remarks>
-public abstract record AlterTypeAddValuePosition
+public abstract partial record AlterTypeAddValuePosition
 {
     /// <summary>Place the new value before the given neighbor value.</summary>
     public sealed record Before(Ident Value) : AlterTypeAddValuePosition;

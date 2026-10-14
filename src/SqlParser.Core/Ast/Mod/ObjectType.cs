@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Types of database objects referenced by DDL statements.</summary>
-public abstract record ObjectType : IDisplay
+public abstract partial record ObjectType : IDisplay
 {
     /// <summary>A collation.</summary>
     public sealed record Collation : ObjectType;

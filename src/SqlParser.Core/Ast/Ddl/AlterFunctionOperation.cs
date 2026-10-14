@@ -23,7 +23,7 @@ using static SqlParser.Core.Ast.AstModule;
 namespace SqlParser.Core.Ast;
 
 /// <summary>Operation for <c>ALTER FUNCTION</c> / <c>ALTER AGGREGATE</c>.</summary>
-public abstract record AlterFunctionOperation : IDisplay
+public abstract partial record AlterFunctionOperation : IDisplay
 {
     /// <summary><c>RENAME TO new_name</c></summary>
     /// <param name="NewName">New unqualified function or aggregate name.</param>

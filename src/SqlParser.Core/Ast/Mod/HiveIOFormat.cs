@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Hive input/output format specification used in <c>CREATE TABLE</c>.</summary>
-public abstract record HiveIOFormat
+public abstract partial record HiveIOFormat
 {
     /// <summary>Generic IO format with separate input and output expressions.</summary>
     /// <param name="InputFormat">Expression for the input format.</param>

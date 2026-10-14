@@ -24,4 +24,4 @@ namespace SqlParser.Core.Ast;
 /// <param name="IfNotExists">If true, do not error when the value already exists (<c>IF NOT EXISTS</c>).</param>
 /// <param name="Value">The identifier for the new value to add.</param>
 /// <param name="Position">Optional relative position for the new value (<c>BEFORE</c> / <c>AFTER</c>).</param>
-public sealed record AlterTypeAddValue(bool IfNotExists, Ident Value, AlterTypeAddValuePosition? Position);
+public sealed partial record AlterTypeAddValue(bool IfNotExists, Ident Value, AlterTypeAddValuePosition? Position);

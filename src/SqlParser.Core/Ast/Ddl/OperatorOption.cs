@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Option for <c>ALTER OPERATOR SET</c> operation</summary>
-public abstract record OperatorOption : IDisplay
+public abstract partial record OperatorOption : IDisplay
 {
     /// <summary><c>RESTRICT = { res_proc | NONE }</c></summary>
     public sealed record Restrict(ObjectName? Value) : OperatorOption;

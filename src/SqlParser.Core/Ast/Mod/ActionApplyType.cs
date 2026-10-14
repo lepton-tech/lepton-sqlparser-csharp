@@ -24,7 +24,7 @@ namespace SqlParser.Core.Ast;
 /// See <see href="https://docs.snowflake.com/en/sql-reference/sql/grant-privilege"/>
 /// under <c>globalPrivileges</c> in the <c>APPLY</c> privilege.
 /// </summary>
-public abstract record ActionApplyType : IDisplay
+public abstract partial record ActionApplyType : IDisplay
 {
     /// <summary>Apply an aggregation policy.</summary>
     public sealed record AggregationPolicy : ActionApplyType;

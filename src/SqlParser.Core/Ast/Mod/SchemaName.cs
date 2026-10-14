@@ -22,7 +22,7 @@ namespace SqlParser.Core.Ast;
 
 /// <summary>Schema possible naming variants ([1]).</summary>
 /// <remarks>[1]: <see href="https://jakewheat.github.io/sql-overview/sql-2016-foundation-grammar.html#schema-definition"/></remarks>
-public abstract record SchemaName : IDisplay
+public abstract partial record SchemaName : IDisplay
 {
     /// <summary>Only schema name specified: <c>&lt;schema name&gt;</c>.</summary>
     public sealed record Simple(ObjectName Value) : SchemaName;

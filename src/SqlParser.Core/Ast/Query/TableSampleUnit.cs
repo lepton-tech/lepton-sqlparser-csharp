@@ -22,7 +22,7 @@ namespace SqlParser.Core.Ast;
 
 /// <summary>Unit used with a <c>TABLESAMPLE</c> quantity (rows or percent).</summary>
 /// <remarks>Enum sem dados com <c>Display</c> → records (convencoes.md §13, caso 37).</remarks>
-public abstract record TableSampleUnit : IDisplay
+public abstract partial record TableSampleUnit : IDisplay
 {
     /// <summary><c>ROWS</c> unit.</summary>
     public sealed record Rows : TableSampleUnit;

@@ -26,7 +26,7 @@ namespace SqlParser.Core;
 // Enum com dados → abstract record + variantes sealed record aninhadas (convencoes.md §6).
 // Dentro deste tipo, `Word`, `Whitespace` e `DollarQuotedString` são as VARIANTES; os tipos
 // homônimos são escritos qualificados (SqlParser.Core.Word etc.).
-public abstract record Token : IDisplay
+public abstract partial record Token : IDisplay
 {
     /// <summary>An end-of-file marker, not a real token</summary>
     public sealed record EOF : Token;

@@ -41,7 +41,7 @@ namespace SqlParser.Core.Ast;
 /// SELECT DATE '2025-07-16'
 /// </code>
 /// </param>
-public sealed record TypedString(DataType DataType, ValueWithSpan Value, bool UsesOdbcSyntax) : IDisplay
+public sealed partial record TypedString(DataType DataType, ValueWithSpan Value, bool UsesOdbcSyntax) : IDisplay
 {
     public void Fmt(Formatter f)
     {

@@ -116,7 +116,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="StatementsAs">For MSSQL and dialects where statements are preceded by <c>AS</c></param>
 /// <param name="Statements">For SQL dialects with statement(s) for a body</param>
 /// <param name="Characteristics">The characteristic of the trigger, which include whether the trigger is <c>DEFERRABLE</c>, <c>INITIALLY DEFERRED</c>, or <c>INITIALLY IMMEDIATE</c>,</param>
-public sealed record CreateTrigger(
+public sealed partial record CreateTrigger(
     bool OrAlter,
     bool Temporary,
     bool OrReplace,

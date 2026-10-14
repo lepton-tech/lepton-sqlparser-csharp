@@ -25,7 +25,7 @@ namespace SqlParser.Core.Ast;
 /// <para>Locking behavior for <c>ALTER TABLE</c> (MySQL-specific).</para>
 /// </summary>
 // Enum sem dados com Display: records (convencoes.md §13, caso 37).
-public abstract record AlterTableLock : IDisplay
+public abstract partial record AlterTableLock : IDisplay
 {
     /// <summary><c>DEFAULT</c> lock behavior.</summary>
     public sealed record Default : AlterTableLock;

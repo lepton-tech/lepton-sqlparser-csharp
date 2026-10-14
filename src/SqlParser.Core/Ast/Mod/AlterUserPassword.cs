@@ -27,7 +27,7 @@ namespace SqlParser.Core.Ast;
 /// </summary>
 /// <param name="Encrypted">Whether the password is encrypted.</param>
 /// <param name="Password">The password string, or <c>None</c> for <c>NULL</c>.</param>
-public sealed record AlterUserPassword(bool Encrypted, string? Password) : IDisplay
+public sealed partial record AlterUserPassword(bool Encrypted, string? Password) : IDisplay
 {
     public void Fmt(Formatter f)
     {

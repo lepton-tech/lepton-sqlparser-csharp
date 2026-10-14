@@ -23,7 +23,7 @@ namespace SqlParser.Core.Ast;
 /// <summary>The principal that receives the privileges</summary>
 /// <param name="GranteeType">The category/type of grantee (role, user, share, etc.).</param>
 /// <param name="Name">Optional name of the grantee (identifier or user@host).</param>
-public sealed record Grantee(GranteesType GranteeType, GranteeName? Name) : IDisplay
+public sealed partial record Grantee(GranteesType GranteeType, GranteeName? Name) : IDisplay
 {
     public void Fmt(Formatter f)
     {

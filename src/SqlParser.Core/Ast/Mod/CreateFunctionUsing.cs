@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary><c>USING</c> clause options for <c>CREATE FUNCTION</c> (e.g., JAR, FILE, ARCHIVE).</summary>
-public abstract record CreateFunctionUsing : IDisplay
+public abstract partial record CreateFunctionUsing : IDisplay
 {
     /// <summary>Use a JAR file located at the given URI.</summary>
     public sealed record Jar(string Value) : CreateFunctionUsing;

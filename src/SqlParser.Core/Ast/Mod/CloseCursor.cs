@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Which cursor(s) to close.</summary>
-public abstract record CloseCursor : IDisplay
+public abstract partial record CloseCursor : IDisplay
 {
     /// <summary>Close all cursors.</summary>
     public sealed record All : CloseCursor;

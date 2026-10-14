@@ -30,7 +30,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="ErrorNumber">Error number expression.</param>
 /// <param name="Message">Error message expression.</param>
 /// <param name="State">State expression.</param>
-public sealed record ThrowStatement(Expr? ErrorNumber, Expr? Message, Expr? State) : IDisplay
+public sealed partial record ThrowStatement(Expr? ErrorNumber, Expr? Message, Expr? State) : IDisplay
 {
     public void Fmt(Formatter f)
     {

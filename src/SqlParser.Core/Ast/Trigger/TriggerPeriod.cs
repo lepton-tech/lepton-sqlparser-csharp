@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Trigger period</summary>
-public abstract record TriggerPeriod : IDisplay
+public abstract partial record TriggerPeriod : IDisplay
 {
     /// <summary>The trigger fires once for each row affected by the triggering event</summary>
     public sealed record For : TriggerPeriod;

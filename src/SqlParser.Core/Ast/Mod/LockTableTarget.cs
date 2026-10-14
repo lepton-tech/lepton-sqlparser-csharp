@@ -27,7 +27,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="Name">Name of the table being locked.</param>
 /// <param name="Only">Whether <c>ONLY</c> was specified to exclude descendant tables.</param>
 /// <param name="HasAsterisk">Whether <c>*</c> was specified to explicitly include descendant tables.</param>
-public sealed record LockTableTarget(
+public sealed partial record LockTableTarget(
     [property: VisitWith("visit_relation")] ObjectName Name,
     bool Only,
     bool HasAsterisk) : IDisplay

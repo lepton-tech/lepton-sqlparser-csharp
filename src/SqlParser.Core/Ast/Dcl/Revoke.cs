@@ -39,7 +39,7 @@ namespace SqlParser.Core.Ast;
 /// <para><see href="https://cloud.google.com/bigquery/docs/reference/standard-sql/dcl-statements">BigQuery</see></para>
 /// </param>
 /// <param name="Cascade">Optional <c>CASCADE</c>/<c>RESTRICT</c> behavior.</param>
-public sealed record Revoke(
+public sealed partial record Revoke(
     bool GrantOptionFor,
     Privileges Privileges,
     GrantObjects? Objects,

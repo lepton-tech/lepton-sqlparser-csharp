@@ -32,7 +32,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="Include">Optional list of additional columns to include in the index.</param>
 /// <param name="WhereClause">Optional <c>WHERE</c> predicate to restrict the constraint to a subset of rows.</param>
 /// <param name="Characteristics">Optional constraint characteristics like <c>DEFERRABLE</c>.</param>
-public sealed record ExcludeConstraint(
+public sealed partial record ExcludeConstraint(
     Ident? Name,
     Ident? IndexMethod,
     Sequence<ExcludeConstraintElement> Elements,

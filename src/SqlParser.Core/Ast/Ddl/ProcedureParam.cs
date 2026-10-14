@@ -25,7 +25,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="DataType">Parameter data type.</param>
 /// <param name="Mode">Optional mode (<c>IN</c>, <c>OUT</c>, <c>INOUT</c>, etc.).</param>
 /// <param name="Default">Optional default expression for the parameter.</param>
-public sealed record ProcedureParam(Ident Name, DataType DataType, ArgMode? Mode, Expr? Default) : IDisplay
+public sealed partial record ProcedureParam(Ident Name, DataType DataType, ArgMode? Mode, Expr? Default) : IDisplay
 {
     public void Fmt(Formatter f)
     {

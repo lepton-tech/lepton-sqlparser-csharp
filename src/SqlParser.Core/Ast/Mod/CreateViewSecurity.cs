@@ -22,7 +22,7 @@ namespace SqlParser.Core.Ast;
 
 /// <summary>MySQL <c>CREATE VIEW</c> security parameter: [SQL SECURITY { DEFINER | INVOKER }]</summary>
 /// <remarks>MySQL <c>CREATE VIEW</c> SQL SECURITY options.</remarks>
-public abstract record CreateViewSecurity : IDisplay
+public abstract partial record CreateViewSecurity : IDisplay
 {
     /// <summary>The view runs with the privileges of the definer.</summary>
     public sealed record Definer : CreateViewSecurity;

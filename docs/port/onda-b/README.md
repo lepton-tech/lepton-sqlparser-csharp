@@ -1,5 +1,7 @@
 # Onda B da Fase 2: port do parser (`src/parser/`)
 
+**Consolidado** em `convencoes.md` §13 (casos 79–122) / `nomes.md` (seção "Parser e spans (onda B)") / `divergencias.md` (DIV-007; DIV-001 ampliada) em 2026-10-14. As decisões de teste foram para a skill `port-rust-tests`; as pendências, para `progresso.md` ("Pendências para a onda D"). Esta pasta fica como **histórico** (motivos detalhados de cada decisão).
+
 **Execução sequencial, um agente por vez** (decisão do usuário em 2026-10-14: paralelismo alto esgotou os créditos). Cada unidade registra suas decisões em `onda-b/<unidade>.md`; o integrador consolida em `convencoes.md`/`nomes.md` ao fim da onda.
 
 Já feito (B0, integrador): `Parser/Parser.cs` (linhas 1–610), `Parser/Parser.TokenHelpers.cs` (4466–5201), `ParserError.cs`, `RecursionCounter.cs`, `ParserSupportTypes.cs`, hooks do parser em `Dialects/Dialect.cs`.

@@ -35,7 +35,7 @@ namespace SqlParser.Core.Ast;
 /// </remarks>
 /// <param name="Name">The name of the column.</param>
 /// <param name="Option">Column options: type/path/default or FOR ORDINALITY</param>
-public sealed record XmlTableColumn(Ident Name, XmlTableColumnOption Option) : IDisplay
+public sealed partial record XmlTableColumn(Ident Name, XmlTableColumnOption Option) : IDisplay
 {
     public void Fmt(Formatter f)
     {

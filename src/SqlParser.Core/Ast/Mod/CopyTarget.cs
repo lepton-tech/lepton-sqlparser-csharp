@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Target for the <c>COPY</c> command: STDIN, STDOUT, a file, or a program.</summary>
-public abstract record CopyTarget : IDisplay
+public abstract partial record CopyTarget : IDisplay
 {
     /// <summary>Use standard input as the source.</summary>
     public sealed record Stdin : CopyTarget;

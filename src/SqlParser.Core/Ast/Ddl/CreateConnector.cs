@@ -38,7 +38,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="Url">The URL of the connector.</param>
 /// <param name="Comment">The comment for the connector.</param>
 /// <param name="WithDcproperties">The DC properties for the connector.</param>
-public sealed record CreateConnector(
+public sealed partial record CreateConnector(
     Ident Name,
     bool IfNotExists,
     string? ConnectorType,

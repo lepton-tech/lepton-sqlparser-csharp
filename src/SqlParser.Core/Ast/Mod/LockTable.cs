@@ -24,7 +24,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="Table">The table identifier to lock.</param>
 /// <param name="Alias">Optional alias for the table.</param>
 /// <param name="LockType">The type of lock to apply to the table.</param>
-public sealed record LockTable(Ident Table, Ident? Alias, LockTableType LockType) : IDisplay
+public sealed partial record LockTable(Ident Table, Ident? Alias, LockTableType LockType) : IDisplay
 {
     public void Fmt(Formatter f)
     {

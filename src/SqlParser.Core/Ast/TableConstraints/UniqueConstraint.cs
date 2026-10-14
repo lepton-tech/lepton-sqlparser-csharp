@@ -37,7 +37,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="IndexOptions">Optional index options such as <c>USING</c>.</param>
 /// <param name="Characteristics">Optional characteristics like <c>DEFERRABLE</c>.</param>
 /// <param name="NullsDistinct">Optional Postgres nulls handling: <c>[ NULLS [ NOT ] DISTINCT ]</c></param>
-public sealed record UniqueConstraint(
+public sealed partial record UniqueConstraint(
     Ident? Name,
     Ident? IndexName,
     KeyOrIndexDisplay IndexTypeDisplay,
@@ -51,15 +51,12 @@ public sealed record UniqueConstraint(
     public void Fmt(Formatter f)
     {
         // use crate::ast::ddl::{display_constraint_name, display_option, display_option_spaced};
-        // write!(f, "{}UNIQUE{}{:>}{}{} ({})", ...): o `{:>}` de index_type_display está traduzido à parte
-        // (ver FullTextOrSpatialConstraint.Fmt): o Formatter não tem alinhamento.
-        // PORT-TODO: unificar com a tradução de f.align() em KeyOrIndexDisplay (ddl.rs).
+        // write!(f, "{}UNIQUE{}{:>}{}{} ({})", ...): a lacuna `{:>}` de index_type_display (alinhamento à
+        // direita) não existe no Formatter; KeyOrIndexDisplay.FmtAlignRight a reproduz, no meio do
+        // mesmo write! (convencoes.md §13, caso 66).
         f.Write($"{DisplayConstraintName(Name)}UNIQUE{NullsDistinct}");
-        if (!IndexTypeDisplay.IsNone())
-        {
-            f.WriteChar(' ');
-        }
-        f.Write($"{IndexTypeDisplay}{DisplayOptionSpaced(IndexName)}{DisplayOption(" USING ", "", IndexType)} ({DisplayCommaSeparated(Columns)})");
+        IndexTypeDisplay.FmtAlignRight(f);
+        f.Write($"{DisplayOptionSpaced(IndexName)}{DisplayOption(" USING ", "", IndexType)} ({DisplayCommaSeparated(Columns)})");
 
         if (!Include.IsEmpty)
         {

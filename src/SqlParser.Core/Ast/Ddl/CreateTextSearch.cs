@@ -29,7 +29,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="ObjectType">The specific text search object type.</param>
 /// <param name="Name">Object name.</param>
 /// <param name="Options">Parenthesized options.</param>
-public sealed record CreateTextSearch(
+public sealed partial record CreateTextSearch(
     TextSearchObjectType ObjectType,
     ObjectName Name,
     Sequence<SqlOption> Options) : IDisplay, ISpanned

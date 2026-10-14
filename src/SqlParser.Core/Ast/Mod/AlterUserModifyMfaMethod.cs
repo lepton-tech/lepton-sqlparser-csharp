@@ -28,4 +28,4 @@ namespace SqlParser.Core.Ast;
 /// <remarks>Sem <c>impl Display</c> no Rust: quem formata é <see cref="AlterUser"/>.</remarks>
 /// <param name="Method">The MFA method being modified.</param>
 /// <param name="Comment">The new comment for the MFA method.</param>
-public sealed record AlterUserModifyMfaMethod(MfaMethodKind Method, string Comment);
+public sealed partial record AlterUserModifyMfaMethod(MfaMethodKind Method, string Comment);

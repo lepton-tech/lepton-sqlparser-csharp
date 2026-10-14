@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Transaction isolation levels.</summary>
-public abstract record TransactionIsolationLevel : IDisplay
+public abstract partial record TransactionIsolationLevel : IDisplay
 {
     /// <summary>READ UNCOMMITTED isolation level.</summary>
     public sealed record ReadUncommitted : TransactionIsolationLevel;

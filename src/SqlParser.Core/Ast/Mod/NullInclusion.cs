@@ -25,7 +25,7 @@ namespace SqlParser.Core.Ast;
 /// For example
 /// <c>UNPIVOT (column1 FOR new_column IN (col3, col4, col5, col6))</c>
 /// </summary>
-public abstract record NullInclusion : IDisplay
+public abstract partial record NullInclusion : IDisplay
 {
     /// <summary>Include NULL values in the UNPIVOT output.</summary>
     public sealed record IncludeNulls : NullInclusion;

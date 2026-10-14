@@ -24,7 +24,7 @@ namespace SqlParser.Core.Ast;
 /// Cascade/restrict option for Postgres TRUNCATE table, MySQL GRANT/REVOKE, etc.
 /// [ CASCADE | RESTRICT ]
 /// </summary>
-public abstract record CascadeOption : IDisplay
+public abstract partial record CascadeOption : IDisplay
 {
     /// <summary>Apply cascading action (e.g., CASCADE).</summary>
     public sealed record Cascade : CascadeOption;

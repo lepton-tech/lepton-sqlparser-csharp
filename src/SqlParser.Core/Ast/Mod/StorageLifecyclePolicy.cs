@@ -26,7 +26,7 @@ namespace SqlParser.Core.Ast;
 /// <remarks><see href="https://docs.snowflake.com/en/sql-reference/sql/create-table"/></remarks>
 /// <param name="Policy">The fully-qualified policy object name.</param>
 /// <param name="On">Column names the policy applies to.</param>
-public sealed record StorageLifecyclePolicy(ObjectName Policy, Sequence<Ident> On) : IDisplay
+public sealed partial record StorageLifecyclePolicy(ObjectName Policy, Sequence<Ident> On) : IDisplay
 {
     public void Fmt(Formatter f)
     {

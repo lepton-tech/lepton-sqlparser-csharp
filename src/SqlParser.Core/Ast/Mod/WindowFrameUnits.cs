@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Units used to describe the window frame scope.</summary>
-public abstract record WindowFrameUnits : IDisplay
+public abstract partial record WindowFrameUnits : IDisplay
 {
     /// <summary><c>ROWS</c> unit.</summary>
     public sealed record Rows : WindowFrameUnits;

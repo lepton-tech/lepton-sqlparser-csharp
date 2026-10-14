@@ -24,7 +24,7 @@ namespace SqlParser.Core.Ast;
 
 /// <summary>An option in <c>COPY</c> statement.</summary>
 /// <remarks><see href="https://www.postgresql.org/docs/14/sql-copy.html"/></remarks>
-public abstract record CopyOption : IDisplay
+public abstract partial record CopyOption : IDisplay
 {
     /// <summary>FORMAT format_name</summary>
     public sealed record Format(Ident Value) : CopyOption;

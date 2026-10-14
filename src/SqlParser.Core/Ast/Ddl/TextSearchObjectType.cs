@@ -25,7 +25,7 @@ namespace SqlParser.Core.Ast;
 /// <para>See <see href="https://www.postgresql.org/docs/current/textsearch-intro.html">PostgreSQL</see>.</para>
 /// </summary>
 // Enum sem dados com Display → records (convencoes.md §13, caso 37).
-public abstract record TextSearchObjectType : IDisplay
+public abstract partial record TextSearchObjectType : IDisplay
 {
     /// <summary><c>DICTIONARY</c></summary>
     public sealed record Dictionary : TextSearchObjectType;

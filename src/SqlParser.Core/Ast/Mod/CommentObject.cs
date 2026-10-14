@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Objects that can be targeted by a <c>COMMENT</c> statement.</summary>
-public abstract record CommentObject : IDisplay
+public abstract partial record CommentObject : IDisplay
 {
     /// <summary>A collation.</summary>
     public sealed record Collation : CommentObject;

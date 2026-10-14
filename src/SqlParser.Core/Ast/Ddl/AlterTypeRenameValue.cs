@@ -23,4 +23,4 @@ namespace SqlParser.Core.Ast;
 /// <summary>See <see cref="AlterTypeOperation.RenameValue"/></summary>
 /// <param name="From">Existing value identifier to rename.</param>
 /// <param name="To">New identifier for the value.</param>
-public sealed record AlterTypeRenameValue(Ident From, Ident To);
+public sealed partial record AlterTypeRenameValue(Ident From, Ident To);

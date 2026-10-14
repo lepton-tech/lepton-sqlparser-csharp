@@ -25,7 +25,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="Algorithm">Optional view algorithm (e.g., MERGE, TEMPTABLE).</param>
 /// <param name="Definer">Optional definer (the security principal that will own the view).</param>
 /// <param name="Security">Optional SQL SECURITY setting for the view.</param>
-public sealed record CreateViewParams(CreateViewAlgorithm? Algorithm, GranteeName? Definer, CreateViewSecurity? Security) : IDisplay
+public sealed partial record CreateViewParams(CreateViewAlgorithm? Algorithm, GranteeName? Definer, CreateViewSecurity? Security) : IDisplay
 {
     public void Fmt(Formatter f)
     {

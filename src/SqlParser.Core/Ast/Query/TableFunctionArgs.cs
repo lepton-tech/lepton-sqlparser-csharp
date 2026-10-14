@@ -29,4 +29,4 @@ namespace SqlParser.Core.Ast;
 /// <see href="https://clickhouse.com/docs/en/engines/table-functions/executable"><c>executable</c> table function</see>
 /// </param>
 /// <remarks>Sem <c>Display</c> no Rust: o tipo não implementa <c>IDisplay</c>.</remarks>
-public sealed record TableFunctionArgs(Sequence<FunctionArg> Args, Sequence<Setting>? Settings);
+public sealed partial record TableFunctionArgs(Sequence<FunctionArg> Args, Sequence<Setting>? Settings);

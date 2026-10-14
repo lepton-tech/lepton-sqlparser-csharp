@@ -24,7 +24,7 @@ namespace SqlParser.Core.Ast;
 /// ALTER TABLE operation REPLICA IDENTITY values
 /// See <see href="https://www.postgresql.org/docs/current/sql-altertable.html">Postgres ALTER TABLE docs</see>
 /// </summary>
-public abstract record ReplicaIdentity : IDisplay
+public abstract partial record ReplicaIdentity : IDisplay
 {
     /// <summary>No replica identity (<c>REPLICA IDENTITY NOTHING</c>).</summary>
     public sealed record Nothing : ReplicaIdentity;

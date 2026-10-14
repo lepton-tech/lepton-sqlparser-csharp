@@ -26,7 +26,7 @@ namespace SqlParser.Core.Ast;
 /// WINDOW mywindow AS [named_window_expr]
 /// </code>
 /// </remarks>
-public abstract record NamedWindowExpr : IDisplay
+public abstract partial record NamedWindowExpr : IDisplay
 {
     /// <summary>
     /// A direct reference to another named window definition.

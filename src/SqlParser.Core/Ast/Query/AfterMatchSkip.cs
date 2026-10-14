@@ -24,7 +24,7 @@ namespace SqlParser.Core.Ast;
 /// <remarks>
 /// See <see href="https://docs.snowflake.com/en/sql-reference/constructs/match_recognize#after-match-skip-specifying-where-to-continue-after-a-match"/>.
 /// </remarks>
-public abstract record AfterMatchSkip : IDisplay
+public abstract partial record AfterMatchSkip : IDisplay
 {
     /// <summary><c>PAST LAST ROW</c></summary>
     public sealed record PastLastRow : AfterMatchSkip;

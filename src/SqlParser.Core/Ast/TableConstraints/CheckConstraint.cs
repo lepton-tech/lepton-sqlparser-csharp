@@ -33,7 +33,7 @@ namespace SqlParser.Core.Ast;
 /// MySQL-specific <c>ENFORCED</c> / <c>NOT ENFORCED</c> flag.
 /// <see href="https://dev.mysql.com/doc/refman/8.4/en/create-table.html"/>
 /// </param>
-public sealed record CheckConstraint(Ident? Name, Expr Expr, bool NoInherit, bool? Enforced) : IDisplay, ISpanned
+public sealed partial record CheckConstraint(Ident? Name, Expr Expr, bool NoInherit, bool? Enforced) : IDisplay, ISpanned
 {
     public void Fmt(Formatter f)
     {

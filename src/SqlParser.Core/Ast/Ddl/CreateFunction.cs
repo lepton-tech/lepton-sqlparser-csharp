@@ -89,7 +89,7 @@ namespace SqlParser.Core.Ast;
 /// </code>
 /// <see href="https://cloud.google.com/bigquery/docs/reference/standard-sql/data-definition-language#create_a_remote_function">BigQuery</see>
 /// </param>
-public sealed record CreateFunction(
+public sealed partial record CreateFunction(
     bool OrAlter,
     bool OrReplace,
     bool Temporary,

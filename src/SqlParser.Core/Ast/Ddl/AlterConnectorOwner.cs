@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>New connector owner specification for <c>ALTER CONNECTOR ... OWNER TO ...</c></summary>
-public abstract record AlterConnectorOwner : IDisplay
+public abstract partial record AlterConnectorOwner : IDisplay
 {
     /// <summary><c>USER &lt;ident&gt;</c> connector owner.</summary>
     public sealed record User(Ident Value) : AlterConnectorOwner;

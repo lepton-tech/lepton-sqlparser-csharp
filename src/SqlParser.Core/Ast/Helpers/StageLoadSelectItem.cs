@@ -25,7 +25,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="FileColNum">Column number within the staged file (1-based).</param>
 /// <param name="Element">Optional element identifier following the column reference.</param>
 /// <param name="ItemAs">Optional alias for the item (AS clause).</param>
-public sealed record StageLoadSelectItem(Ident? Alias, int FileColNum, Ident? Element, Ident? ItemAs) : IDisplay
+public sealed partial record StageLoadSelectItem(Ident? Alias, int FileColNum, Ident? Element, Ident? ItemAs) : IDisplay
 {
     public void Fmt(Formatter f)
     {

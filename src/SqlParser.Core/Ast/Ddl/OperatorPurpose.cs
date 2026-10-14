@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Purpose of an operator in an operator class</summary>
-public abstract record OperatorPurpose : IDisplay
+public abstract partial record OperatorPurpose : IDisplay
 {
     /// <summary>Purpose: used for index/search operations.</summary>
     public sealed record ForSearch : OperatorPurpose;

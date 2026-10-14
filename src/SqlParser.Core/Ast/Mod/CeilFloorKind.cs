@@ -30,7 +30,7 @@ namespace SqlParser.Core.Ast;
 /// <c>CEIL/FLOOR(&lt;expr&gt;)</c>.
 /// </para>
 /// </remarks>
-public abstract record CeilFloorKind
+public abstract partial record CeilFloorKind
 {
     /// <summary><c>CEIL( &lt;expr&gt; TO &lt;DateTimeField&gt;)</c></summary>
     /// <param name="Value">Rust: campo <c>.0</c> (tipo qualificado: a variante tem o nome do tipo, convencoes.md §13, caso 38).</param>

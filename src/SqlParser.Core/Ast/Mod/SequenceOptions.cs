@@ -28,7 +28,7 @@ namespace SqlParser.Core.Ast;
 ///     [ START [ WITH ] start ] [ CACHE cache ] [ [ NO ] CYCLE ]
 /// </code>
 /// </summary>
-public abstract record SequenceOptions : IDisplay
+public abstract partial record SequenceOptions : IDisplay
 {
     /// <summary><c>INCREMENT [BY] &lt;expr&gt;</c> option; second value indicates presence of <c>BY</c> keyword.</summary>
     /// <param name="Increment">Rust: campo <c>.0</c> (nome registrado em nomes.md).</param>

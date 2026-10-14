@@ -22,7 +22,7 @@ namespace SqlParser.Core.Ast;
 
 /// <summary>Variants of a <c>RETURN</c> statement</summary>
 /// <remarks>Sem <c>impl Display</c> no Rust: quem formata é <see cref="ReturnStatement"/>.</remarks>
-public abstract record ReturnStatementValue
+public abstract partial record ReturnStatementValue
 {
     /// <summary>Return an expression from a function or trigger.</summary>
     // Variante com o nome de um tipo de topo: tipo qualificado (convencoes.md §13, caso 38).

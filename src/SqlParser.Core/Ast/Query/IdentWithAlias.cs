@@ -29,7 +29,7 @@ namespace SqlParser.Core.Ast;
 /// </remarks>
 /// <param name="Ident">The identifier being aliased.</param>
 /// <param name="Alias">The alias to apply to <c>ident</c>.</param>
-public sealed record IdentWithAlias(Ident Ident, Ident Alias) : IDisplay
+public sealed partial record IdentWithAlias(Ident Ident, Ident Alias) : IDisplay
 {
     public void Fmt(Formatter f)
     {

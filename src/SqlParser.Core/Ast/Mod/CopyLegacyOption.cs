@@ -27,7 +27,7 @@ namespace SqlParser.Core.Ast;
 /// <see href="https://www.postgresql.org/docs/8.4/sql-copy.html">PostgreSQL</see>
 /// <see href="https://docs.aws.amazon.com/redshift/latest/dg/r_COPY-alphabetical-parm-list.html">Redshift</see>
 /// </remarks>
-public abstract record CopyLegacyOption : IDisplay
+public abstract partial record CopyLegacyOption : IDisplay
 {
     /// <summary>ACCEPTANYDATE</summary>
     public sealed record AcceptAnyDate : CopyLegacyOption;

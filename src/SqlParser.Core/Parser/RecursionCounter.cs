@@ -18,8 +18,6 @@
 // Portado para C# a partir de sqlparser-rs v0.63.0, src/parser/mod.rs (mod recursion).
 // Modificado: tradução de Rust para C#.
 
-using System.Runtime.CompilerServices;
-
 namespace SqlParser.Core;
 
 /// <summary>
@@ -30,10 +28,13 @@ namespace SqlParser.Core;
 /// <remarks>
 /// O <c>Rc&lt;Cell&lt;usize&gt;&gt;</c> do Rust vira um campo mutável numa classe (convencoes.md §5).
 /// <para>
-/// A feature <c>recursive-protection</c> do Rust (crate <c>recursive</c>) faz a pilha crescer sob demanda.
-/// Em .NET não é possível crescer a pilha, e um <see cref="StackOverflowException"/> derruba o processo.
-/// Por isso <see cref="TryDecrease"/> também chama <see cref="RuntimeHelpers.EnsureSufficientExecutionStack"/>
-/// e converte a falta de pilha em <see cref="ParserError.RecursionLimitExceeded"/> (DIV-005).
+/// Note: when "recursive-protection" feature is enabled, this crate uses additional stack overflow protection
+/// for some of its recursive methods. See <c>recursive::recursive</c> for more information.
+/// </para>
+/// <para>
+/// Como no Rust, o erro <see cref="ParserError.RecursionLimitExceeded"/> só ocorre quando o contador chega a 0.
+/// A proteção de pilha fica nas funções que o Rust marca com <c>#[recursive::recursive]</c>, via
+/// <see cref="StackGuard"/> (DIV-005).
 /// </para>
 /// </remarks>
 internal sealed class RecursionCounter
@@ -54,16 +55,6 @@ internal sealed class RecursionCounter
         var oldValue = _remainingDepth;
         // ran out of space
         if (oldValue == 0)
-        {
-            throw new ParserException(new ParserError.RecursionLimitExceeded());
-        }
-
-        // PORT-DEVIATION DIV-005: proteção de pilha do .NET no lugar do crate `recursive`.
-        try
-        {
-            RuntimeHelpers.EnsureSufficientExecutionStack();
-        }
-        catch (InsufficientExecutionStackException)
         {
             throw new ParserException(new ParserError.RecursionLimitExceeded());
         }

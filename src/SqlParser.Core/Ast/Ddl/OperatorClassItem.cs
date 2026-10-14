@@ -23,7 +23,7 @@ using static SqlParser.Core.Ast.AstModule;
 namespace SqlParser.Core.Ast;
 
 /// <summary>An item in a CREATE OPERATOR CLASS statement</summary>
-public abstract record OperatorClassItem : IDisplay
+public abstract partial record OperatorClassItem : IDisplay
 {
     /// <summary><c>OPERATOR</c> clause describing a specific operator implementation.</summary>
     /// <param name="StrategyNumber">Strategy number identifying the operator position in the opclass.</param>

@@ -31,7 +31,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="Endpoint">Optional endpoint string.</param>
 /// <param name="StorageIntegration">Optional storage integration identifier.</param>
 /// <param name="Credentials">Credentials for accessing the stage.</param>
-public sealed record StageParamsObject(
+public sealed partial record StageParamsObject(
     string? Url,
     KeyValueOptions Encryption,
     string? Endpoint,

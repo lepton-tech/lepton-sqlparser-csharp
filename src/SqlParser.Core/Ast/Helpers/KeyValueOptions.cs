@@ -29,7 +29,7 @@ namespace SqlParser.Core.Ast;
 /// </remarks>
 /// <param name="Options">The list of key-value options.</param>
 /// <param name="Delimiter">The delimiter used between options.</param>
-public sealed record KeyValueOptions(Sequence<KeyValueOption> Options, KeyValueOptionsDelimiter Delimiter) : IDisplay
+public sealed partial record KeyValueOptions(Sequence<KeyValueOption> Options, KeyValueOptionsDelimiter Delimiter) : IDisplay
 {
     public void Fmt(Formatter f)
     {

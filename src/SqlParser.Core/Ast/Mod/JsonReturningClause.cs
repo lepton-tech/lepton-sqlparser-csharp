@@ -28,7 +28,7 @@ namespace SqlParser.Core.Ast;
 /// </code>
 /// </remarks>
 /// <param name="DataType">The data type to return from the JSON function (e.g. JSON/JSONB).</param>
-public sealed record JsonReturningClause(DataType DataType) : IDisplay
+public sealed partial record JsonReturningClause(DataType DataType) : IDisplay
 {
     public void Fmt(Formatter f)
     {

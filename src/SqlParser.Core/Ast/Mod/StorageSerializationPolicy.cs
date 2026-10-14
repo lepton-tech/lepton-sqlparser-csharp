@@ -27,7 +27,7 @@ namespace SqlParser.Core.Ast;
 /// </code>
 /// </summary>
 /// <remarks><see href="https://docs.snowflake.com/en/sql-reference/sql/create-iceberg-table"/></remarks>
-public abstract record StorageSerializationPolicy : IDisplay
+public abstract partial record StorageSerializationPolicy : IDisplay
 {
     /// <summary>Use compatible serialization mode.</summary>
     public sealed record Compatible : StorageSerializationPolicy;

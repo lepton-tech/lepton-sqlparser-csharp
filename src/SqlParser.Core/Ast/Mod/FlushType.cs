@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Types of flush operations supported by <c>FLUSH</c>.</summary>
-public abstract record FlushType : IDisplay
+public abstract partial record FlushType : IDisplay
 {
     /// <summary>Flush binary logs.</summary>
     public sealed record BinaryLogs : FlushType;

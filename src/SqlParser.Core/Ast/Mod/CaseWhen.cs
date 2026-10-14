@@ -26,7 +26,7 @@ namespace SqlParser.Core.Ast;
 /// </summary>
 /// <param name="Condition">The <c>WHEN</c> condition expression.</param>
 /// <param name="Result">The expression returned when <c>condition</c> matches.</param>
-public sealed record CaseWhen(Expr Condition, Expr Result) : IDisplay
+public sealed partial record CaseWhen(Expr Condition, Expr Result) : IDisplay
 {
     public void Fmt(Formatter f)
     {

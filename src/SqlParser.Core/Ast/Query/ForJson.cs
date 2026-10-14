@@ -22,7 +22,7 @@ namespace SqlParser.Core.Ast;
 
 /// <summary>Modes for <c>FOR JSON</c> clause.</summary>
 /// <remarks>Enum sem dados com <c>Display</c> → records (convencoes.md §13, caso 37).</remarks>
-public abstract record ForJson : IDisplay
+public abstract partial record ForJson : IDisplay
 {
     /// <summary><c>AUTO</c> mode.</summary>
     public sealed record Auto : ForJson;

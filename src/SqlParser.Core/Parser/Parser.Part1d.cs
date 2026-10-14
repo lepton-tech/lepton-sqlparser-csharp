@@ -919,7 +919,14 @@ public sealed partial class Parser
 
     /// <summary>
     /// Parses an array subscript like
-    /// <c>[:]</c>, <c>[l]</c>, <c>[l:]</c>, <c>[:u]</c>, <c>[l:u]</c>, <c>[l:u:s]</c>
+    /// <list type="bullet">
+    /// <item><c>[:]</c></item>
+    /// <item><c>[l]</c></item>
+    /// <item><c>[l:]</c></item>
+    /// <item><c>[:u]</c></item>
+    /// <item><c>[l:u]</c></item>
+    /// <item><c>[l:u:s]</c></item>
+    /// </list>
     /// </summary>
     /// <remarks>Parser is right after <c>[</c></remarks>
     internal Subscript ParseSubscriptInner()

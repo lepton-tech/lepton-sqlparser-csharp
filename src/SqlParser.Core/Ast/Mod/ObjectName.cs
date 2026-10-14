@@ -85,7 +85,7 @@ public abstract partial record ObjectNamePart : IDisplay
 /// <remarks>- <see href="https://docs.snowflake.com/en/sql-reference/identifier-literal">Snowflake</see></remarks>
 /// <param name="Name">The function name that produces the object name part.</param>
 /// <param name="Args">Function arguments used to compute the identifier.</param>
-public sealed record ObjectNamePartFunction(Ident Name, Sequence<FunctionArg> Args) : IDisplay
+public sealed partial record ObjectNamePartFunction(Ident Name, Sequence<FunctionArg> Args) : IDisplay
 {
     public void Fmt(Formatter f)
     {

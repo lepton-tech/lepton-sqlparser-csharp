@@ -27,7 +27,7 @@ namespace SqlParser.Core.Ast;
 /// </code>
 /// </summary>
 /// <remarks><see href="https://docs.snowflake.com/en/sql-reference/sql/create-database"/></remarks>
-public abstract record CatalogSyncNamespaceMode : IDisplay
+public abstract partial record CatalogSyncNamespaceMode : IDisplay
 {
     /// <summary>Nest namespaces when syncing catalog.</summary>
     public sealed record Nest : CatalogSyncNamespaceMode;

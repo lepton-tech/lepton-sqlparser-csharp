@@ -22,7 +22,7 @@ namespace SqlParser.Core.Ast;
 
 /// <summary>Non-blocking lock options for <c>FOR ...</c> clauses.</summary>
 /// <remarks>Enum sem dados com <c>Display</c> → records (convencoes.md §13, caso 37).</remarks>
-public abstract record NonBlock : IDisplay
+public abstract partial record NonBlock : IDisplay
 {
     /// <summary><c>NOWAIT</c> — do not wait for the lock.</summary>
     public sealed record Nowait : NonBlock;

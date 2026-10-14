@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Controls whether defaults are included when creating a table FROM/LILE another.</summary>
-public abstract record CreateTableLikeDefaults : IDisplay
+public abstract partial record CreateTableLikeDefaults : IDisplay
 {
     /// <summary>Include default values from the source table.</summary>
     public sealed record Including : CreateTableLikeDefaults;

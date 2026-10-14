@@ -33,7 +33,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="Exists">true if the column is a boolean set to true if the given path exists</param>
 /// <param name="OnEmpty">The empty handling clause of the column</param>
 /// <param name="OnError">The error handling clause of the column</param>
-public sealed record JsonTableNamedColumn(
+public sealed partial record JsonTableNamedColumn(
     Ident Name,
     DataType Type,
     ValueWithSpan Path,

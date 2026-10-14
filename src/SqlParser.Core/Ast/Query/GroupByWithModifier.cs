@@ -26,7 +26,7 @@ namespace SqlParser.Core.Ast;
 /// <para>[ClickHouse]: <see href="https://clickhouse.com/docs/en/sql-reference/statements/select/group-by#rollup-modifier"/></para>
 /// Modifiers used with <c>GROUP BY</c> such as <c>WITH ROLLUP</c> or <c>WITH CUBE</c>.
 /// </summary>
-public abstract record GroupByWithModifier : IDisplay
+public abstract partial record GroupByWithModifier : IDisplay
 {
     /// <summary><c>WITH ROLLUP</c> modifier.</summary>
     public sealed record Rollup : GroupByWithModifier;

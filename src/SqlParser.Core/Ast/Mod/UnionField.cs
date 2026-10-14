@@ -24,7 +24,7 @@ namespace SqlParser.Core.Ast;
 /// <remarks>[DuckDB]: https://duckdb.org/docs/sql/data_types/union.html</remarks>
 /// <param name="FieldName">Name of the union field.</param>
 /// <param name="FieldType">Type of the union field.</param>
-public sealed record UnionField(Ident FieldName, DataType FieldType) : IDisplay
+public sealed partial record UnionField(Ident FieldName, DataType FieldType) : IDisplay
 {
     public void Fmt(Formatter f)
     {

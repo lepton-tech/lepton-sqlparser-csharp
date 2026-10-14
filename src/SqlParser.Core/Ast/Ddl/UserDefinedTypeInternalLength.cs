@@ -43,7 +43,7 @@ namespace SqlParser.Core.Ast;
 /// );
 /// </code>
 /// </summary>
-public abstract record UserDefinedTypeInternalLength : IDisplay
+public abstract partial record UserDefinedTypeInternalLength : IDisplay
 {
     /// <summary>Fixed internal length: <c>INTERNALLENGTH = &lt;number&gt;</c></summary>
     public sealed record Fixed(ulong Value) : UserDefinedTypeInternalLength;

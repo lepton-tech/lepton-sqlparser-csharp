@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Indicates partition operation type for partition management statements.</summary>
-public abstract record AddDropSync : IDisplay
+public abstract partial record AddDropSync : IDisplay
 {
     /// <summary>Add partitions.</summary>
     public sealed record ADD : AddDropSync;

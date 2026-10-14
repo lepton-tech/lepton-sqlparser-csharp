@@ -28,7 +28,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="StartQuote">the quote start character; i.e. the character _after_ the opening <c>Q'</c></param>
 /// <param name="Value">the string literal value itself</param>
 /// <param name="EndQuote">the quote end character; i.e. the character _before_ the closing <c>'</c></param>
-public sealed record QuoteDelimitedString(char StartQuote, string Value, char EndQuote) : IDisplay
+public sealed partial record QuoteDelimitedString(char StartQuote, string Value, char EndQuote) : IDisplay
 {
     /// <inheritdoc/>
     public void Fmt(Formatter f)

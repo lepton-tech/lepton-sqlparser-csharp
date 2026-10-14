@@ -25,7 +25,7 @@ namespace SqlParser.Core.Ast;
 /// <para>See <see href="https://docs.aws.amazon.com/redshift/latest/dg/r_CREATE_TABLE_NEW.html">Redshift</see></para>
 /// </summary>
 // Enum sem dados com Display → records (convencoes.md §13, caso 37).
-public abstract record DistStyle : IDisplay
+public abstract partial record DistStyle : IDisplay
 {
     /// <summary><c>DISTSTYLE AUTO</c></summary>
     public sealed record Auto : DistStyle;

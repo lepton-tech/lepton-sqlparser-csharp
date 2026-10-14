@@ -28,7 +28,7 @@ public sealed partial class Parser
 {
     /// <summary>
     /// Tries to parse an expression by matching the specified word to known keywords that have a special meaning in the dialect.
-    /// Returns <c>None</c> if no match is found.
+    /// Returns `None if no match is found.
     /// </summary>
     internal Expr? ParseExprPrefixByReservedWord(Word w, Span wSpan)
     {
@@ -255,15 +255,19 @@ public sealed partial class Parser
             return CachedPrefixError<Expr>(cached, PeekTokenRef());
         }
         // let result = self.parse_prefix_inner(); if let Err(ref e) = result { .. }
+        // O Err é tratado e relançado fora do catch (convencoes.md §13, caso 124).
+        ParserException e;
         try
         {
             return ParsePrefixInner();
         }
-        catch (ParserException e)
+        catch (ParserException error)
         {
-            _failedPrefixPositions[startIndex] = ExprPrefixError.From(e.Error);
-            throw;
+            e = error;
         }
+
+        _failedPrefixPositions[startIndex] = ExprPrefixError.From(e.Error);
+        throw StackGuard.Rethrow(e);
     }
 
     /// <summary>Rebuild the error for a cached prefix failure at the <c>found</c> token.</summary>
@@ -375,7 +379,8 @@ public sealed partial class Parser
                 // succeeds, the overall `parse_prefix` returns `Ok` and the
                 // outer cache never fires. Chains like `case-case-...c`
                 // need this per-arm cache to break the doubling.
-                Expr? tryParseResult;
+                Expr? tryParseResult = null;
+                ParserException? tryParseError = null;
                 try
                 {
                     if (_failedReservedWordPrefixPositions.TryGetValue(nextTokenIndex, out var cached))
@@ -387,15 +392,20 @@ public sealed partial class Parser
                         tryParseResult = TryParse(parser => parser.ParseExprPrefixByReservedWord(w, span));
                     }
                 }
+                catch (ParserException error)
+                {
+                    // O braço `Err(e)` roda fora do catch (convencoes.md §13, caso 124).
+                    tryParseError = error;
+                }
                 // If parsing of the word as a special expression failed, we are facing two options:
                 // 1. The statement is malformed, e.g. `SELECT INTERVAL '1 DAI` (`DAI` instead of `DAY`)
                 // 2. The word is used as an identifier, e.g. `SELECT MAX(interval) FROM tbl`
                 // We first try to parse the word as an identifier and if that fails
                 // we rollback and return the parsing error we got from trying to parse a
                 // special expression (to maintain backwards compatibility of parsing errors).
-                catch (ParserException e)
+                if (tryParseError is not null)
                 {
-                    _failedReservedWordPrefixPositions[nextTokenIndex] = ExprPrefixError.From(e.Error);
+                    _failedReservedWordPrefixPositions[nextTokenIndex] = ExprPrefixError.From(tryParseError.Error);
                     if (!_dialect.IsReservedForIdentifier(w.Keyword))
                     {
                         // if let Ok(Some(expr)) = self.maybe_parse(..): o Err (limite de recursão) é ignorado.
@@ -413,7 +423,7 @@ public sealed partial class Parser
                             return fallbackExpr;
                         }
                     }
-                    throw;
+                    throw StackGuard.Rethrow(tryParseError);
                 }
                 switch (tryParseResult)
                 {

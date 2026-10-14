@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>An <see cref="AlterType"/> operation</summary>
-public abstract record AlterTypeOperation : IDisplay
+public abstract partial record AlterTypeOperation : IDisplay
 {
     /// <summary>Rename the type.</summary>
     public sealed record Rename(AlterTypeRename Value) : AlterTypeOperation;

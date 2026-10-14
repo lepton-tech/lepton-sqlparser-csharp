@@ -29,7 +29,7 @@ namespace SqlParser.Core.Ast;
 /// </code>
 /// <see href="https://learn.microsoft.com/en-us/sql/t-sql/functions/json-object-transact-sql?view=sql-server-ver16#json_null_clause"/>
 /// </remarks>
-public abstract record JsonNullClause : IDisplay
+public abstract partial record JsonNullClause : IDisplay
 {
     /// <summary><c>NULL ON NULL</c> behavior for JSON functions.</summary>
     public sealed record NullOnNull : JsonNullClause;

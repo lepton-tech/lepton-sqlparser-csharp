@@ -56,7 +56,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="SetProps">Key/value properties to set on the user.</param>
 /// <param name="UnsetProps">Properties to unset on the user.</param>
 /// <param name="Password">The following options are PostgreSQL-specific: <see href="https://www.postgresql.org/docs/current/sql-alteruser.html"/></param>
-public sealed record AlterUser(
+public sealed partial record AlterUser(
     bool IfExists,
     Ident Name,
     Ident? RenameTo,

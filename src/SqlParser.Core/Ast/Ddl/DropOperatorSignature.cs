@@ -24,7 +24,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="Name">Operator name</param>
 /// <param name="LeftType">Left operand type</param>
 /// <param name="RightType">Right operand type</param>
-public sealed record DropOperatorSignature(ObjectName Name, DataType? LeftType, DataType RightType) : IDisplay
+public sealed partial record DropOperatorSignature(ObjectName Name, DataType? LeftType, DataType RightType) : IDisplay
 {
     public void Fmt(Formatter f)
     {

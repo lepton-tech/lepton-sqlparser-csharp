@@ -29,7 +29,7 @@ namespace SqlParser.Core.Ast;
 /// <see href="https://docs.snowflake.com/en/sql-reference/sql/create-table">Snowflake</see>
 /// </summary>
 // Enum sem dados com Display: records (convencoes.md §13, caso 37).
-public abstract record IdentityPropertyOrder : IDisplay
+public abstract partial record IdentityPropertyOrder : IDisplay
 {
     /// <summary><c>ORDER</c> - preserve ordering for generated values (where supported).</summary>
     public sealed record Order : IdentityPropertyOrder;

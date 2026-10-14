@@ -22,7 +22,7 @@ namespace SqlParser.Core.Ast;
 
 /// <summary>Function-like object type used by <see cref="AlterFunction"/>.</summary>
 // Enum sem dados com Display → records (convencoes.md §13, caso 37).
-public abstract record AlterFunctionKind : IDisplay
+public abstract partial record AlterFunctionKind : IDisplay
 {
     /// <summary><c>FUNCTION</c></summary>
     public sealed record Function : AlterFunctionKind;

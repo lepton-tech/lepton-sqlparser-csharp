@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Specifies a table version selection, e.g. <c>FOR SYSTEM_TIME AS OF</c> or <c>AT(...)</c>.</summary>
-public abstract record TableVersion : IDisplay
+public abstract partial record TableVersion : IDisplay
 {
     /// <summary>
     /// When the table version is defined using <c>FOR SYSTEM_TIME AS OF</c>.

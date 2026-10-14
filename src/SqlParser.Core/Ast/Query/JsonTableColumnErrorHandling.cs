@@ -25,7 +25,7 @@ namespace SqlParser.Core.Ast;
 /// {NULL | DEFAULT json_string | ERROR} ON {ERROR | EMPTY }
 /// Error/empty-value handling for <c>JSON_TABLE</c> columns.
 /// </summary>
-public abstract record JsonTableColumnErrorHandling : IDisplay
+public abstract partial record JsonTableColumnErrorHandling : IDisplay
 {
     /// <summary><c>NULL</c> — return NULL when the path does not match.</summary>
     public sealed record Null : JsonTableColumnErrorHandling;

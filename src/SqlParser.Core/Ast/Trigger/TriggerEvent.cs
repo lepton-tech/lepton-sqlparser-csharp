@@ -23,7 +23,7 @@ using static SqlParser.Core.Ast.AstModule;
 namespace SqlParser.Core.Ast;
 
 /// <summary>Used to describe trigger events</summary>
-public abstract record TriggerEvent : IDisplay
+public abstract partial record TriggerEvent : IDisplay
 {
     /// <summary>Trigger on INSERT event</summary>
     public sealed record Insert : TriggerEvent;

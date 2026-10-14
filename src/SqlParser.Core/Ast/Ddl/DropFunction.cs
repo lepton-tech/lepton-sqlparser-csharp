@@ -26,7 +26,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="IfExists">Whether to include the <c>IF EXISTS</c> clause.</param>
 /// <param name="FuncDesc">One or more functions to drop</param>
 /// <param name="DropBehavior"><c>CASCADE</c> or <c>RESTRICT</c></param>
-public sealed record DropFunction(
+public sealed partial record DropFunction(
     bool IfExists,
     Sequence<FunctionDesc> FuncDesc,
     DropBehavior? DropBehavior) : IDisplay, ISpanned

@@ -25,7 +25,7 @@ namespace SqlParser.Core.Ast;
 /// <summary>A single key-value option.</summary>
 /// <param name="OptionName">The name of the option.</param>
 /// <param name="OptionValue">The value of the option.</param>
-public sealed record KeyValueOption(string OptionName, KeyValueOptionKind OptionValue) : IDisplay
+public sealed partial record KeyValueOption(string OptionName, KeyValueOptionKind OptionValue) : IDisplay
 {
     public void Fmt(Formatter f)
     {

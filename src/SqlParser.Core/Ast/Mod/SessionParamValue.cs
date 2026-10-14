@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Value for a session boolean-like parameter (ON/OFF).</summary>
-public abstract record SessionParamValue : IDisplay
+public abstract partial record SessionParamValue : IDisplay
 {
     /// <summary>Session parameter enabled.</summary>
     public sealed record On : SessionParamValue;

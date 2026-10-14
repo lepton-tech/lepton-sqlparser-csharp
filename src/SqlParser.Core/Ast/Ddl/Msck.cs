@@ -30,7 +30,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="TableName">Table name to check</param>
 /// <param name="Repair">Whether to repair the table</param>
 /// <param name="PartitionAction">Partition action (ADD, DROP, or SYNC)</param>
-public sealed record Msck(
+public sealed partial record Msck(
     [property: VisitWith("visit_relation")] ObjectName TableName,
     bool Repair,
     AddDropSync? PartitionAction) : IDisplay, ISpanned

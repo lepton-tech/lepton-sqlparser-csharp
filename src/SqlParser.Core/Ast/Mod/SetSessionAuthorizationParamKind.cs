@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Represents the parameter kind for SET SESSION AUTHORIZATION</summary>
-public abstract record SetSessionAuthorizationParamKind : IDisplay
+public abstract partial record SetSessionAuthorizationParamKind : IDisplay
 {
     /// <summary>Default authorization</summary>
     public sealed record Default : SetSessionAuthorizationParamKind;

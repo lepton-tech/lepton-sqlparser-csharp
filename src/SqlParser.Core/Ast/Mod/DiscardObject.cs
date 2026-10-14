@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Objects that can be discarded with <c>DISCARD</c>.</summary>
-public abstract record DiscardObject : IDisplay
+public abstract partial record DiscardObject : IDisplay
 {
     /// <summary>Discard all session state.</summary>
     public sealed record ALL : DiscardObject;

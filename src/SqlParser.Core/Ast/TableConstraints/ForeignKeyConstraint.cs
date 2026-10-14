@@ -43,7 +43,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="OnUpdate">Action to perform <c>ON UPDATE</c>.</param>
 /// <param name="MatchKind">Optional <c>MATCH</c> kind (FULL | PARTIAL | SIMPLE).</param>
 /// <param name="Characteristics">Optional characteristics (e.g., <c>DEFERRABLE</c>).</param>
-public sealed record ForeignKeyConstraint(
+public sealed partial record ForeignKeyConstraint(
     Ident? Name,
     Ident? IndexName,
     Sequence<Ident> Columns,

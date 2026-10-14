@@ -32,7 +32,7 @@ namespace SqlParser.Core.Ast;
 /// qualificado como <c>Ast.Expr</c> (convencoes.md §13, caso 38).
 /// </para>
 /// </remarks>
-public abstract record DeclareAssignment : IDisplay
+public abstract partial record DeclareAssignment : IDisplay
 {
     /// <summary>Plain expression specified.</summary>
     /// <param name="Value">Rust: campo <c>.0</c>.</param>

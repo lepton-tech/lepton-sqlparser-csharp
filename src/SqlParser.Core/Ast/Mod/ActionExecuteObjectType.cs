@@ -24,7 +24,7 @@ namespace SqlParser.Core.Ast;
 /// See <see href="https://docs.snowflake.com/en/sql-reference/sql/grant-privilege"/>
 /// under <c>globalPrivileges</c> in the <c>EXECUTE</c> privilege.
 /// </summary>
-public abstract record ActionExecuteObjectType : IDisplay
+public abstract partial record ActionExecuteObjectType : IDisplay
 {
     /// <summary>Alert object.</summary>
     public sealed record Alert : ActionExecuteObjectType;

@@ -30,7 +30,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="Name">Policy name to alter.</param>
 /// <param name="TableName">Target table name the policy is defined on.</param>
 /// <param name="Operation">Optional operation specific to the policy alteration.</param>
-public sealed record AlterPolicy(
+public sealed partial record AlterPolicy(
     Ident Name,
     [property: VisitWith("visit_relation")] ObjectName TableName,
     AlterPolicyOperation Operation) : IDisplay

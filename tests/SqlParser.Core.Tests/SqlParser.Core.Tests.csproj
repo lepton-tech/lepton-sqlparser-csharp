@@ -29,4 +29,10 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
+  <!-- Consultas TPC-H de tests/sqlparser_regression.rs (copiadas sem alteração de
+       upstream/sqlparser-rs/tests/queries/tpch/); o include_str! do Rust vira leitura em tempo de execução. -->
+  <ItemGroup>
+    <Content Include="Queries\tpch\*.sql" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

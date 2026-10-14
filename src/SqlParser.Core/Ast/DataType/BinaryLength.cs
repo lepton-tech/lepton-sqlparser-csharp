@@ -24,7 +24,7 @@ namespace SqlParser.Core.Ast;
 /// Information about <see href="https://jakewheat.github.io/sql-overview/sql-2016-foundation-grammar.html#binary-length">binary length</see>,
 /// including length and possibly unit.
 /// </summary>
-public abstract record BinaryLength : IDisplay
+public abstract partial record BinaryLength : IDisplay
 {
     /// <summary>Integer length for binary types (e.g. <c>VARBINARY(100)</c>).</summary>
     /// <param name="Length">Default (if VARYING)</param>

@@ -25,7 +25,7 @@ namespace SqlParser.Core.Ast;
 /// option: <c>[ NULLS [ NOT ] DISTINCT ]</c>
 /// </summary>
 // Enum sem dados com Display: records (convencoes.md §13, caso 37).
-public abstract record NullsDistinctOption : IDisplay
+public abstract partial record NullsDistinctOption : IDisplay
 {
     /// <summary>Not specified</summary>
     public sealed record None : NullsDistinctOption;

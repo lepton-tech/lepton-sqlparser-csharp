@@ -41,7 +41,7 @@ namespace SqlParser.Core.Ast;
 /// </code>
 /// <see href="https://www.postgresql.org/docs/current/sql-truncate.html"/>
 /// </param>
-public sealed record TruncateTableTarget(
+public sealed partial record TruncateTableTarget(
     [property: VisitWith("visit_relation")] ObjectName Name,
     bool Only,
     bool HasAsterisk) : IDisplay

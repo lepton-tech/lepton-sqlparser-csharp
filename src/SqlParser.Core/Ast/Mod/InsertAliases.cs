@@ -23,4 +23,4 @@ namespace SqlParser.Core.Ast;
 /// <summary>Optional aliases for <c>INSERT</c> targets: row alias and optional column aliases.</summary>
 /// <param name="RowAlias">Row alias (table-style alias) for the inserted values.</param>
 /// <param name="ColAliases">Optional list of column aliases for the inserted values.</param>
-public sealed record InsertAliases(ObjectName RowAlias, Sequence<Ident>? ColAliases);
+public sealed partial record InsertAliases(ObjectName RowAlias, Sequence<Ident>? ColAliases);

@@ -231,44 +231,101 @@ public class AstModTests
         Assert.Equal(new List<string>(many2), new List<string> { "c", "d" });
     }
 
-    [Fact(Skip = "PENDENTE: depende de OneOrManyWithParensIntoIter (iterador por valor com next_back/size_hint/clone), não portado pela A1 (docs/port/onda-a/A1.md)")]
+    [Fact]
     public void test_one_or_many_with_parens_value_into_iter()
     {
-        TestSteps(new OneOrManyWithParens<int>.One(1), new[] { 1 }, 3);
-        TestSteps(new OneOrManyWithParens<int>.Many(Sequence.Of(2)), new[] { 2 }, 3);
-        TestSteps(new OneOrManyWithParens<int>.Many(Sequence.Of(3, 4)), new[] { 3, 4 }, 4);
+        // use core::iter::once;
+
+        TestSteps(new OneOrManyWithParens<int>.One(1), new OnceIter<int>(1), 3);
+        TestSteps(new OneOrManyWithParens<int>.Many(Sequence.Of(2)), new VecIntoIter<int>(Sequence.Of(2)), 3);
+        TestSteps(new OneOrManyWithParens<int>.Many(Sequence.Of(3, 4)), new VecIntoIter<int>(Sequence.Of(3, 4)), 4);
     }
 
-    // Rust: `fn test_steps` aninhada no teste. Tests that our iterator implemented methods behaves exactly
-    // as it's inner iterator, at every step up to n calls to next/next_back.
-    private static void TestSteps(OneOrManyWithParens<int> ours, IReadOnlyList<int> inner, int n)
+    //tests that our iterator implemented methods behaves exactly as it's inner iterator, at every step up to n calls to next/next_back
+    // Rust: `fn test_steps<I>` aninhada no teste, com
+    // `I: IntoIterator<Item = usize, IntoIter: DoubleEndedIterator + Clone> + Clone`. O C# não tem
+    // `IntoIterator`: `inner` já chega como o iterador (`once(1)` → `new OnceIter<int>(1)`; `vec![2]` →
+    // `new VecIntoIter<int>(Sequence.Of(2))`, o resultado de `vec![2].into_iter()`), então
+    // `inner.clone().into_iter()` → `inner.Clone()`. `ours.clone().into_iter()` → `ours.IntoIter()`
+    // (records são imutáveis: o `clone()` não tem tradução, convencoes.md §9).
+    private static void TestSteps<I>(OneOrManyWithParens<int> ours, I inner, int n)
+        where I : IDoubleEndedIterator<int, I>
     {
-        // PORT-TODO: os quatro laços do Rust (n chamadas de next(), de next_back() e alternadas, chamando
-        // `checks` sobre um clone do iterador a cada passo) exigem um iterador double-ended clonável
-        // (OneOrManyWithParensIntoIter), que não existe no C#. Só a checagem inicial é possível.
-        _ = n;
-        Checks(ours, inner);
+        var oursNext = ours.IntoIter();
+        var innerNext = inner.Clone();
+
+        for (var i = 0; i < n; i++)
+        {
+            Checks(oursNext.Clone(), innerNext.Clone());
+
+            Assert.Equal(oursNext.Next(), innerNext.Next());
+        }
+
+        var oursNextBack = ours.IntoIter();
+        var innerNextBack = inner.Clone();
+
+        for (var i = 0; i < n; i++)
+        {
+            Checks(oursNextBack.Clone(), innerNextBack.Clone());
+
+            Assert.Equal(oursNextBack.NextBack(), innerNextBack.NextBack());
+        }
+
+        var oursMixed = ours.IntoIter();
+        var innerMixed = inner.Clone();
+
+        for (var i = 0; i < n; i++)
+        {
+            Checks(oursMixed.Clone(), innerMixed.Clone());
+
+            if (i % 2 == 0)
+            {
+                Assert.Equal(oursMixed.NextBack(), innerMixed.NextBack());
+            }
+            else
+            {
+                Assert.Equal(oursMixed.Next(), innerMixed.Next());
+            }
+        }
+
+        var oursMixed2 = ours.IntoIter();
+        var innerMixed2 = inner; // inner.into_iter(): último uso de `inner` (movido no Rust)
+
+        for (var i = 0; i < n; i++)
+        {
+            Checks(oursMixed2.Clone(), innerMixed2.Clone());
+
+            if (i % 2 == 0)
+            {
+                Assert.Equal(oursMixed2.Next(), innerMixed2.Next());
+            }
+            else
+            {
+                Assert.Equal(oursMixed2.NextBack(), innerMixed2.NextBack());
+            }
+        }
     }
 
-    // Rust: `fn checks` aninhada em `test_steps`.
-    private static void Checks(IEnumerable<int> ours, IEnumerable<int> inner)
+    // Rust: `fn checks<I>` aninhada em `test_steps`, com `I: Iterator<Item = usize> + Clone + DoubleEndedIterator`.
+    private static void Checks<I>(OneOrManyWithParensIntoIter<int> ours, I inner)
+        where I : IDoubleEndedIterator<int, I>
     {
-        // PORT-TODO: assert_eq!(ours.size_hint(), inner.size_hint()) não tem equivalente em IEnumerable<T>.
-        Assert.Equal(ours.Count(), inner.Count());
+        Assert.Equal(ours.SizeHint(), inner.SizeHint());
+        Assert.Equal(ours.Clone().Count(), inner.Clone().Count());
 
         Assert.Equal(
-            ours.Aggregate(1, (a, v) => a + v),
-            inner.Aggregate(1, (a, v) => a + v));
+            ours.Clone().Fold(1, (a, v) => a + v),
+            inner.Clone().Fold(1, (a, v) => a + v));
 
-        Assert.Equal(ours.ToList(), inner.ToList());
+        Assert.Equal(new List<int>(ours.Clone()), new List<int>(inner.Clone()));
         Assert.Equal(
-            ours.Reverse().ToList(),
-            inner.Reverse().ToList());
+            new List<int>(ours.Clone().Rev()),
+            new List<int>(inner.Clone().Rev()));
     }
 
     // Tests that the position in the code of an `Ident` does not affect its
     // ordering.
-    [Fact(Skip = "PENDENTE: depende de impl PartialOrd/Ord for Ident (mod.rs 289–310), não portado em Ast/Mod/Ident.cs (Ident não implementa IComparable<Ident>)")]
+    [Fact]
     public void test_ident_ord()
     {
         var a = Ident.WithSpan(new Span(new Location(1, 1), new Location(1, 1)), "a");

@@ -22,7 +22,7 @@ namespace SqlParser.Core.Ast;
 
 /// <summary>Modifier specifying how the sample seed is applied.</summary>
 /// <remarks>Enum sem dados com <c>Display</c> → records (convencoes.md §13, caso 37).</remarks>
-public abstract record TableSampleSeedModifier : IDisplay
+public abstract partial record TableSampleSeedModifier : IDisplay
 {
     /// <summary><c>REPEATABLE</c> modifier.</summary>
     public sealed record Repeatable : TableSampleSeedModifier;

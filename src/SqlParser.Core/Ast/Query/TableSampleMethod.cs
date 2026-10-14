@@ -28,7 +28,7 @@ namespace SqlParser.Core.Ast;
 /// Enum sem dados com <c>Display</c> → records (convencoes.md §13, caso 37). A variante <c>System</c>
 /// esconde o namespace <c>System</c> dentro deste record: não use nomes qualificados <c>System.X</c> aqui.
 /// </remarks>
-public abstract record TableSampleMethod : IDisplay
+public abstract partial record TableSampleMethod : IDisplay
 {
     /// <summary><c>ROW</c> sampling method.</summary>
     public sealed record Row : TableSampleMethod;

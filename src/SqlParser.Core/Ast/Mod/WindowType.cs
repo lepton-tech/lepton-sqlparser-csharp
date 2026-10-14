@@ -30,7 +30,7 @@ namespace SqlParser.Core.Ast;
 /// <item><c>NamedWindow(Ident)</c>: A reference to a named window declared elsewhere.</item>
 /// </list>
 /// </remarks>
-public abstract record WindowType : IDisplay
+public abstract partial record WindowType : IDisplay
 {
     /// <summary>An inline window specification.</summary>
     /// <param name="Value">Rust: campo <c>.0</c> (tipo qualificado: a variante tem o nome do tipo, convencoes.md §13, caso 38).</param>

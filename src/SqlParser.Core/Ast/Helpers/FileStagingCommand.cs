@@ -23,7 +23,7 @@ namespace SqlParser.Core.Ast;
 /// <summary>A command to stage files to a named stage.</summary>
 /// <param name="Stage">The stage to which files are being staged.</param>
 /// <param name="Pattern">Optional file matching <c>PATTERN</c> expression.</param>
-public sealed record FileStagingCommand(
+public sealed partial record FileStagingCommand(
     [property: VisitWith("visit_relation")] ObjectName Stage,
     string? Pattern) : IDisplay
 {

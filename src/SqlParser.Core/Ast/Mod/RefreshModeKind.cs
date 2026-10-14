@@ -22,7 +22,7 @@ namespace SqlParser.Core.Ast;
 
 /// <summary>Specifies the refresh mode for the dynamic table.</summary>
 /// <remarks><see href="https://docs.snowflake.com/en/sql-reference/sql/create-dynamic-table">Snowflake</see></remarks>
-public abstract record RefreshModeKind : IDisplay
+public abstract partial record RefreshModeKind : IDisplay
 {
     /// <summary>Automatic refresh mode (<c>AUTO</c>).</summary>
     public sealed record Auto : RefreshModeKind;

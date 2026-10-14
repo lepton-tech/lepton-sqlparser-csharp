@@ -30,7 +30,7 @@ namespace SqlParser.Core.Ast;
 /// </remarks>
 /// <param name="Value">The value to check for membership.</param>
 /// <param name="Array">The JSON array expression to check against.</param>
-public sealed record MemberOf(Expr Value, Expr Array) : IDisplay
+public sealed partial record MemberOf(Expr Value, Expr Array) : IDisplay
 {
     public void Fmt(Formatter f)
     {

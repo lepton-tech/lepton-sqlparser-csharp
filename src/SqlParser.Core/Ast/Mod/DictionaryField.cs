@@ -24,7 +24,7 @@ namespace SqlParser.Core.Ast;
 /// <remarks>[DuckDB]: https://duckdb.org/docs/sql/data_types/struct#creating-structs</remarks>
 /// <param name="Key">Dictionary key identifier.</param>
 /// <param name="Value">Value expression for the dictionary entry.</param>
-public sealed record DictionaryField(Ident Key, Expr Value) : IDisplay
+public sealed partial record DictionaryField(Ident Key, Expr Value) : IDisplay
 {
     public void Fmt(Formatter f)
     {

@@ -27,7 +27,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="Expr">Expression to pass to the XML table.</param>
 /// <param name="Alias">Optional alias for the argument.</param>
 /// <param name="ByValue"><c>true</c> if <c>BY VALUE</c> is specified for the argument.</param>
-public sealed record XmlPassingArgument(Expr Expr, Ident? Alias, bool ByValue) : IDisplay
+public sealed partial record XmlPassingArgument(Expr Expr, Ident? Alias, bool ByValue) : IDisplay
 {
     public void Fmt(Formatter f)
     {

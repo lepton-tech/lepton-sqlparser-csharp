@@ -29,7 +29,7 @@ namespace SqlParser.Core.Ast;
 /// <see href="https://www.postgresql.org/docs/14/sql-createindex.html">Postgresql CREATE INDEX</see> statements.
 /// </para>
 /// </summary>
-public abstract record IndexType : IDisplay
+public abstract partial record IndexType : IDisplay
 {
     /// <summary>B-Tree index (commonly default for many databases).</summary>
     public sealed record BTree : IndexType;

@@ -24,4 +24,4 @@ namespace SqlParser.Core.Ast;
 /// <remarks>Sem <c>impl Display</c> no Rust: quem formata é o <c>Display</c> de <c>Statement::ShowObjects</c>.</remarks>
 /// <param name="Terse">Whether to show terse output.</param>
 /// <param name="ShowOptions">Additional options controlling the SHOW output.</param>
-public sealed record ShowObjects(bool Terse, ShowStatementOptions ShowOptions);
+public sealed partial record ShowObjects(bool Terse, ShowStatementOptions ShowOptions);

@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>The type of lock used in <c>LOCK TABLE</c> statements.</summary>
-public abstract record LockTableType : IDisplay
+public abstract partial record LockTableType : IDisplay
 {
     /// <summary>Shared/read lock. If <c>local</c> is true, it's a local read lock.</summary>
     /// <param name="Local">Whether the read lock is local.</param>

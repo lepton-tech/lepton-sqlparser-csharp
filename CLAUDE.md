@@ -16,6 +16,7 @@ Port em C# (`netstandard2.0`) do parser SQL **apache/datafusion-sqlparser-rs** (
 - **`SqlParser.Core` = port fiel do Rust:** nomes, estrutura, ordem e comportamento iguais aos do Rust. Regras normativas em `docs/port/convencoes.md`. Adaptações e conveniências vão para o projeto **`SqlParser`** (API pública). Ver `docs/adr/0002-arquitetura-em-camadas-e-api.md`.
 - O código Rust de referência fica em `upstream/sqlparser-rs`, na versão de `UPSTREAM.json`. Se não existir, rode `pwsh tools/upstream/Get-Upstream.ps1`. **Não edite nada em `upstream/`.**
 - `src/SqlParser.Core/Keywords.g.cs` é gerado: rode `pwsh tools/codegen/Generate-Keywords.ps1`, nunca edite à mão.
+- `src/SqlParser.Core/Ast/Visitor/Generated/*.g.cs` (o derive `Visit`/`VisitMut`) é gerado: todo tipo da AST é `partial`; depois de mudar a AST, rode `pwsh tools/codegen/Generate-Visitor.ps1` (`docs/adr/0007-visitor.md`).
 - Testes portados do Rust **nunca** são editados para passar. Use `Skip = "DIV-NNN: ..."` (divergência registrada em `docs/port/divergencias.md`) ou `Skip = "PENDENTE: ..."`.
 - Decisão de tradução nova → registrar em `docs/port/convencoes.md` §13 ou `docs/port/nomes.md` **na mesma mudança**.
 - `netstandard2.0`: sem default interface members, sem `Span<T>`, sem APIs exclusivas do .NET Core (`convencoes.md` §11; `docs/adr/0006-versao-da-linguagem-csharp.md`).
@@ -28,6 +29,8 @@ dotnet test SqlParser.sln -nologo -v q                                         #
 dotnet test SqlParser.sln --filter "FullyQualifiedName~TokenizerTests" -nologo -v q
 pwsh tools/upstream/Get-Upstream.ps1                                           # baixa/posiciona referências
 pwsh tools/codegen/Generate-Keywords.ps1                                       # regenera keywords
+pwsh tools/codegen/Generate-Visitor.ps1                                        # regenera o visitor (Ast/Visitor/Generated) após mudar a AST
+pwsh tools/codegen/Generate-Visitor.ps1 -Check                                 # só confere se o visitor gerado está atualizado
 pwsh tools/check/Find-SuspiciousChars.ps1                                      # escapes \uXXXX viraram caractere literal?
 ```
 
@@ -38,7 +41,7 @@ No shell Bash deste ambiente, use caminhos absolutos em vez de `cd`.
 | Documento | Para quê |
 |---|---|
 | `docs/analise-tecnica-e-plano.md` | Análise comparativa e plano em fases |
-| `docs/adr/` | Decisões de arquitetura (abordagem e Plano B, camadas, licença, upstream, testes, versão C#) |
+| `docs/adr/` | Decisões de arquitetura (abordagem e Plano B, camadas, licença, upstream, testes, versão C#, visitor gerado) |
 | `docs/port/convencoes.md` | **Normativo:** como traduzir cada construto Rust |
 | `docs/port/nomes.md` | Glossário de nomes não mecânicos |
 | `docs/port/divergencias.md` | Incompatibilidades conhecidas (`DIV-NNN`) |

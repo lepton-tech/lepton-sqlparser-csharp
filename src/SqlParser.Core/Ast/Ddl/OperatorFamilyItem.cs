@@ -23,7 +23,7 @@ using static SqlParser.Core.Ast.AstModule;
 namespace SqlParser.Core.Ast;
 
 /// <summary>An item in an ALTER OPERATOR FAMILY ADD statement</summary>
-public abstract record OperatorFamilyItem : IDisplay
+public abstract partial record OperatorFamilyItem : IDisplay
 {
     /// <summary><c>OPERATOR</c> clause in an operator family modification.</summary>
     /// <param name="StrategyNumber">Strategy number for the operator.</param>

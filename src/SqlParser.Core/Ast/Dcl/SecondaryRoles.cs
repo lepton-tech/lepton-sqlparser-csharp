@@ -26,7 +26,7 @@ namespace SqlParser.Core.Ast;
 /// Snowflake <c>SECONDARY ROLES</c> USE variant
 /// See: <see href="https://docs.snowflake.com/en/sql-reference/sql/use-secondary-roles"/>
 /// </summary>
-public abstract record SecondaryRoles : IDisplay
+public abstract partial record SecondaryRoles : IDisplay
 {
     /// <summary>Use all secondary roles.</summary>
     public sealed record All : SecondaryRoles;

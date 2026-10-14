@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>External table's available file format</summary>
-public abstract record FileFormat : IDisplay
+public abstract partial record FileFormat : IDisplay
 {
     /// <summary>Text file format.</summary>
     public sealed record TEXTFILE : FileFormat;

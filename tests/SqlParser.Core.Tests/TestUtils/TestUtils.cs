@@ -87,6 +87,22 @@ public static class TestUtils
         Assert.Equal(expected, actualStrings);
     }
 
+    /// <summary>
+    /// Tradução de <c>assert_eq!(expected, actual, "msg")</c>: falha com a mensagem do Rust seguida da
+    /// diferença do <see cref="Assert.Equal{T}(T, T)"/> (skill <c>port-rust-tests</c>).
+    /// </summary>
+    public static void AssertEqualWithMessage<T>(T expected, T actual, string message)
+    {
+        try
+        {
+            Assert.Equal(expected, actual);
+        }
+        catch (Xunit.Sdk.XunitException e)
+        {
+            Assert.Fail($"{message}{Environment.NewLine}{e.Message}");
+        }
+    }
+
     /// <summary>Rust: <c>only&lt;T&gt;(v: impl IntoIterator&lt;Item = T&gt;) -&gt; T</c>.</summary>
     public static T Only<T>(IEnumerable<T> v)
     {

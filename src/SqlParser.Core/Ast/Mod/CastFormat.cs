@@ -24,7 +24,7 @@ namespace SqlParser.Core.Ast;
 /// Options for <c>CAST</c> / <c>TRY_CAST</c>
 /// BigQuery: <see href="https://cloud.google.com/bigquery/docs/reference/standard-sql/format-elements#formatting_syntax"/>
 /// </summary>
-public abstract record CastFormat : IDisplay
+public abstract partial record CastFormat : IDisplay
 {
     /// <summary>A simple cast format specified by a <c>Value</c>.</summary>
     /// <param name="Inner">Rust: campo <c>.0</c> (variante chamada <c>Value</c>: parâmetro <c>Inner</c>, convencoes.md §6).</param>

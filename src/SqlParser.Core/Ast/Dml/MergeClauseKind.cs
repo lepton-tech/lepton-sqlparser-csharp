@@ -29,7 +29,7 @@ namespace SqlParser.Core.Ast;
 /// <see href="https://docs.snowflake.com/en/sql-reference/sql/merge">Snowflake</see>
 /// <see href="https://cloud.google.com/bigquery/docs/reference/standard-sql/dml-syntax#merge_statement">BigQuery</see>
 /// </remarks>
-public abstract record MergeClauseKind : IDisplay
+public abstract partial record MergeClauseKind : IDisplay
 {
     /// <summary><c>WHEN MATCHED</c></summary>
     public sealed record Matched : MergeClauseKind;

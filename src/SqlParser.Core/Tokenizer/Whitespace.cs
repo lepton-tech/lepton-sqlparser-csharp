@@ -21,7 +21,7 @@
 namespace SqlParser.Core;
 
 /// <summary>Represents whitespace in the input: spaces, newlines, tabs and comments.</summary>
-public abstract record Whitespace : IDisplay
+public abstract partial record Whitespace : IDisplay
 {
     /// <summary>A single space character.</summary>
     public sealed record Space : Whitespace;

@@ -710,6 +710,11 @@ public sealed partial class Parser
             OverlayFor: forExpr);
     }
 
+    // Rust: o literal `[Keyword::BOTH, Keyword::LEADING, Keyword::TRAILING]` de `parse_trim_expr` (abaixo),
+    // em cache para não alocar a cada `TRIM(` (convencoes.md §13, caso 11).
+    private static readonly Keyword[] ParseTrimExprTrimWhereKeywords =
+        { Keyword.BOTH, Keyword.LEADING, Keyword.TRAILING };
+
     /// <summary>
     /// <code>
     /// TRIM ([WHERE] ['text' FROM] 'text')
@@ -723,7 +728,7 @@ public sealed partial class Parser
         TrimWhereField? trimWhere = null;
         if (PeekTokenRef().Token is Token.Word { Value: var word })
         {
-            if (new[] { Keyword.BOTH, Keyword.LEADING, Keyword.TRAILING }.Contains(word.Keyword))
+            if (ParseTrimExprTrimWhereKeywords.Contains(word.Keyword))
             {
                 trimWhere = ParseTrimWhere();
             }
@@ -1036,8 +1041,11 @@ public sealed partial class Parser
 
     /// <summary>Parses fulltext expressions <c>sqlparser::ast::Expr::MatchAgainst</c></summary>
     /// <remarks>
-    /// Errors: this method will raise an error if the column list is empty or with invalid identifiers,
+    /// <para><b>Errors</b></para>
+    /// <para>
+    /// This method will raise an error if the column list is empty or with invalid identifiers,
     /// the match expression is not a literal string, or if the search modifier is not valid.
+    /// </para>
     /// </remarks>
     public Expr ParseMatchAgainst()
     {
@@ -1111,6 +1119,12 @@ public sealed partial class Parser
     /// </remarks>
     public Expr ParseInterval()
     {
+        // Rust: #[cfg_attr(feature = "recursive-protection", recursive::recursive)] (convencoes.md §13, caso 123).
+        if (StackGuard.IsStackLow())
+        {
+            return StackGuard.Grow(this, static parser => parser.ParseInterval());
+        }
+
         using var _guard = _recursionCounter.TryDecrease();
 
         // The SQL standard allows an optional sign before the value string, but

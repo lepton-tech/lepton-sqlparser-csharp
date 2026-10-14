@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Definition for a DuckDB macro: either an expression or a table-producing query.</summary>
-public abstract record MacroDefinition : IDisplay
+public abstract partial record MacroDefinition : IDisplay
 {
     /// <summary>The macro is defined as an expression.</summary>
     // Variante com o nome de um tipo de topo: tipo qualificado (convencoes.md §13, caso 38).

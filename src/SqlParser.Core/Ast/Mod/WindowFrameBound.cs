@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Specifies <c>WindowFrame</c>'s <c>start_bound</c> and <c>end_bound</c></summary>
-public abstract record WindowFrameBound : IDisplay
+public abstract partial record WindowFrameBound : IDisplay
 {
     /// <summary><c>CURRENT ROW</c></summary>
     public sealed record CurrentRow : WindowFrameBound;

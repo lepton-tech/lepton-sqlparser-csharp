@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Topics available for session statistics configuration.</summary>
-public abstract record SessionParamStatsTopic : IDisplay
+public abstract partial record SessionParamStatsTopic : IDisplay
 {
     /// <summary>Input/output statistics.</summary>
     public sealed record IO : SessionParamStatsTopic;

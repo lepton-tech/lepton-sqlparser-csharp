@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Optional context modifier for statements that can be or <c>LOCAL</c>, <c>GLOBAL</c>, or <c>SESSION</c>.</summary>
-public abstract record ContextModifier : IDisplay
+public abstract partial record ContextModifier : IDisplay
 {
     /// <summary><c>LOCAL</c> identifier, usually related to transactional states.</summary>
     public sealed record Local : ContextModifier;

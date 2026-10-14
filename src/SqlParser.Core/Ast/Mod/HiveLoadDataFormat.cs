@@ -23,4 +23,4 @@ namespace SqlParser.Core.Ast;
 /// <summary>Format specification for <c>LOAD DATA</c> Hive operations.</summary>
 /// <param name="Serde">SerDe expression used for the table.</param>
 /// <param name="InputFormat">Input format expression.</param>
-public sealed record HiveLoadDataFormat(Expr Serde, Expr InputFormat);
+public sealed partial record HiveLoadDataFormat(Expr Serde, Expr InputFormat);

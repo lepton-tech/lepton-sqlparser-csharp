@@ -33,7 +33,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="To">Optional list of grantee owners.</param>
 /// <param name="Using">Optional expression for the <c>USING</c> clause.</param>
 /// <param name="WithCheck">Optional expression for the <c>WITH CHECK</c> clause.</param>
-public sealed record CreatePolicy(
+public sealed partial record CreatePolicy(
     Ident Name,
     [property: VisitWith("visit_relation")] ObjectName TableName,
     CreatePolicyType? PolicyType,

@@ -28,7 +28,7 @@ namespace SqlParser.Core.Ast;
 /// </remarks>
 /// <param name="Ident">The format identifier.</param>
 /// <param name="Values">Optional format parameters.</param>
-public sealed record InputFormatClause(Ident Ident, Sequence<Expr> Values) : IDisplay
+public sealed partial record InputFormatClause(Ident Ident, Sequence<Expr> Values) : IDisplay
 {
     public void Fmt(Formatter f)
     {

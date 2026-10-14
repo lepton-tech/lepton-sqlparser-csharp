@@ -31,7 +31,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="Names">One or more extension names to drop</param>
 /// <param name="IfExists">Whether <c>IF EXISTS</c> was specified for the DROP EXTENSION.</param>
 /// <param name="CascadeOrRestrict"><c>CASCADE</c> or <c>RESTRICT</c> behaviour for the drop.</param>
-public sealed record DropExtension(
+public sealed partial record DropExtension(
     Sequence<Ident> Names,
     bool IfExists,
     ReferentialAction? CascadeOrRestrict) : IDisplay, ISpanned

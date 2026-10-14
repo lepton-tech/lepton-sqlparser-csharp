@@ -37,7 +37,7 @@ namespace SqlParser.Core.Ast;
 /// As variantes <c>TableSample</c> e <c>Join</c> escondem os tipos de topo homônimos dentro deste
 /// record; por isso eles aparecem qualificados como <c>Ast.X</c> (convencoes.md §6 e §13, caso 38).
 /// </remarks>
-public abstract record PipeOperator : IDisplay
+public abstract partial record PipeOperator : IDisplay
 {
     /// <summary>
     /// Limits the number of rows to return in a query, with an optional OFFSET clause to skip over rows.

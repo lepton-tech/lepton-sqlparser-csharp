@@ -29,7 +29,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="IfNotExists">Whether <c>IF NOT EXISTS</c> was specified.</param>
 /// <param name="Name">Name of the collation being created.</param>
 /// <param name="Definition">Source definition for the collation.</param>
-public sealed record CreateCollation(
+public sealed partial record CreateCollation(
     bool IfNotExists,
     ObjectName Name,
     CreateCollationDefinition Definition) : IDisplay, ISpanned

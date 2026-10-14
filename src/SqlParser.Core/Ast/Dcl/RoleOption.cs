@@ -22,7 +22,7 @@ namespace SqlParser.Core.Ast;
 
 /// <summary>An option in <c>ROLE</c> statement.</summary>
 /// <remarks><see href="https://www.postgresql.org/docs/current/sql-createrole.html"/></remarks>
-public abstract record RoleOption : IDisplay
+public abstract partial record RoleOption : IDisplay
 {
     /// <summary>Enable or disable BYPASSRLS.</summary>
     public sealed record BypassRLS(bool Value) : RoleOption;

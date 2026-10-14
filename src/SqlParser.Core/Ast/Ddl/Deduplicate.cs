@@ -24,7 +24,7 @@ namespace SqlParser.Core.Ast;
 /// DEDUPLICATE statement used in OPTIMIZE TABLE et al. such as in ClickHouse SQL
 /// <see href="https://clickhouse.com/docs/en/sql-reference/statements/optimize">ClickHouse</see>
 /// </summary>
-public abstract record Deduplicate : IDisplay
+public abstract partial record Deduplicate : IDisplay
 {
     /// <summary>DEDUPLICATE ALL</summary>
     public sealed record All : Deduplicate;

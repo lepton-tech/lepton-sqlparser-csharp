@@ -22,7 +22,7 @@ namespace SqlParser.Core.Ast;
 
 /// <summary>An <c>IAM_ROLE</c> option in the AWS ecosystem</summary>
 /// <remarks><see href="https://docs.aws.amazon.com/redshift/latest/dg/copy-parameters-authorization.html#copy-iam-role">Redshift COPY</see></remarks>
-public abstract record IamRoleKind : IDisplay
+public abstract partial record IamRoleKind : IDisplay
 {
     /// <summary>Default role</summary>
     public sealed record Default : IamRoleKind;

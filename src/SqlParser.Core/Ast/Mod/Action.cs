@@ -27,7 +27,7 @@ namespace SqlParser.Core.Ast;
 /// Fora de <c>SqlParser.Core.Ast</c>, o nome <c>Action</c> é ambíguo com <c>System.Action</c> (using global
 /// implícito): use <c>Ast.Action</c> nesses arquivos.
 /// </remarks>
-public abstract record Action : IDisplay
+public abstract partial record Action : IDisplay
 {
     /// <summary>Add a search optimization.</summary>
     public sealed record AddSearchOptimization : Action;

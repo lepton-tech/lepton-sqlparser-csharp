@@ -23,7 +23,7 @@ using static SqlParser.Core.Ast.AstModule;
 namespace SqlParser.Core.Ast;
 
 /// <summary>Privileges granted in a GRANT statement or revoked in a REVOKE statement.</summary>
-public abstract record Privileges : IDisplay
+public abstract partial record Privileges : IDisplay
 {
     /// <summary>All privileges applicable to the object type</summary>
     /// <param name="WithPrivilegesKeyword">Optional keyword from the spec, ignored in practice</param>

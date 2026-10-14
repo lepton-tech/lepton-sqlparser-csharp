@@ -23,7 +23,7 @@ using static SqlParser.Core.Ast.AstModule;
 namespace SqlParser.Core.Ast;
 
 /// <summary>Binary operators</summary>
-public abstract record BinaryOperator : IDisplay
+public abstract partial record BinaryOperator : IDisplay
 {
     /// <summary>Plus, e.g. <c>a + b</c></summary>
     public sealed record Plus : BinaryOperator;

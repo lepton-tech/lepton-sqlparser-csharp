@@ -39,7 +39,7 @@ namespace SqlParser.Core.Ast;
 /// ClickHouse-specific option: [ ON CLUSTER cluster_name ]
 /// <see href="https://clickhouse.com/docs/en/sql-reference/statements/truncate/">ClickHouse</see>
 /// </param>
-public sealed record Truncate(
+public sealed partial record Truncate(
     Sequence<TruncateTableTarget> TableNames,
     Sequence<Expr>? Partitions,
     bool Table,

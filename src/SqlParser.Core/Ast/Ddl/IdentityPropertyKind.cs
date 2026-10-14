@@ -29,7 +29,7 @@ namespace SqlParser.Core.Ast;
 /// <see href="https://learn.microsoft.com/en-us/sql/t-sql/statements/create-table-transact-sql-identity-property">MS SQL Server</see>
 /// <see href="https://docs.snowflake.com/en/sql-reference/sql/create-table">Snowflake</see>
 /// </summary>
-public abstract record IdentityPropertyKind : IDisplay
+public abstract partial record IdentityPropertyKind : IDisplay
 {
     /// <summary>
     /// An identity property declared via the <c>AUTOINCREMENT</c> key word

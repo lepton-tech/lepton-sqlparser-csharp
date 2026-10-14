@@ -41,7 +41,7 @@ namespace SqlParser.Core.Ast;
 /// e.g. <c>/*+...*/</c> or <c>--+...</c>
 /// <para>Not all dialects support all styles, though.</para>
 /// </param>
-public sealed record OptimizerHint(string Prefix, string Text, OptimizerHintStyle Style) : IDisplay
+public sealed partial record OptimizerHint(string Prefix, string Text, OptimizerHintStyle Style) : IDisplay
 {
     public void Fmt(Formatter f)
     {

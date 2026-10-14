@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Location modifier for flush commands.</summary>
-public abstract record FlushLocation : IDisplay
+public abstract partial record FlushLocation : IDisplay
 {
     /// <summary>Do not write changes to the binary log.</summary>
     public sealed record NoWriteToBinlog : FlushLocation;

@@ -25,7 +25,7 @@ namespace SqlParser.Core.Ast;
 /// <para>Used in <c>DROP</c> statements.</para>
 /// </summary>
 // Enum sem dados com Display: records (convencoes.md §13, caso 37).
-public abstract record DropBehavior : IDisplay
+public abstract partial record DropBehavior : IDisplay
 {
     /// <summary><c>RESTRICT</c> - refuse to drop if there are any dependent objects.</summary>
     public sealed record Restrict : DropBehavior;

@@ -28,4 +28,10 @@
     <InternalsVisibleTo Include="SqlParser.Core.Tests" />
   </ItemGroup>
 
+  <!-- Geração do visitor (tools/codegen/Generate-Visitor.ps1): compila o Core SEM o código gerado, para que o
+       gerador leia a AST por reflexão mesmo quando o código gerado estiver desatualizado (docs/adr/0007-visitor.md). -->
+  <ItemGroup Condition="'$(SqlParserVisitorCodegen)' == 'true'">
+    <Compile Remove="Ast\Visitor\Generated\**" />
+  </ItemGroup>
+
 </Project>

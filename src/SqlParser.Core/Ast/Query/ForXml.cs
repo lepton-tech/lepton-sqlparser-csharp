@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Modes for <c>FOR XML</c> clause.</summary>
-public abstract record ForXml : IDisplay
+public abstract partial record ForXml : IDisplay
 {
     /// <summary><c>RAW</c> mode with optional root name: <c>RAW('root')</c>.</summary>
     public sealed record Raw(string? Value) : ForXml;

@@ -24,7 +24,7 @@ namespace SqlParser.Core.Ast;
 /// Determines the minimum and maximum allowed occurrences of a pattern in a
 /// <c>MATCH_RECOGNIZE</c> operation.
 /// </summary>
-public abstract record RepetitionQuantifier : IDisplay
+public abstract partial record RepetitionQuantifier : IDisplay
 {
     /// <summary><c>*</c></summary>
     public sealed record ZeroOrMore : RepetitionQuantifier;

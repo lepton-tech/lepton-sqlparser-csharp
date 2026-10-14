@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Types of user-based policies</summary>
-public abstract record UserPolicyKind : IDisplay
+public abstract partial record UserPolicyKind : IDisplay
 {
     /// <summary>Authentication policy.</summary>
     public sealed record Authentication : UserPolicyKind;

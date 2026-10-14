@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Types of MFA methods</summary>
-public abstract record MfaMethodKind : IDisplay
+public abstract partial record MfaMethodKind : IDisplay
 {
     /// <summary>PassKey (hardware or platform passkey) MFA method.</summary>
     public sealed record PassKey : MfaMethodKind;

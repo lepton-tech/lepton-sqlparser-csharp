@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Unary operators</summary>
-public abstract record UnaryOperator : IDisplay
+public abstract partial record UnaryOperator : IDisplay
 {
     /// <summary>
     /// <c>@-@</c> Length or circumference (PostgreSQL/Redshift geometric operator)

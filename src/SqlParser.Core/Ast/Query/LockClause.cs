@@ -24,7 +24,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="LockType">The kind of lock requested (e.g. <c>SHARE</c>, <c>UPDATE</c>).</param>
 /// <param name="Of">Optional object name after <c>OF</c> (e.g. <c>FOR UPDATE OF t1</c>).</param>
 /// <param name="Nonblock">Optional non-blocking behavior (<c>NOWAIT</c> / <c>SKIP LOCKED</c>).</param>
-public sealed record LockClause(LockType LockType, ObjectName? Of, NonBlock? Nonblock) : IDisplay
+public sealed partial record LockClause(LockType LockType, ObjectName? Of, NonBlock? Nonblock) : IDisplay
 {
     public void Fmt(Formatter f)
     {

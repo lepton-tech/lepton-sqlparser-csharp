@@ -52,7 +52,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="Include">INCLUDE clause: <see href="https://www.postgresql.org/docs/current/sql-createtable.html"/></param>
 /// <param name="IndexOptions">Optional index options such as <c>USING</c>.</param>
 /// <param name="Characteristics">Optional characteristics like <c>DEFERRABLE</c>.</param>
-public sealed record PrimaryKeyConstraint(
+public sealed partial record PrimaryKeyConstraint(
     Ident? Name,
     Ident? IndexName,
     IndexType? IndexType,

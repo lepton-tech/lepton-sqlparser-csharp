@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Object kinds supported by <c>SHOW CREATE</c> statements.</summary>
-public abstract record ShowCreateObject : IDisplay
+public abstract partial record ShowCreateObject : IDisplay
 {
     /// <summary>An event object for <c>SHOW CREATE EVENT</c>.</summary>
     public sealed record Event : ShowCreateObject;

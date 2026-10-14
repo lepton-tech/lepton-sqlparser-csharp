@@ -23,7 +23,7 @@ namespace SqlParser.Core.Ast;
 /// <summary>A single setting key-value pair.</summary>
 /// <param name="Key">Setting name/key.</param>
 /// <param name="Value">The value expression assigned to the setting.</param>
-public sealed record Setting(Ident Key, Expr Value) : IDisplay
+public sealed partial record Setting(Ident Key, Expr Value) : IDisplay
 {
     public void Fmt(Formatter f)
     {

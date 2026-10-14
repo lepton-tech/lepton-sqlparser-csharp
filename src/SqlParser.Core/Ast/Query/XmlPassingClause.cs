@@ -27,7 +27,7 @@ namespace SqlParser.Core.Ast;
 /// The PASSING clause for <c>XMLTABLE</c>.
 /// </summary>
 /// <param name="Arguments">The list of passed arguments.</param>
-public sealed record XmlPassingClause(Sequence<XmlPassingArgument> Arguments) : IDisplay
+public sealed partial record XmlPassingClause(Sequence<XmlPassingArgument> Arguments) : IDisplay
 {
     public void Fmt(Formatter f)
     {

@@ -27,7 +27,7 @@ namespace SqlParser.Core.Ast;
 /// double quote, backtick, and opening square bracket.
 /// </param>
 /// <param name="Span">The span of the identifier in the original SQL string.</param>
-public sealed record Ident(string Value, char? QuoteStyle, Span Span) : IDisplay
+public sealed record Ident(string Value, char? QuoteStyle, Span Span) : IDisplay, IComparable<Ident>, IVisit, IVisitMut<Ident>
 {
     /// <summary>Create a new identifier with the given value and no quotes and an empty span.</summary>
     public Ident(string value)
@@ -77,6 +77,26 @@ public sealed record Ident(string Value, char? QuoteStyle, Span Span) : IDisplay
         }
     }
 
+    /// <summary>Rust: <c>impl PartialOrd for Ident</c> e <c>impl Ord for Ident</c>: we ignore spans in ordering.</summary>
+    public int CompareTo(Ident? other)
+    {
+        // Convenção do IComparable<T>: qualquer instância vem depois de null (o Rust não tem null).
+        if (other is null)
+        {
+            return 1;
+        }
+
+        // let Ident { value, quote_style, span: _ } = self;
+        // let Ident { value: other_value, quote_style: other_quote_style, span: _ } = other;
+        // (exhaustiveness check; we ignore spans in ordering)
+
+        // First compare by value, then by quote_style
+        // `String::cmp` → RustChar.Cmp (ordem dos scalar values); `Option<char>::cmp` (None antes de
+        // Some, depois pelo char) → Nullable.Compare.
+        var ordering = RustChar.Cmp(Value, other.Value);
+        return ordering != 0 ? ordering : Nullable.Compare(QuoteStyle, other.QuoteStyle);
+    }
+
     public void Fmt(Formatter f)
     {
         switch (QuoteStyle)
@@ -100,5 +120,37 @@ public sealed record Ident(string Value, char? QuoteStyle, Span Span) : IDisplay
 
     public override string ToString() => Formatter.Format(this);
 
-    // PORT-TODO: `impl Visit/VisitMut for Ident` (pre/post_visit_ident) entra com o visitor (ast/visitor.rs).
+    // #[cfg(feature = "visitor")] impl Visit for Ident: escrito à mão no Rust (não usa o derive, e por isso
+    // não visita `span`). O gerador do visitor detecta esta implementação e chama Ident.VisitMut nos pais.
+    /// <summary>Rust: <c>impl Visit for Ident</c>.</summary>
+    public ControlFlow<TBreak> Visit<TBreak>(Visitor<TBreak> visitor)
+    {
+        var flow = visitor.PreVisitIdent(this);
+        if (flow.IsBreak)
+        {
+            return flow;
+        }
+        return visitor.PostVisitIdent(this);
+    }
+
+    // #[cfg(feature = "visitor")] impl VisitMut for Ident
+    /// <summary>Rust: <c>impl VisitMut for Ident</c>.</summary>
+    public ControlFlow<TBreak> Visit<TBreak>(VisitorMut<TBreak> visitor, out Ident self)
+    {
+        var node = this;
+        var flow = VisitMut(ref node, visitor);
+        self = node;
+        return flow;
+    }
+
+    /// <summary>Corpo de <c>impl VisitMut for Ident</c> sobre a referência do pai (<c>&amp;mut self</c>).</summary>
+    internal static ControlFlow<TBreak> VisitMut<TBreak>(ref Ident node, VisitorMut<TBreak> visitor)
+    {
+        var flow = visitor.PreVisitIdent(ref node);
+        if (flow.IsBreak)
+        {
+            return flow;
+        }
+        return visitor.PostVisitIdent(ref node);
+    }
 }

@@ -26,7 +26,7 @@ namespace SqlParser.Core.Ast;
 /// </summary>
 /// <param name="TableName">Optional table name (absent for e.g. <c>TABLE</c> command without argument).</param>
 /// <param name="SchemaName">Optional schema/catalog name qualifying the table.</param>
-public sealed record Table(string? TableName, string? SchemaName) : IDisplay
+public sealed partial record Table(string? TableName, string? SchemaName) : IDisplay
 {
     public void Fmt(Formatter f)
     {

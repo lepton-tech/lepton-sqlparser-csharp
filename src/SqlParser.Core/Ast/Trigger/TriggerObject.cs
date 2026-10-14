@@ -24,7 +24,7 @@ namespace SqlParser.Core.Ast;
 /// This specifies whether the trigger function should be fired once for every row affected by the trigger event,
 /// or just once per SQL statement.
 /// </summary>
-public abstract record TriggerObject : IDisplay
+public abstract partial record TriggerObject : IDisplay
 {
     /// <summary>The trigger fires once for each row affected by the triggering event</summary>
     public sealed record Row : TriggerObject;

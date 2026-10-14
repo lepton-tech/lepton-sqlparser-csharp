@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Filter forms usable in SHOW statements.</summary>
-public abstract record ShowStatementFilter : IDisplay
+public abstract partial record ShowStatementFilter : IDisplay
 {
     /// <summary>Filter using LIKE pattern.</summary>
     public sealed record Like(string Value) : ShowStatementFilter;

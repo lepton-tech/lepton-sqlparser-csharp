@@ -28,4 +28,4 @@ namespace SqlParser.Core.Ast;
 /// <remarks>Sem <c>impl Display</c> no Rust: quem formata é <see cref="AlterUser"/>.</remarks>
 /// <param name="Role">Optional role name to remove delegation for.</param>
 /// <param name="Integration">Security integration from which to remove delegation.</param>
-public sealed record AlterUserRemoveRoleDelegation(Ident? Role, Ident Integration);
+public sealed partial record AlterUserRemoveRoleDelegation(Ident? Role, Ident Integration);

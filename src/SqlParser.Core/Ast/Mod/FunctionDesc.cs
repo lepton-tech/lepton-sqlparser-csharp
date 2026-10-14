@@ -25,7 +25,7 @@ namespace SqlParser.Core.Ast;
 /// <summary>Generic function description for DROP FUNCTION and CREATE TRIGGER.</summary>
 /// <param name="Name">The function name.</param>
 /// <param name="Args">Optional list of function arguments.</param>
-public sealed record FunctionDesc(ObjectName Name, Sequence<OperateFunctionArg>? Args) : IDisplay
+public sealed partial record FunctionDesc(ObjectName Name, Sequence<OperateFunctionArg>? Args) : IDisplay
 {
     public void Fmt(Formatter f)
     {

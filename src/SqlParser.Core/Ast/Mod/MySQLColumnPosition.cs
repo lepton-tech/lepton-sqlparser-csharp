@@ -22,7 +22,7 @@ namespace SqlParser.Core.Ast;
 
 /// <summary>MySQL <c>ALTER TABLE</c> only  [FIRST | AFTER column_name]</summary>
 /// <remarks>MySQL <c>ALTER TABLE</c> column position specifier: <c>FIRST</c> or <c>AFTER &lt;column&gt;</c>.</remarks>
-public abstract record MySQLColumnPosition : IDisplay
+public abstract partial record MySQLColumnPosition : IDisplay
 {
     /// <summary>Place the column first in the table.</summary>
     public sealed record First : MySQLColumnPosition;

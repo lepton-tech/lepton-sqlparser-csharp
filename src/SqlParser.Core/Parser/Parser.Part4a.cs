@@ -687,20 +687,33 @@ public sealed partial class Parser
     /// allowing extraneous tokens to be parsed, otherwise it fails.
     /// <para>For example:</para>
     /// <code>
-    /// var dialect = new GenericDialect();
-    /// var expected = Sequence.Of(new Ident("one"), new Ident("two"));
+    /// use sqlparser::ast::Ident;
+    /// use sqlparser::dialect::GenericDialect;
+    /// use sqlparser::parser::Parser;
+    ///
+    /// let dialect = GenericDialect {};
+    /// let expected = vec![Ident::new("one"), Ident::new("two")];
     ///
     /// // expected usage
-    /// var actual = new Parser(dialect).TryWithSql("one.two").ParseMultipartIdentifier();
-    /// // actual == expected
+    /// let sql = "one.two";
+    /// let mut parser = Parser::new(&amp;dialect).try_with_sql(sql).unwrap();
+    /// let actual = parser.parse_multipart_identifier().unwrap();
+    /// assert_eq!(&amp;actual, &amp;expected);
     ///
     /// // parse_identifiers is more loose on what it allows, parsing successfully
-    /// actual = new Parser(dialect).TryWithSql("one + two").ParseIdentifiers();
-    /// // actual == expected
+    /// let sql = "one + two";
+    /// let mut parser = Parser::new(&amp;dialect).try_with_sql(sql).unwrap();
+    /// let actual = parser.parse_identifiers().unwrap();
+    /// assert_eq!(&amp;actual, &amp;expected);
     ///
     /// // expected to strictly fail due to + separator
-    /// // new Parser(dialect).TryWithSql("one + two").ParseMultipartIdentifier() lança
-    /// // "sql parser error: Unexpected token in identifier: +"
+    /// let sql = "one + two";
+    /// let mut parser = Parser::new(&amp;dialect).try_with_sql(sql).unwrap();
+    /// let actual = parser.parse_multipart_identifier().unwrap_err();
+    /// assert_eq!(
+    ///     actual.to_string(),
+    ///     "sql parser error: Unexpected token in identifier: +"
+    /// );
     /// </code>
     /// </remarks>
     public Sequence<Ident> ParseMultipartIdentifier()
@@ -1358,12 +1371,10 @@ public sealed partial class Parser
     }
 
     /// <summary>Parse a parenthesized sub data type</summary>
-    /// <remarks>
-    /// Rust: <c>F: FnOnce(Box&lt;DataType&gt;) -&gt; DataType</c> → <c>Func&lt;DataType, DataType&gt;</c>
-    /// (convencoes.md §13, caso 50; <c>Box&lt;T&gt;</c> → <c>T</c>).
-    /// </remarks>
     internal DataType ParseSubType(Func<DataType, DataType> parentType)
     {
+        // Rust: `F: FnOnce(Box<DataType>) -> DataType` → Func<DataType, DataType>
+        // (convencoes.md §13, caso 50; `Box<T>` → `T`).
         ExpectToken(new Token.LParen());
         var insideType = ParseDataType();
         ExpectToken(new Token.RParen());

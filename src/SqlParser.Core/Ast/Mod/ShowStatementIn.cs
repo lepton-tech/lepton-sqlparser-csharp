@@ -24,7 +24,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="Clause">The clause that specifies what to show (e.g. COLUMNS, TABLES).</param>
 /// <param name="ParentType">Optional parent type qualifier (ACCOUNT/DATABASE/...).</param>
 /// <param name="ParentName">Optional parent object name for the SHOW clause.</param>
-public sealed record ShowStatementIn(
+public sealed partial record ShowStatementIn(
     ShowStatementInClause Clause,
     ShowStatementInParentType? ParentType,
     [property: VisitWith("visit_relation")] ObjectName? ParentName) : IDisplay

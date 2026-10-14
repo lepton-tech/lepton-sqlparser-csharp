@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Types supported by <c>KILL</c> statements.</summary>
-public abstract record KillType : IDisplay
+public abstract partial record KillType : IDisplay
 {
     /// <summary>Kill a connection.</summary>
     public sealed record Connection : KillType;

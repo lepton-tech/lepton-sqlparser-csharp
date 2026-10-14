@@ -31,7 +31,7 @@ namespace SqlParser.Core.Ast;
 /// </remarks>
 /// <param name="Path">JSON path expression (must be a literal <c>Value</c>).</param>
 /// <param name="Columns">Columns extracted from the matched nested array.</param>
-public sealed record JsonTableNestedColumn(ValueWithSpan Path, Sequence<JsonTableColumn> Columns) : IDisplay
+public sealed partial record JsonTableNestedColumn(ValueWithSpan Path, Sequence<JsonTableColumn> Columns) : IDisplay
 {
     public void Fmt(Formatter f)
     {

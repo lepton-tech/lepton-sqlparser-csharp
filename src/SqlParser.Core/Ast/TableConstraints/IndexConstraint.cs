@@ -37,7 +37,7 @@ namespace SqlParser.Core.Ast;
 /// Optional index options such as <c>USING</c>; see <c>IndexOption</c>.
 /// Options applied to the index (e.g., <c>COMMENT</c>, <c>WITH</c> options).
 /// </param>
-public sealed record IndexConstraint(
+public sealed partial record IndexConstraint(
     bool DisplayAsKey,
     Ident? Name,
     IndexType? IndexType,

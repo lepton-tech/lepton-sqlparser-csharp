@@ -34,7 +34,7 @@ namespace SqlParser.Core.Ast;
 /// <para>This is only used for <c>ALTER AGGREGATE</c>.</para>
 /// </param>
 /// <param name="Operation">Operation applied to the object.</param>
-public sealed record AlterFunction(
+public sealed partial record AlterFunction(
     AlterFunctionKind Kind,
     FunctionDesc Function,
     Sequence<OperateFunctionArg>? AggregateOrderBy,

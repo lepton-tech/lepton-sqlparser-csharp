@@ -25,7 +25,7 @@ namespace SqlParser.Core.Ast;
 /// <para>SQLite: <see href="https://sqlite.org/lang_transaction.html"/></para>
 /// <para>MS-SQL: <see href="https://learn.microsoft.com/en-us/sql/t-sql/language-elements/try-catch-transact-sql"/></para>
 /// </summary>
-public abstract record TransactionModifier : IDisplay
+public abstract partial record TransactionModifier : IDisplay
 {
     /// <summary>DEFERRED transaction modifier.</summary>
     public sealed record Deferred : TransactionModifier;

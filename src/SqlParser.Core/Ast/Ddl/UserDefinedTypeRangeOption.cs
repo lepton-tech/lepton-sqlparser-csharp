@@ -38,7 +38,7 @@ namespace SqlParser.Core.Ast;
 /// );
 /// </code>
 /// </summary>
-public abstract record UserDefinedTypeRangeOption : IDisplay
+public abstract partial record UserDefinedTypeRangeOption : IDisplay
 {
     /// <summary>The element type that the range type will represent: <c>SUBTYPE = subtype</c></summary>
     public sealed record Subtype(DataType Value) : UserDefinedTypeRangeOption;

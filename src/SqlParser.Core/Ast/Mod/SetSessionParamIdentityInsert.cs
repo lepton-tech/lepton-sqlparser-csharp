@@ -23,7 +23,7 @@ namespace SqlParser.Core.Ast;
 /// <summary><c>IDENTITY_INSERT</c> session parameter for a specific object.</summary>
 /// <param name="Obj">Object name targeted by <c>IDENTITY_INSERT</c>.</param>
 /// <param name="Value">Value (ON/OFF) for the identity insert setting.</param>
-public sealed record SetSessionParamIdentityInsert(ObjectName Obj, SessionParamValue Value) : IDisplay
+public sealed partial record SetSessionParamIdentityInsert(ObjectName Obj, SessionParamValue Value) : IDisplay
 {
     public void Fmt(Formatter f)
     {

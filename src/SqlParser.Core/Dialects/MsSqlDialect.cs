@@ -98,8 +98,10 @@ public class MsSqlDialect : Dialect
     /// </summary>
     public override bool SupportsObjectNameDoubleDotNotation => true;
 
-    // Rust: `&[GranteesType::Public]` → array estático em cache (convencoes.md §13, caso 10).
-    private static readonly GranteesType[] ReservedGranteesTypes = { GranteesType.Public };
+    // Rust: `&[GranteesType::Public]` → lista somente leitura em cache (convencoes.md §13, caso 10): um
+    // array exposto como IReadOnlyList<T> poderia ser alterado por cast para T[].
+    private static readonly IReadOnlyList<GranteesType> ReservedGranteesTypes =
+        System.Array.AsReadOnly(new[] { GranteesType.Public });
 
     /// <summary>
     /// See <see href="https://learn.microsoft.com/en-us/sql/relational-databases/security/authentication-access/server-level-roles"/>

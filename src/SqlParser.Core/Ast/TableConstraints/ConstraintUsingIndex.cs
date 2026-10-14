@@ -32,7 +32,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="Name">Optional constraint name.</param>
 /// <param name="IndexName">The name of the existing unique index to promote.</param>
 /// <param name="Characteristics">Optional characteristics like <c>DEFERRABLE</c>.</param>
-public sealed record ConstraintUsingIndex(Ident? Name, Ident IndexName, ConstraintCharacteristics? Characteristics) : ISpanned
+public sealed partial record ConstraintUsingIndex(Ident? Name, Ident IndexName, ConstraintCharacteristics? Characteristics) : ISpanned
 {
     /// <summary>Format as <c>[CONSTRAINT name] &lt;keyword&gt; USING INDEX index_name [characteristics]</c>.</summary>
     public void FmtWithKeyword(Formatter f, string keyword)

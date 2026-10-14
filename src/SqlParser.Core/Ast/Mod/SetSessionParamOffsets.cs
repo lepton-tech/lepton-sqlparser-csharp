@@ -25,7 +25,7 @@ namespace SqlParser.Core.Ast;
 /// <summary>Offsets-related session parameter with keywords and a value.</summary>
 /// <param name="Keywords">Keywords specifying which offsets to modify.</param>
 /// <param name="Value">Value (ON/OFF) for the offsets setting.</param>
-public sealed record SetSessionParamOffsets(Sequence<string> Keywords, SessionParamValue Value) : IDisplay
+public sealed partial record SetSessionParamOffsets(Sequence<string> Keywords, SessionParamValue Value) : IDisplay
 {
     public void Fmt(Formatter f)
     {

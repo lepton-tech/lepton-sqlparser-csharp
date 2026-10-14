@@ -43,7 +43,7 @@ namespace SqlParser.Core.Ast;
 /// (no Rust seria erro de compilação).
 /// </para>
 /// </remarks>
-public abstract record WrappedCollection<T> : IDisplay
+public abstract partial record WrappedCollection<T> : IDisplay
 {
     /// <summary>Print the collection without wrapping symbols, as <c>item, item, item</c></summary>
     public sealed record NoWrapping(T Value) : WrappedCollection<T>;

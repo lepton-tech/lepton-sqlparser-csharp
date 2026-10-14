@@ -24,7 +24,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="Bucket">The bucket index expression.</param>
 /// <param name="Total">The total number of buckets expression.</param>
 /// <param name="On">Optional <c>ON &lt;expr&gt;</c> specification.</param>
-public sealed record TableSampleBucket(ValueWithSpan Bucket, ValueWithSpan Total, Expr? On) : IDisplay
+public sealed partial record TableSampleBucket(ValueWithSpan Bucket, ValueWithSpan Total, Expr? On) : IDisplay
 {
     public void Fmt(Formatter f)
     {

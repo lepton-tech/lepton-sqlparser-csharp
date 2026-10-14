@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Mode for transactions: access mode or isolation level.</summary>
-public abstract record TransactionMode : IDisplay
+public abstract partial record TransactionMode : IDisplay
 {
     /// <summary>Access mode for a transaction (e.g. <c>READ ONLY</c> / <c>READ WRITE</c>).</summary>
     public sealed record AccessMode(TransactionAccessMode Value) : TransactionMode;

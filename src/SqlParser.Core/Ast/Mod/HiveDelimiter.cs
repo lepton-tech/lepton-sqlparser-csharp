@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Kind of delimiter used in Hive <c>ROW FORMAT</c> definitions.</summary>
-public abstract record HiveDelimiter : IDisplay
+public abstract partial record HiveDelimiter : IDisplay
 {
     /// <summary>Fields terminated by a delimiter.</summary>
     public sealed record FieldsTerminatedBy : HiveDelimiter;

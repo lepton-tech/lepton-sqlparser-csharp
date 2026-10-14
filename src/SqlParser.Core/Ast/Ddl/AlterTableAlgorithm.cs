@@ -25,7 +25,7 @@ namespace SqlParser.Core.Ast;
 /// <para>Algorithm option for <c>ALTER TABLE</c> operations (MySQL-specific).</para>
 /// </summary>
 // Enum sem dados com Display: records (convencoes.md §13, caso 37).
-public abstract record AlterTableAlgorithm : IDisplay
+public abstract partial record AlterTableAlgorithm : IDisplay
 {
     /// <summary>Default algorithm selection.</summary>
     public sealed record Default : AlterTableAlgorithm;

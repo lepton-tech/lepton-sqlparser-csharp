@@ -54,6 +54,37 @@ internal static class RustChar
     }
 
     /// <summary>
+    /// Rust: <c>&lt;str as Ord&gt;::cmp</c>: ordem lexicográfica dos bytes UTF-8, que é a ordem dos
+    /// scalar values. Devolve -1, 0 ou 1 (<c>Ordering::Less</c>, <c>Equal</c>, <c>Greater</c>).
+    /// </summary>
+    /// <remarks>
+    /// <c>string.CompareOrdinal</c> compara unidades UTF-16 e só difere dessa ordem quando um caractere
+    /// fora do BMP (par substituto, U+D800..U+DFFF) encontra um caractere de U+E000..U+FFFF na mesma
+    /// posição: o par representa um scalar maior. Nesse caso as duas unidades são deslocadas para que os
+    /// substitutos fiquem acima de U+E000..U+FFFF (a correção de "code point order" do UTF-16).
+    /// </remarks>
+    public static int Cmp(string a, string b)
+    {
+        var n = Math.Min(a.Length, b.Length);
+        for (var i = 0; i < n; i++)
+        {
+            int ca = a[i];
+            int cb = b[i];
+            if (ca == cb)
+            {
+                continue;
+            }
+            if (ca >= 0xD800 && cb >= 0xD800)
+            {
+                ca = ca >= 0xE000 ? ca - 0x800 : ca + 0x2000;
+                cb = cb >= 0xE000 ? cb - 0x800 : cb + 0x2000;
+            }
+            return ca < cb ? -1 : 1;
+        }
+        return a.Length.CompareTo(b.Length);
+    }
+
+    /// <summary>
     /// Rust: <c>char::to_digit(radix)</c> (radix 2..=36): o valor do dígito ou <c>null</c>.
     /// Só dígitos ASCII e letras ASCII contam, como no Rust.
     /// </summary>

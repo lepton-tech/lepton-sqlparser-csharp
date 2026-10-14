@@ -28,7 +28,7 @@ namespace SqlParser.Core.Ast;
 /// The sequence of chained method calls.
 /// (Rust: comentário <c>// always non-empty</c>.)
 /// </param>
-public sealed record Method(Expr Expr, Sequence<Function> MethodChain) : IDisplay
+public sealed partial record Method(Expr Expr, Sequence<Function> MethodChain) : IDisplay
 {
     public void Fmt(Formatter f)
     {

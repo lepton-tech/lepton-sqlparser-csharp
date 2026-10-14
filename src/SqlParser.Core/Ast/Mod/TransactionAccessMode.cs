@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Transaction access mode (READ ONLY / READ WRITE).</summary>
-public abstract record TransactionAccessMode : IDisplay
+public abstract partial record TransactionAccessMode : IDisplay
 {
     /// <summary>READ ONLY access mode.</summary>
     public sealed record ReadOnly : TransactionAccessMode;

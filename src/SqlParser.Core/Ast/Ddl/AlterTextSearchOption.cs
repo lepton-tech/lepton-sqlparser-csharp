@@ -26,7 +26,7 @@ namespace SqlParser.Core.Ast;
 /// </summary>
 /// <param name="Key">Option name.</param>
 /// <param name="Value">Optional value (<c>option [= value]</c>).</param>
-public sealed record AlterTextSearchOption(Ident Key, Expr? Value) : IDisplay
+public sealed partial record AlterTextSearchOption(Ident Key, Expr? Value) : IDisplay
 {
     public void Fmt(Formatter f)
     {

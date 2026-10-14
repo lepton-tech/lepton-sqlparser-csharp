@@ -23,7 +23,7 @@ using static SqlParser.Core.Ast.AstModule;
 namespace SqlParser.Core.Ast;
 
 /// <summary>Objects on which privileges are granted in a GRANT statement.</summary>
-public abstract record GrantObjects : IDisplay
+public abstract partial record GrantObjects : IDisplay
 {
     /// <summary>Grant privileges on <c>ALL SEQUENCES IN SCHEMA &lt;schema_name&gt; [, ...]</c></summary>
     /// <param name="Schemas">The target schema names.</param>

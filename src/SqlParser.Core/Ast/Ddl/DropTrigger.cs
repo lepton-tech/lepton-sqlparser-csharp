@@ -30,7 +30,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="TriggerName">The name of the trigger to be dropped.</param>
 /// <param name="TableName">The name of the table from which the trigger is to be dropped.</param>
 /// <param name="Option"><c>CASCADE</c> or <c>RESTRICT</c></param>
-public sealed record DropTrigger(
+public sealed partial record DropTrigger(
     bool IfExists,
     ObjectName TriggerName,
     ObjectName? TableName,

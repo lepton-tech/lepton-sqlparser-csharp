@@ -30,7 +30,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="Limit">Optional <c>LIMIT</c> expression.</param>
 /// <param name="LimitFrom">Optional <c>FROM</c> value used with <c>LIMIT</c>.</param>
 /// <param name="FilterPosition">Optional filter position (infix or suffix) for <c>LIKE</c>/<c>FILTER</c>.</param>
-public sealed record ShowStatementOptions(
+public sealed partial record ShowStatementOptions(
     ShowStatementIn? ShowIn,
     ValueWithSpan? StartsWith,
     Expr? Limit,

@@ -26,7 +26,7 @@ namespace SqlParser.Core.Ast;
 /// An <c>ALTER Policy</c> (<c>Statement::AlterPolicy</c>) operation
 /// <para><see href="https://www.postgresql.org/docs/current/sql-altertable.html">PostgreSQL Documentation</see></para>
 /// </summary>
-public abstract record AlterPolicyOperation : IDisplay
+public abstract partial record AlterPolicyOperation : IDisplay
 {
     /// <summary>Rename the policy to <c>new_name</c>.</summary>
     /// <param name="NewName">The new identifier for the policy.</param>

@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Which bound is used in a HAVING clause for ANY_VALUE on BigQuery.</summary>
-public abstract record HavingBoundKind : IDisplay
+public abstract partial record HavingBoundKind : IDisplay
 {
     /// <summary>The minimum bound.</summary>
     public sealed record Min : HavingBoundKind;

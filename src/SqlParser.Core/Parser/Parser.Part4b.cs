@@ -34,6 +34,12 @@ public sealed partial class Parser
     /// </summary>
     public Query ParseQuery()
     {
+        // Rust: #[cfg_attr(feature = "recursive-protection", recursive::recursive)] (convencoes.md §13, caso 123).
+        if (StackGuard.IsStackLow())
+        {
+            return StackGuard.Grow(this, static parser => parser.ParseQuery());
+        }
+
         using var _guard = _recursionCounter.TryDecrease();
         With? @with;
         if (ParseKeyword(Keyword.WITH))
@@ -1365,17 +1371,13 @@ public sealed partial class Parser
     }
 
     /// <summary>Invoke <c>f</c> after first setting the parser's <c>ParserState</c> to <c>state</c>.</summary>
-    /// <remarks>
-    /// Upon return, restores the parser's state to what it started at.
-    /// <para>
-    /// Rust: <c>let res = f(self); self.state = current_state; res</c> restaura o estado também quando
-    /// <c>f</c> devolve <c>Err</c>; com exceções, isso é um <c>try/finally</c>.
-    /// </para>
-    /// </remarks>
+    /// <remarks>Upon return, restores the parser's state to what it started at.</remarks>
     internal T WithState<T>(ParserState state, Func<Parser, T> f)
     {
         var currentState = _state;
         _state = state;
+        // Rust: `let res = f(self); self.state = current_state; res` restaura o estado também quando `f`
+        // devolve `Err`; com exceções, isso é um try/finally.
         try
         {
             return f(this);

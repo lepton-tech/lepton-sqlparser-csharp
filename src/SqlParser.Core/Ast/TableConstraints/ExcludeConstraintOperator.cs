@@ -24,7 +24,7 @@ namespace SqlParser.Core.Ast;
 
 /// <summary>The operator that follows <c>WITH</c> in an <c>EXCLUDE</c> constraint element.</summary>
 /// <remarks><see href="https://www.postgresql.org/docs/current/sql-createtable.html#SQL-CREATETABLE-EXCLUDE">PostgreSQL</see></remarks>
-public abstract record ExcludeConstraintOperator : IDisplay
+public abstract partial record ExcludeConstraintOperator : IDisplay
 {
     /// <summary>A single operator token, e.g. <c>=</c>, <c>&amp;&amp;</c>, <c>&lt;-&gt;</c>.</summary>
     public sealed record Token(string Value) : ExcludeConstraintOperator;

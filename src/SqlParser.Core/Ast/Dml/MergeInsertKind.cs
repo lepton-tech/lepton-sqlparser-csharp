@@ -25,7 +25,7 @@ namespace SqlParser.Core.Ast;
 /// <see href="https://docs.snowflake.com/en/sql-reference/sql/merge">Snowflake</see>
 /// <see href="https://cloud.google.com/bigquery/docs/reference/standard-sql/dml-syntax#merge_statement">BigQuery</see>
 /// </remarks>
-public abstract record MergeInsertKind : IDisplay
+public abstract partial record MergeInsertKind : IDisplay
 {
     /// <summary>The insert expression is defined from an explicit <c>VALUES</c> clause</summary>
     /// <remarks>

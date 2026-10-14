@@ -28,7 +28,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="LeftType">Left operand type (<c>None</c> if no left operand)</param>
 /// <param name="RightType">Right operand type</param>
 /// <param name="Operation">The operation to perform</param>
-public sealed record AlterOperator(
+public sealed partial record AlterOperator(
     ObjectName Name,
     DataType? LeftType,
     DataType RightType,

@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Output formats supported for <c>ANALYZE</c>/<c>EXPLAIN ANALYZE</c>.</summary>
-public abstract record AnalyzeFormat : IDisplay
+public abstract partial record AnalyzeFormat : IDisplay
 {
     /// <summary>Plain text format.</summary>
     public sealed record TEXT : AnalyzeFormat;

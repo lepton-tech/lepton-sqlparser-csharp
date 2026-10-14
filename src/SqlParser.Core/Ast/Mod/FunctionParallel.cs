@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>If it is safe for PostgreSQL to call the function from multiple threads at once</summary>
-public abstract record FunctionParallel : IDisplay
+public abstract partial record FunctionParallel : IDisplay
 {
     /// <summary>The function is not safe to run in parallel.</summary>
     public sealed record Unsafe : FunctionParallel;

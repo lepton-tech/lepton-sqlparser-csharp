@@ -24,7 +24,7 @@ namespace SqlParser.Core.Ast;
 /// The "position" for a FETCH statement.
 /// <para><see href="https://learn.microsoft.com/en-us/sql/t-sql/language-elements/fetch-transact-sql">MsSql</see></para>
 /// </summary>
-public abstract record FetchPosition : IDisplay
+public abstract partial record FetchPosition : IDisplay
 {
     /// <summary>Use <c>FROM &lt;pos&gt;</c> position specifier.</summary>
     public sealed record From : FetchPosition;

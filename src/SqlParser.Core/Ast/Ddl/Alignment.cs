@@ -40,7 +40,7 @@ namespace SqlParser.Core.Ast;
 /// </code>
 /// </summary>
 // Enum sem dados com Display: records (convencoes.md §13, caso 37).
-public abstract record Alignment : IDisplay
+public abstract partial record Alignment : IDisplay
 {
     /// <summary>Single-byte alignment: <c>ALIGNMENT = char</c></summary>
     public sealed record Char : Alignment;

@@ -27,7 +27,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="Name">Operator class name (can be schema-qualified)</param>
 /// <param name="Using">Index method (btree, hash, gist, gin, etc.)</param>
 /// <param name="Operation">The operation to perform</param>
-public sealed record AlterOperatorClass(ObjectName Name, Ident Using, AlterOperatorClassOperation Operation) : IDisplay, ISpanned
+public sealed partial record AlterOperatorClass(ObjectName Name, Ident Using, AlterOperatorClassOperation Operation) : IDisplay, ISpanned
 {
     public void Fmt(Formatter f)
     {

@@ -31,7 +31,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="Type">The type of the column to be extracted.</param>
 /// <param name="Path">The path to the column to be extracted. Must be a literal string.</param>
 /// <param name="AsJson">The <c>AS JSON</c> option.</param>
-public sealed record OpenJsonTableColumn(Ident Name, DataType Type, string? Path, bool AsJson) : IDisplay
+public sealed partial record OpenJsonTableColumn(Ident Name, DataType Type, string? Path, bool AsJson) : IDisplay
 {
     public void Fmt(Formatter f)
     {

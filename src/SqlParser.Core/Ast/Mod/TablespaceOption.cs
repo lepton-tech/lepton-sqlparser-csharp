@@ -26,4 +26,4 @@ namespace SqlParser.Core.Ast;
 /// </summary>
 /// <param name="Name">Name of the tablespace.</param>
 /// <param name="Storage">Optional storage type for the tablespace.</param>
-public sealed record TablespaceOption(string Name, StorageType? Storage);
+public sealed partial record TablespaceOption(string Name, StorageType? Storage);

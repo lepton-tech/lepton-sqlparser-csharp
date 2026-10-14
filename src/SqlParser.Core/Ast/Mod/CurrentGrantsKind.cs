@@ -29,7 +29,7 @@ namespace SqlParser.Core.Ast;
 /// </list>
 /// </summary>
 // Enum sem dados COM Display → records (convencoes.md §13, caso 37).
-public abstract record CurrentGrantsKind : IDisplay
+public abstract partial record CurrentGrantsKind : IDisplay
 {
     /// <summary><c>COPY CURRENT GRANTS</c> (copy current grants to target).</summary>
     public sealed record CopyCurrentGrants : CurrentGrantsKind;

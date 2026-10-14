@@ -26,7 +26,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="Params">The parameters to the lambda function.</param>
 /// <param name="Body">The body of the lambda function.</param>
 /// <param name="Syntax">The syntax style used to write the lambda function.</param>
-public sealed record LambdaFunction(OneOrManyWithParens<LambdaFunctionParameter> Params, Expr Body, LambdaSyntax Syntax) : IDisplay
+public sealed partial record LambdaFunction(OneOrManyWithParens<LambdaFunctionParameter> Params, Expr Body, LambdaSyntax Syntax) : IDisplay
 {
     public void Fmt(Formatter f)
     {

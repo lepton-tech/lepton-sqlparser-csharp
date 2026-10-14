@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Optional type constraint for <c>IS JSON</c>.</summary>
-public abstract record JsonPredicateType : IDisplay
+public abstract partial record JsonPredicateType : IDisplay
 {
     /// <summary><c>VALUE</c> form.</summary>
     public sealed record Value : JsonPredicateType;

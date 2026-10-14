@@ -148,17 +148,8 @@ public sealed class TestedDialects
         return prevValue;
     }
 
-    private static void AssertEqualWithMessage<TValue>(TValue expected, TValue actual, string message)
-    {
-        try
-        {
-            Assert.Equal(expected, actual);
-        }
-        catch (Xunit.Sdk.XunitException e)
-        {
-            Assert.Fail($"{message}{Environment.NewLine}{e.Message}");
-        }
-    }
+    private static void AssertEqualWithMessage<TValue>(TValue expected, TValue actual, string message) =>
+        TestUtils.AssertEqualWithMessage(expected, actual, message);
 
     /// <summary>Rust: <c>run_parser_method</c>: cria o parser (com as opções) e aplica <paramref name="f"/> em cada dialeto.</summary>
     public T RunParserMethod<T>(string sql, Func<Parser, T> f) =>

@@ -22,7 +22,7 @@ namespace SqlParser.Core.Ast;
 
 /// <summary>The type of multi-table INSERT statement(Snowflake).</summary>
 /// <remarks>See: <see href="https://docs.snowflake.com/en/sql-reference/sql/insert-multi-table"/></remarks>
-public abstract record MultiTableInsertType : IDisplay
+public abstract partial record MultiTableInsertType : IDisplay
 {
     /// <summary><c>INSERT ALL</c> - all matching WHEN clauses are executed</summary>
     public sealed record All : MultiTableInsertType;

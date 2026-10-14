@@ -24,4 +24,4 @@ namespace SqlParser.Core.Ast;
 /// <param name="IfExists">Whether to drop the domain if it exists</param>
 /// <param name="Name">The name of the domain to drop</param>
 /// <param name="DropBehavior">The behavior to apply when dropping the domain</param>
-public sealed record DropDomain(bool IfExists, ObjectName Name, DropBehavior? DropBehavior);
+public sealed partial record DropDomain(bool IfExists, ObjectName Name, DropBehavior? DropBehavior);

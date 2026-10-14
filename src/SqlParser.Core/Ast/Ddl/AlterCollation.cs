@@ -26,7 +26,7 @@ namespace SqlParser.Core.Ast;
 /// </summary>
 /// <param name="Name">Name of the collation being altered.</param>
 /// <param name="Operation">The operation to perform on the collation.</param>
-public sealed record AlterCollation(ObjectName Name, AlterCollationOperation Operation) : IDisplay, ISpanned
+public sealed partial record AlterCollation(ObjectName Name, AlterCollationOperation Operation) : IDisplay, ISpanned
 {
     public void Fmt(Formatter f)
     {

@@ -868,15 +868,19 @@ public sealed partial class Parser
     public T TryParse<T>(Func<Parser, T> f)
     {
         var index = _index;
+        ParserException e;
         try
         {
             return f(this);
         }
-        catch (ParserException)
+        catch (ParserException error)
         {
-            // Unwind stack if limit exceeded
-            _index = index;
-            throw;
+            // `Err(e) => { .. Err(e) }`: tratado e relançado fora do catch (convencoes.md §13, caso 124).
+            e = error;
         }
+
+        // Unwind stack if limit exceeded
+        _index = index;
+        throw StackGuard.Rethrow(e);
     }
 }

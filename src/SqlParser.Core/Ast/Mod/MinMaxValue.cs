@@ -24,7 +24,7 @@ namespace SqlParser.Core.Ast;
 /// Can use to describe options in  create sequence or table column type identity
 /// [ MINVALUE minvalue | NO MINVALUE ] [ MAXVALUE maxvalue | NO MAXVALUE ]
 /// </summary>
-public abstract record MinMaxValue
+public abstract partial record MinMaxValue
 {
     /// <summary>Clause is not specified.</summary>
     public sealed record Empty : MinMaxValue;

@@ -142,6 +142,8 @@ internal static class TokenDebugExtensions
     // Aproximação de `char::escape_debug`: escapes nomeados do Rust e `\u{..}` (hexadecimal minúsculo)
     // para caracteres de controle. O Rust também escapa outros caracteres "não imprimíveis" e marcas
     // combinantes iniciais pela tabela Unicode própria; aqui só os de controle (docs/port/onda-b/B1.md).
+    // PORT-DEVIATION DIV-007: só escapes nomeados e `char.IsControl`, percorrendo unidades UTF-16; o Rust
+    // usa as tabelas Unicode próprias (Grapheme_Extend, espaços especiais) e trata scalar values.
     private static void AppendEscapeDebug(StringBuilder sb, char c, bool escapeDoubleQuote, bool escapeSingleQuote)
     {
         const char backslash = (char)92;

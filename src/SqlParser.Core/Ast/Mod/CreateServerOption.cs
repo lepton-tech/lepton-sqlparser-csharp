@@ -23,7 +23,7 @@ namespace SqlParser.Core.Ast;
 /// <summary>A key/value option for <c>CREATE SERVER</c>.</summary>
 /// <param name="Key">Option key identifier.</param>
 /// <param name="Value">Option value identifier.</param>
-public sealed record CreateServerOption(Ident Key, Ident Value) : IDisplay
+public sealed partial record CreateServerOption(Ident Key, Ident Value) : IDisplay
 {
     public void Fmt(Formatter f)
     {

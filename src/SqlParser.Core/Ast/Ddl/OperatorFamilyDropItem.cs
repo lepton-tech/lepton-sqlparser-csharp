@@ -23,7 +23,7 @@ using static SqlParser.Core.Ast.AstModule;
 namespace SqlParser.Core.Ast;
 
 /// <summary>An item in an ALTER OPERATOR FAMILY DROP statement</summary>
-public abstract record OperatorFamilyDropItem : IDisplay
+public abstract partial record OperatorFamilyDropItem : IDisplay
 {
     /// <summary><c>OPERATOR</c> clause for DROP within an operator family.</summary>
     /// <param name="StrategyNumber">Strategy number for the operator.</param>

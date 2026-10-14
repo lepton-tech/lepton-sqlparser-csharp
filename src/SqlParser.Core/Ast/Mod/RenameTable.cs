@@ -23,7 +23,7 @@ namespace SqlParser.Core.Ast;
 /// <summary>rename object definition</summary>
 /// <param name="OldName">The current name of the object to rename.</param>
 /// <param name="NewName">The new name for the object.</param>
-public sealed record RenameTable(ObjectName OldName, ObjectName NewName) : IDisplay
+public sealed partial record RenameTable(ObjectName OldName, ObjectName NewName) : IDisplay
 {
     public void Fmt(Formatter f)
     {

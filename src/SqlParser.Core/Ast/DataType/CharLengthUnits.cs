@@ -24,7 +24,7 @@ namespace SqlParser.Core.Ast;
 /// Possible units for characters, initially based on 2016 ANSI
 /// <see href="https://jakewheat.github.io/sql-overview/sql-2016-foundation-grammar.html#char-length-units">SQL Standard</see>.
 /// </summary>
-public abstract record CharLengthUnits : IDisplay
+public abstract partial record CharLengthUnits : IDisplay
 {
     /// <summary>CHARACTERS unit</summary>
     public sealed record Characters : CharLengthUnits;

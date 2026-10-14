@@ -23,7 +23,7 @@ namespace SqlParser.Core.Ast;
 /// <summary>Represents the <c>LIKE</c> clause of a <c>CREATE TABLE</c> statement.</summary>
 /// <param name="Name">The source table name to copy the schema from.</param>
 /// <param name="Defaults">Optional behavior controlling whether defaults are copied.</param>
-public sealed record CreateTableLike(ObjectName Name, CreateTableLikeDefaults? Defaults) : IDisplay
+public sealed partial record CreateTableLike(ObjectName Name, CreateTableLikeDefaults? Defaults) : IDisplay
 {
     public void Fmt(Formatter f)
     {

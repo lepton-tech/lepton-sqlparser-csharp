@@ -16,7 +16,7 @@ namespace SqlParser.Core;
 /// <c>v.is_empty()</c> → <see cref="IsEmpty"/>; <c>v.first()</c>/<c>v.last()</c> → <see cref="First"/>/<see cref="Last"/>
 /// (retornam <c>default</c>/<c>null</c> se vazia, como o <c>Option</c>); <c>v[i]</c> → indexador.
 /// </remarks>
-public readonly struct Sequence<T> : IReadOnlyList<T>, IEquatable<Sequence<T>>
+public readonly partial struct Sequence<T> : IReadOnlyList<T>, IEquatable<Sequence<T>>
 {
     private readonly T[]? _items;
 

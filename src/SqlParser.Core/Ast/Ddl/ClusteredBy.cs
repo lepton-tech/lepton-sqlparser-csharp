@@ -30,7 +30,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="Columns">columns used for clustering</param>
 /// <param name="SortedBy">optional sorted by expressions</param>
 /// <param name="NumBuckets">number of buckets</param>
-public sealed record ClusteredBy(Sequence<Ident> Columns, Sequence<OrderByExpr>? SortedBy, Value NumBuckets) : IDisplay
+public sealed partial record ClusteredBy(Sequence<Ident> Columns, Sequence<OrderByExpr>? SortedBy, Value NumBuckets) : IDisplay
 {
     public void Fmt(Formatter f)
     {

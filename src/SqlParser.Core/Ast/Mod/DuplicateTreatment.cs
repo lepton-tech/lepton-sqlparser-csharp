@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>How duplicate values are treated inside function argument lists.</summary>
-public abstract record DuplicateTreatment : IDisplay
+public abstract partial record DuplicateTreatment : IDisplay
 {
     /// <summary>Consider only unique values.</summary>
     public sealed record Distinct : DuplicateTreatment;

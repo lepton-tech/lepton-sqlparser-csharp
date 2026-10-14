@@ -32,7 +32,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="TableName">The target table</param>
 /// <param name="Columns">The target columns (optional)</param>
 /// <param name="Values">The VALUES clause (optional)</param>
-public sealed record MultiTableInsertIntoClause(ObjectName TableName, Sequence<Ident> Columns, MultiTableInsertValues? Values) : IDisplay
+public sealed partial record MultiTableInsertIntoClause(ObjectName TableName, Sequence<Ident> Columns, MultiTableInsertValues? Values) : IDisplay
 {
     public void Fmt(Formatter f)
     {

@@ -22,7 +22,7 @@ namespace SqlParser.Core.Ast;
 
 /// <summary>The table sample modifier options</summary>
 /// <remarks>Sem <c>Display</c> no Rust: o tipo não implementa <c>IDisplay</c>.</remarks>
-public abstract record TableSampleKind
+public abstract partial record TableSampleKind
 {
     /// <summary>Table sample located before the table alias option</summary>
     public sealed record BeforeTableAlias(TableSample Value) : TableSampleKind;

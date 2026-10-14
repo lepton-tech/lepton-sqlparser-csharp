@@ -29,7 +29,7 @@ namespace SqlParser.Core.Ast;
 /// <c>Some(true)</c> for <c>AND STATISTICS</c>, <c>Some(false)</c> for <c>AND NO STATISTICS</c>,
 /// <c>None</c> if the <c>AND [NO] STATISTICS</c> sub-clause is omitted.
 /// </param>
-public sealed record WithData(bool Data, bool? Statistics) : IDisplay
+public sealed partial record WithData(bool Data, bool? Statistics) : IDisplay
 {
     public void Fmt(Formatter f)
     {

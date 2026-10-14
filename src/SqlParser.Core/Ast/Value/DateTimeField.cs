@@ -26,7 +26,7 @@ namespace SqlParser.Core.Ast;
 /// <c>YEAR</c>, <c>MONTH</c>, <c>DAY</c>, etc.). The <c>Custom</c> variant allows arbitrary
 /// identifiers (e.g. dialect-specific abbreviations).
 /// </remarks>
-public abstract record DateTimeField : IDisplay
+public abstract partial record DateTimeField : IDisplay
 {
     /// <summary><c>YEAR</c></summary>
     public sealed record Year : DateTimeField;

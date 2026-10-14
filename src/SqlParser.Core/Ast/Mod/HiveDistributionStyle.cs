@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Distribution style options for Hive tables.</summary>
-public abstract record HiveDistributionStyle
+public abstract partial record HiveDistributionStyle
 {
     /// <summary>Partitioned distribution with the given columns.</summary>
     /// <param name="Columns">Columns used for partitioning.</param>
