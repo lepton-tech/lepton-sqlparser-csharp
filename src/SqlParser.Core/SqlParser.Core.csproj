@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    SqlParser.Core: port FIEL (1:1) do sqlparser-rs. Nomes, estrutura e comportamento seguem o Rust.
+    Não contém adaptações nem customizações: essas vão para o projeto SqlParser (API pública).
+    Ver docs/adr/0002-arquitetura-em-camadas-e-api.md e docs/port/convencoes.md.
+  -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>SqlParser.Core</RootNamespace>
+    <AssemblyName>SqlParser.Core</AssemblyName>
+    <Description>Port fiel em C# (netstandard2.0) do parser SQL apache/datafusion-sqlparser-rs.</Description>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- Documentação XML completa entra na fase de empacotamento; até lá não bloqueia o build. -->
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Polyfills de recursos de linguagem (records, init, etc.) gerados em tempo de compilação.
+         Não é dependência de runtime (PrivateAssets=all). -->
+    <PackageReference Include="PolySharp" Version="1.15.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="SqlParser.Core.Tests" />
+  </ItemGroup>
+
+</Project>

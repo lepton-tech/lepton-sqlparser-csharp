@@ -1,0 +1,79 @@
+diff -ruN --strip-trailing-cr a/src/SqlParser.Tests/Dialects/ClickhouseDialectTests.cs b/src/SqlParser.Tests/Dialects/ClickhouseDialectTests.cs
+--- a/src/SqlParser.Tests/Dialects/ClickhouseDialectTests.cs	2026-10-14 09:45:02.284723100 -0300
++++ b/src/SqlParser.Tests/Dialects/ClickhouseDialectTests.cs	2026-10-14 09:45:03.090856900 -0300
+@@ -419,7 +419,7 @@
+ 
+         foreach (var clause in clauses)
+         {
+-            foreach (var (modifier, expectedModifier) in modifiers.Zip(expectedModifiers))
++            foreach (var (modifier, expectedModifier) in modifiers.Zip(expectedModifiers, (a, b) => (a, b)))
+             {
+                 var sql = $"SELECT * FROM T GROUP BY {clause} {modifier}";
+ 
+@@ -432,7 +432,7 @@
+                 }
+                 else
+                 {
+-                    var columnNames = new Sequence<Expression>(clause.Split(", ").Select(c => new Expression.Identifier(c)));
++                    var columnNames = new Sequence<Expression>(clause.Split(new[] { ", " }, StringSplitOptions.None).Select(c => new Expression.Identifier(c)));
+                     var expected = new GroupByExpression.Expressions(columnNames, expectedModifier);
+                     Assert.Equal(expected, groupBy);
+                 }
+diff -ruN --strip-trailing-cr a/src/SqlParser.Tests/ParserCommonTests.cs b/src/SqlParser.Tests/ParserCommonTests.cs
+--- a/src/SqlParser.Tests/ParserCommonTests.cs	2026-10-14 09:45:02.222459700 -0300
++++ b/src/SqlParser.Tests/ParserCommonTests.cs	2026-10-14 09:45:03.133261400 -0300
+@@ -4762,7 +4762,7 @@
+     {
+         var keywords = Keywords.All;
+ 
+-        var names = System.Enum.GetNames<Keyword>()
++        var names = System.Enum.GetNames(typeof(Keyword))
+             .Where(n => n != nameof(Keyword.undefined))
+             .ToArray();
+ 
+diff -ruN --strip-trailing-cr a/src/SqlParser.Tests/ParserRegressionTests.cs b/src/SqlParser.Tests/ParserRegressionTests.cs
+--- a/src/SqlParser.Tests/ParserRegressionTests.cs	2026-10-14 09:45:02.257902900 -0300
++++ b/src/SqlParser.Tests/ParserRegressionTests.cs	2026-10-14 09:45:03.073209700 -0300
+@@ -63,7 +63,7 @@
+         // Get the absolute path to the JSON file
+         var path = Path.IsPathRooted(_filePath)
+             ? _filePath
+-            : Path.GetRelativePath(Directory.GetCurrentDirectory(), _filePath);
++            : Path.Combine(Directory.GetCurrentDirectory(), _filePath);
+ 
+         if (!File.Exists(path))
+         {
+diff -ruN --strip-trailing-cr a/src/SqlParser.Tests/SqlParser.Tests.csproj b/src/SqlParser.Tests/SqlParser.Tests.csproj
+--- a/src/SqlParser.Tests/SqlParser.Tests.csproj	2026-10-14 09:45:02.259419700 -0300
++++ b/src/SqlParser.Tests/SqlParser.Tests.csproj	2026-10-14 09:45:03.095518000 -0300
+@@ -1,7 +1,8 @@
+ ﻿<Project Sdk="Microsoft.NET.Sdk">
+ 
+   <PropertyGroup>
+-	  <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
++	  <TargetFrameworks>net48</TargetFrameworks>
++	  <LangVersion>latest</LangVersion>
+ 	  <ImplicitUsings>enable</ImplicitUsings>
+ 	  <Nullable>enable</Nullable>
+ 	  <IsPackable>false</IsPackable>
+@@ -15,6 +16,8 @@
+ 
+   <ItemGroup>
+     <PackageReference Include="FluentAssertions" Version="6.12.0" />
++    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
++    <PackageReference Include="PolySharp" Version="1.15.0"><PrivateAssets>all</PrivateAssets><IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets></PackageReference>
+     <PackageReference Include="JetBrains.DotMemoryUnit" Version="3.2.20220510" />
+     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
+     <PackageReference Include="xunit" Version="2.6.6" />
+diff -ruN --strip-trailing-cr a/src/SqlParser.Tests/Visitors/VisitorTests.cs b/src/SqlParser.Tests/Visitors/VisitorTests.cs
+--- a/src/SqlParser.Tests/Visitors/VisitorTests.cs	2026-10-14 09:45:02.265440800 -0300
++++ b/src/SqlParser.Tests/Visitors/VisitorTests.cs	2026-10-14 09:45:03.094454200 -0300
+@@ -27,7 +27,7 @@
+                 Query = new Statement.Select(new Query(new SetExpression.SelectExpression(new Select([]))))
+             };
+ 
+-            var properties = IElement.GetVisitableChildProperties(cache);
++            var properties = ElementVisitExtensions.GetVisitableChildProperties(cache);
+ 
+             Assert.Equal(nameof(Statement.Cache.TableFlag), properties[0].Name);
+             Assert.Equal(nameof(Statement.Cache.Name), properties[1].Name);

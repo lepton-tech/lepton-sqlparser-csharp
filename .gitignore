@@ -1,0 +1,16 @@
+# Build
+bin/
+obj/
+*.user
+*.suo
+.vs/
+.idea/
+TestResults/
+*.nupkg
+*.snupkg
+
+# Código-fonte de referência baixado por tools/upstream/Get-Upstream.ps1 (não versionar)
+upstream/
+
+# Artefatos locais do Claude Code
+.claude/settings.local.json

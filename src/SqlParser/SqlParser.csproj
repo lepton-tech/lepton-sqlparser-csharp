@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    SqlParser: API PÚBLICA do produto. Código nosso (não portado), no estilo do SqlParser-cs:
+    ponto de entrada (SqlQueryParser), geração de SQL (ToSql), visitors, utilitários de análise
+    e customizações. Depende do SqlParser.Core; o Core nunca depende deste projeto.
+    Ver docs/adr/0002-arquitetura-em-camadas-e-api.md.
+  -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>SqlParser</RootNamespace>
+    <AssemblyName>SqlParser</AssemblyName>
+    <Description>API pública do parser SQL (camada sobre o SqlParser.Core).</Description>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="PolySharp" Version="1.15.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SqlParser.Core\SqlParser.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="SqlParser.Tests" />
+  </ItemGroup>
+
+</Project>

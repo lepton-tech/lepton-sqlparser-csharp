@@ -1,0 +1,404 @@
+diff -ruN --strip-trailing-cr a/src/SqlParser/Ast/AlterTableOperation.cs b/src/SqlParser/Ast/AlterTableOperation.cs
+--- a/src/SqlParser/Ast/AlterTableOperation.cs	2026-10-14 09:45:01.920338500 -0300
++++ b/src/SqlParser/Ast/AlterTableOperation.cs	2026-10-14 09:45:02.784169100 -0300
+@@ -50,7 +50,7 @@
+ 
+             if (IfNotExists)
+             {
+-                writer.Write($" {IIfNotExists.IfNotExistsPhrase}");
++                writer.Write($" {IfNotExistsConsts.IfNotExistsPhrase}");
+             }
+ 
+             writer.WriteSql($" {ColumnDef}");
+@@ -75,7 +75,7 @@
+     {
+         public override void ToSql(SqlTextWriter writer)
+         {
+-            var ifNot = IfNotExists ? $" {IIfNotExists.IfNotExistsPhrase}" : null;
++            var ifNot = IfNotExists ? $" {IfNotExistsConsts.IfNotExistsPhrase}" : null;
+ 
+             writer.WriteSql($"ADD{ifNot} {NewPartitions.ToSqlDelimited(Symbols.Space)}");
+         }
+@@ -94,7 +94,7 @@
+ 
+             if (IfNotExists)
+             {
+-                writer.Write($" {IIfNotExists.IfNotExistsPhrase}");
++                writer.Write($" {IfNotExistsConsts.IfNotExistsPhrase}");
+             }
+ 
+             writer.WriteSql($" {Name} ({Select})");
+diff -ruN --strip-trailing-cr a/src/SqlParser/Ast/Expression.cs b/src/SqlParser/Ast/Expression.cs
+--- a/src/SqlParser/Ast/Expression.cs	2026-10-14 09:45:02.056358400 -0300
++++ b/src/SqlParser/Ast/Expression.cs	2026-10-14 09:45:02.702458800 -0300
+@@ -7,8 +7,6 @@
+     public interface INegated
+     {
+         bool Negated { get; init; }
+-
+-        string? NegatedText => Negated ? "NOT " : null;
+     }
+     /// <summary>
+     /// ALL operation e.g. `1 ALL (1)` or `foo > ALL(bar)`, It will be wrapped on the right side of BinaryExpr
+@@ -1435,4 +1433,11 @@
+             writer.WriteSql($" AS {Alias}");
+         }
+     }
+-}
+\ No newline at end of file
++}
++public static class NegatedExtensions
++{
++    extension(Expression.INegated x)
++    {
++        public string? NegatedText => x.Negated ? "NOT " : null;
++    }
++}
+diff -ruN --strip-trailing-cr a/src/SqlParser/Ast/IIfNotExists.cs b/src/SqlParser/Ast/IIfNotExists.cs
+--- a/src/SqlParser/Ast/IIfNotExists.cs	2026-10-14 09:45:01.924345300 -0300
++++ b/src/SqlParser/Ast/IIfNotExists.cs	2026-10-14 09:45:02.754585800 -0300
+@@ -1,11 +1,20 @@
+-﻿namespace SqlParser.Ast;
++namespace SqlParser.Ast;
+ 
+ public interface IIfNotExists
+ {
++    bool IfNotExists { get; init; }
++}
++
++public static class IfNotExistsConsts
++{
+     public const string IfNotExistsPhrase = "IF NOT EXISTS";
+     public const string IfExistsPhrase = "IF EXISTS";
++}
+ 
+-    bool IfNotExists { get; init; }
+-
+-    string? IfNotExistsText => IfNotExists ? $"{IfNotExistsPhrase}" : null;
+-}
+\ No newline at end of file
++public static class IfNotExistsExtensions
++{
++    extension(IIfNotExists x)
++    {
++        public string? IfNotExistsText => x.IfNotExists ? IfNotExistsConsts.IfNotExistsPhrase : null;
++    }
++}
+diff -ruN --strip-trailing-cr a/src/SqlParser/Ast/Statement.cs b/src/SqlParser/Ast/Statement.cs
+--- a/src/SqlParser/Ast/Statement.cs	2026-10-14 09:45:02.057871300 -0300
++++ b/src/SqlParser/Ast/Statement.cs	2026-10-14 09:45:02.785170900 -0300
+@@ -213,7 +213,7 @@
+     {
+         public override void ToSql(SqlTextWriter writer)
+         {
+-            var ifNot = IfNotExists ? $" {IIfNotExists.IfNotExistsPhrase} " : null;
++            var ifNot = IfNotExists ? $" {IfNotExistsConsts.IfNotExistsPhrase} " : null;
+             var keyword = Database ? "DATABASE" : "";
+             writer.WriteSql($"ATTACH {keyword}{ifNot}{DatabasePath}");
+ 
+@@ -531,7 +531,7 @@
+     {
+         public override void ToSql(SqlTextWriter writer)
+         {
+-            var ifNotExists = IfNotExists ? $"{IIfNotExists.IfNotExistsPhrase} " : null;
++            var ifNotExists = IfNotExists ? $"{IfNotExistsConsts.IfNotExistsPhrase} " : null;
+ 
+             writer.WriteSql($"CREATE EXTENSION {ifNotExists}{Name}");
+ 
+@@ -831,7 +831,7 @@
+                 writer.Write(temp);
+             }
+ 
+-            var ifNotExists = IfNotExists ? $" {IIfNotExists.IfNotExistsPhrase}" : null;
++            var ifNotExists = IfNotExists ? $" {IfNotExistsConsts.IfNotExistsPhrase}" : null;
+             writer.WriteSql($"SECRET{ifNotExists} ");
+ 
+             if (Name != null)
+@@ -993,7 +993,7 @@
+             var orReplace = OrReplace ? "OR REPLACE " : null;
+             var materialized = Materialized ? "MATERIALIZED " : null;
+             var temporary = Temporary ? "TEMPORARY " : null;
+-            var ifNotExists = IfNotExists ? $"{IIfNotExists.IfNotExistsPhrase} " : null;
++            var ifNotExists = IfNotExists ? $"{IfNotExistsConsts.IfNotExistsPhrase} " : null;
+             var to = To != null ? $" TO {To.ToSql()}" : null;
+ 
+             writer.WriteSql($"CREATE {orReplace}{materialized}{temporary}VIEW {ifNotExists}{Name}{to}");
+@@ -1304,7 +1304,7 @@
+     {
+         public override void ToSql(SqlTextWriter writer)
+         {
+-            var ifNot = IfExists ? $" {IIfNotExists.IfExistsPhrase}" : null;
++            var ifNot = IfExists ? $" {IfNotExistsConsts.IfExistsPhrase}" : null;
+             var keyword = Database ? " DATABASE" : "";
+ 
+             writer.WriteSql($"DETACH{keyword}{ifNot} {DatabaseAlias}");
+@@ -1346,7 +1346,7 @@
+                 writer.Write(temp);
+             }
+ 
+-            var ifNotExists = IfExists ? $" {IIfNotExists.IfExistsPhrase}" : null;
++            var ifNotExists = IfExists ? $" {IfNotExistsConsts.IfExistsPhrase}" : null;
+             writer.WriteSql($"SECRET{ifNotExists} {Name}");
+ 
+             if (StorageSpecifier != null)
+diff -ruN --strip-trailing-cr a/src/SqlParser/Ast/Visitor.cs b/src/SqlParser/Ast/Visitor.cs
+--- a/src/SqlParser/Ast/Visitor.cs	2026-10-14 09:45:01.991232000 -0300
++++ b/src/SqlParser/Ast/Visitor.cs	2026-10-14 09:45:02.616069200 -0300
+@@ -8,11 +8,13 @@
+     Break
+ }
+ 
+-public interface IElement
++public interface IElement { }
++
++public static class ElementVisitExtensions
+ {
+-    public ControlFlow Visit(Visitor visitor)
++    public static ControlFlow Visit(this IElement self, Visitor visitor)
+     {
+-        switch (this)
++        switch (self)
+         {
+             case TableFactor t:
+             {
+@@ -21,7 +23,7 @@
+                 if (t is TableFactor.Table table)
+                 {
+                     visitor.PreVisitRelation(table.Name);
+-                    VisitChildren(this, visitor);
++                    VisitChildren(self, visitor);
+                     visitor.PostVisitRelation(table.Name);
+                 }
+ 
+@@ -37,7 +39,7 @@
+                     {
+                         return flow;
+                     }
+-                    VisitChildren(this, visitor);
++                    VisitChildren(self, visitor);
+                     return visitor.PostVisitExpression(e);
+                 }
+ 
+@@ -49,7 +51,7 @@
+                         return flow;
+                     }
+ 
+-                    VisitChildren(this, visitor);
++                    VisitChildren(self, visitor);
+                     return visitor.PostVisitStatement(s);
+                 }
+ 
+@@ -61,20 +63,20 @@
+                         return flow;
+                     }
+ 
+-                    VisitChildren(this, visitor);
++                    VisitChildren(self, visitor);
+                     return visitor.PostVisitQuery(q);
+                 }
+ 
+             default:
+                 {
+-                    var flow = visitor.PreVisitDefault(this);
++                    var flow = visitor.PreVisitDefault(self);
+                     if (flow == ControlFlow.Break)
+                     {
+                         return flow;
+                     }
+ 
+-                    VisitChildren(this, visitor);
+-                    return visitor.PostVisitDefault(this);
++                    VisitChildren(self, visitor);
++                    return visitor.PostVisitDefault(self);
+                 }
+         }
+     }
+@@ -85,7 +87,7 @@
+ 
+         foreach (var property in properties)
+         {
+-            if (!property.PropertyType.IsAssignableTo(typeof(IElement)))
++            if (!typeof(IElement).IsAssignableFrom(property.PropertyType))
+             {
+                 continue;
+             }
+diff -ruN --strip-trailing-cr a/src/SqlParser/Extensions.cs b/src/SqlParser/Extensions.cs
+--- a/src/SqlParser/Extensions.cs	2026-10-14 09:45:02.201379700 -0300
++++ b/src/SqlParser/Extensions.cs	2026-10-14 09:45:03.040780900 -0300
+@@ -236,7 +236,7 @@
+ 
+                 default:
+                 {
+-                    if (char.IsAscii(ch))
++                    if (ch <= (char)0x7f)
+                     {
+                         builder.Append(ch);
+                     }
+diff -ruN --strip-trailing-cr a/src/SqlParser/Keywords.cs b/src/SqlParser/Keywords.cs
+--- a/src/SqlParser/Keywords.cs	2026-10-14 09:45:02.207376000 -0300
++++ b/src/SqlParser/Keywords.cs	2026-10-14 09:45:02.447240700 -0300
+@@ -17,7 +17,7 @@
+         {
+             {"END_EXEC", "END-EXEC"}
+         };
+-        var keywords = Enum.GetNames<Keyword>()
++        var keywords = Enum.GetNames(typeof(Keyword))
+                 .Where(n => n != nameof(Keyword.undefined))
+                 .ToArray();
+ 
+diff -ruN --strip-trailing-cr a/src/SqlParser/Parser.Base.cs b/src/SqlParser/Parser.Base.cs
+--- a/src/SqlParser/Parser.Base.cs	2026-10-14 09:45:01.823022300 -0300
++++ b/src/SqlParser/Parser.Base.cs	2026-10-14 09:45:02.452436600 -0300
+@@ -407,7 +407,7 @@
+             return keyword;
+         }
+ 
+-        var expected = string.Join(',', keywords);
++        var expected = string.Join(",", keywords);
+         throw Expected($"one of the keywords {expected}");
+     }
+ 
+diff -ruN --strip-trailing-cr a/src/SqlParser/Parser.Statements.cs b/src/SqlParser/Parser.Statements.cs
+--- a/src/SqlParser/Parser.Statements.cs	2026-10-14 09:45:01.832052500 -0300
++++ b/src/SqlParser/Parser.Statements.cs	2026-10-14 09:45:02.467713800 -0300
+@@ -1195,7 +1195,7 @@
+         while (true)
+         {
+             var name = ParseIdentifier();
+-            if (!name.Value.StartsWith(Symbols.At))
++            if (!name.Value.StartsWith(Symbols.At.ToString()))
+             {
+                 throw Expected("Invalid MsSql variable declaration", PeekToken());
+             }
+diff -ruN --strip-trailing-cr a/src/SqlParser/Parser.cs b/src/SqlParser/Parser.cs
+--- a/src/SqlParser/Parser.cs	2026-10-14 09:45:02.150493900 -0300
++++ b/src/SqlParser/Parser.cs	2026-10-14 09:45:02.608049300 -0300
+@@ -3952,7 +3952,7 @@
+     public static Value.Number ParseNumeric(Number number)
+     {
+         var value = number.Value;
+-        var parsed = double.TryParse(value, CultureInfo.InvariantCulture, out _);
++        var parsed = double.TryParse(value, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out _);
+ 
+         if (!parsed)
+         {
+diff -ruN --strip-trailing-cr a/src/SqlParser/Sequence.cs b/src/SqlParser/Sequence.cs
+--- a/src/SqlParser/Sequence.cs	2026-10-14 09:45:02.152501300 -0300
++++ b/src/SqlParser/Sequence.cs	2026-10-14 09:45:02.469223800 -0300
+@@ -90,7 +90,7 @@
+ 
+     public ControlFlow Visit(Visitor visitor)
+     {
+-        if (!typeof(T).IsAssignableTo(typeof(IElement)))
++        if (!typeof(IElement).IsAssignableFrom(typeof(T)))
+         {
+             return ControlFlow.Continue;
+         }
+diff -ruN --strip-trailing-cr "a/src/SqlParser/SqlParser - Backup.csproj" "b/src/SqlParser/SqlParser - Backup.csproj"
+--- "a/src/SqlParser/SqlParser - Backup.csproj"	2026-10-14 09:45:01.825020400 -0300
++++ "b/src/SqlParser/SqlParser - Backup.csproj"	1969-12-31 21:00:00.000000000 -0300
+@@ -1,69 +0,0 @@
+-﻿<Project Sdk="Microsoft.NET.Sdk">
+-
+-	<PropertyGroup>
+-		<LangVersion>12.0</LangVersion>
+-		<TargetFrameworks>net8.0;net7.0;</TargetFrameworks>
+-		<ImplicitUsings>enable</ImplicitUsings>
+-		<Nullable>enable</Nullable>
+-		<Title>SqlParser - Extensible SQL Parser for .NET</Title>
+-		<Authors>Tyler Brinks</Authors>
+-		<Company />
+-		<Description>Friendly SQL Parser for .NET</Description>
+-		<Copyright>2023 Tyler Brinks</Copyright>
+-		<PackageProjectUrl>https://github.com/TylerBrinks/SqlParser-cs</PackageProjectUrl>
+-		<PackageReadmeFile>README.md</PackageReadmeFile>
+-		<RepositoryUrl>https://github.com/TylerBrinks/SqlParser-cs</RepositoryUrl>
+-		<RepositoryType>git</RepositoryType>
+-		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+-		<PackageTags>SQL, Parser,Lexer, AST, Dialect, Postgres, MySQL, MsSql, Redshift, Snowflake, SQLite</PackageTags>
+-		<PackageIcon>icon.jpg</PackageIcon>
+-		<PackageId>SqlParserCS</PackageId>
+-		<SignAssembly>True</SignAssembly>
+-		<AssemblyOriginatorKeyFile>sqlparser.snk</AssemblyOriginatorKeyFile>
+-	</PropertyGroup>
+-
+-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0|AnyCPU'">
+-		<GenerateAssemblyInfo>False</GenerateAssemblyInfo>
+-	</PropertyGroup>
+-
+-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net7.0|AnyCPU'">
+-		<GenerateAssemblyInfo>False</GenerateAssemblyInfo>
+-	</PropertyGroup>
+-
+-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0|AnyCPU'">
+-		<GenerateAssemblyInfo>False</GenerateAssemblyInfo>
+-	</PropertyGroup>
+-
+-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net7.0|AnyCPU'">
+-		<GenerateAssemblyInfo>False</GenerateAssemblyInfo>
+-	</PropertyGroup>
+-
+-	<ItemGroup>
+-		<InternalsVisibleTo Include="SqlParser.Tests, PublicKey=2fd3b9322714feba" />
+-	</ItemGroup>
+-
+-	<ItemGroup>
+-		<Compile Remove="Docs\**" />
+-		<EmbeddedResource Remove="Docs\**" />
+-		<None Remove="Docs\**" />
+-	</ItemGroup>
+-
+-	<ItemGroup>
+-		<None Remove="sqlparser.snk" />
+-	</ItemGroup>
+-
+-	<ItemGroup>
+-		<None Include="..\..\docs\images\icon.jpg">
+-			<Pack>True</Pack>
+-			<PackagePath>\</PackagePath>
+-		</None>
+-		<None Include="..\..\README.md">
+-			<Pack>True</Pack>
+-			<PackagePath>\</PackagePath>
+-		</None>
+-	</ItemGroup>
+-
+-	<ItemGroup>
+-		<PackageReference Include="Microsoft.Extensions.ObjectPool" Version="8.0.1" />
+-	</ItemGroup>
+-</Project>
+diff -ruN --strip-trailing-cr a/src/SqlParser/SqlParser.csproj b/src/SqlParser/SqlParser.csproj
+--- a/src/SqlParser/SqlParser.csproj	2026-10-14 09:45:01.817485300 -0300
++++ b/src/SqlParser/SqlParser.csproj	2026-10-14 09:45:02.451911400 -0300
+@@ -1,8 +1,8 @@
+ ﻿<Project Sdk="Microsoft.NET.Sdk">
+ 
+ 	<PropertyGroup>
+-		<LangVersion>12.0</LangVersion>
+-		<TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
++		<LangVersion>latest</LangVersion>
++		<TargetFrameworks>netstandard2.0</TargetFrameworks>
+ 		<ImplicitUsings>enable</ImplicitUsings>
+ 		<Nullable>enable</Nullable>
+ 		<Title>SqlParser - Extensible SQL Parser for .NET</Title>
+@@ -59,5 +59,8 @@
+ 
+ 	<ItemGroup>
+ 		<PackageReference Include="Microsoft.Extensions.ObjectPool" Version="8.0.1" />
++		<PackageReference Include="PolySharp" Version="1.15.0"><PrivateAssets>all</PrivateAssets><IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets></PackageReference>
++		<PackageReference Include="System.Memory" Version="4.5.5" />
++		<PackageReference Include="Microsoft.Bcl.HashCode" Version="6.0.0" />
+ 	</ItemGroup>
+ </Project>
+diff -ruN --strip-trailing-cr a/src/SqlParser/Tokenizer.cs b/src/SqlParser/Tokenizer.cs
+--- a/src/SqlParser/Tokenizer.cs	2026-10-14 09:45:01.822021300 -0300
++++ b/src/SqlParser/Tokenizer.cs	2026-10-14 09:45:03.044325100 -0300
+@@ -287,7 +287,7 @@
+         }
+ 
+         var hex = TokenizeSingleQuotedString(Symbols.SingleQuote, true);
+-        return new HexStringLiteral(new string(hex));
++        return new HexStringLiteral(hex);
+ 
+     }
+ 
