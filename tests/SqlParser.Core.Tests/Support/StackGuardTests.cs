@@ -81,6 +81,40 @@ public class StackGuardTests
     }
 
     [Fact]
+    public void Display_de_80_subconsultas_aninhadas_numa_pilha_pequena()
+    {
+        // Query.Fmt não tem #[recursive::recursive] no Rust; aqui recebe a proteção (DIV-005; revisão R4, item 2).
+        var sql = string.Concat(Enumerable.Repeat("SELECT * FROM (", 80)) + "SELECT 1"
+            + string.Concat(Enumerable.Repeat(") AS x", 80));
+
+        var texto = RodarNumaThread(PilhaPequena, () => Parse(sql, 200)[0].ToString());
+
+        Assert.Equal(sql, texto);
+    }
+
+    [Fact]
+    public void Display_de_5000_UNION_ALL_numa_pilha_pequena()
+    {
+        // SetExpr.Fmt: a cadeia de operações de conjunto não é limitada pelo contador de recursão (DIV-005).
+        var sql = string.Join(" UNION ALL ", Enumerable.Range(0, 5000).Select(i => $"SELECT {i}"));
+
+        var texto = RodarNumaThread(PilhaPequena, () => Parser.ParseSql(new GenericDialect(), sql)[0].ToString());
+
+        Assert.Equal(sql, texto);
+    }
+
+    [Fact]
+    public void Display_de_200_juncoes_entre_parenteses_numa_pilha_pequena()
+    {
+        // TableFactor.Fmt: os níveis de NestedJoin não passam por Query.Fmt nem por Expr.Fmt (DIV-005).
+        var sql = "SELECT * FROM " + new string('(', 200) + "a JOIN b ON a.id = b.id" + new string(')', 200);
+
+        var texto = RodarNumaThread(PilhaPequena, () => Parse(sql, 1000)[0].ToString());
+
+        Assert.Equal(sql, texto);
+    }
+
+    [Fact]
     public void Erro_de_sintaxe_a_500_niveis_vira_ParserException()
     {
         // O erro sobe por centenas de quadros (e por várias trocas de pilha) até o chamador.

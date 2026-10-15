@@ -18,6 +18,8 @@ dotnet nuget add source "<caminho do repositório>/artifacts" --name leptonti-lo
 dotnet add package LeptonTI.SqlParser --version 0.63.1-preview.1
 ```
 
+O `Pack.ps1` só empacota com a árvore do Git limpa (tudo commitado), para que o commit gravado nas DLLs identifique o conteúdo; `-AllowDirty` empacota assim mesmo, para teste, com `.dirty` no fim da `InformationalVersion`. Os símbolos de depuração (PDB) vão embutidos nas DLLs, então a depuração funciona a partir de qualquer feed, sem `.snupkg`.
+
 Em vez do `dotnet nuget add source`, um `nuget.config` ao lado da solução consumidora também serve (exemplo em [`tests/PackageSmoke/nuget.config`](tests/PackageSmoke/nuget.config)). Projetos .NET Framework com C# 7.3 usam a biblioteca normalmente; `with`/`init` nos records pedem `LangVersion` 9 ou superior ([ADR-0006](docs/adr/0006-versao-da-linguagem-csharp.md)).
 
 ## Início rápido
@@ -123,7 +125,10 @@ O comportamento é o do sqlparser-rs. As diferenças conhecidas estão em [`docs
 - **DIV-006**: sem as features `bigdecimal` e `serde` do Rust: números ficam como texto e não há serialização.
 - **DIV-007**: o escape de caracteres em algumas mensagens de erro é uma aproximação do `escape_debug` do Rust.
 - **DIV-008**: enums simples da AST não implementam `IVisit` (sem efeito na visita).
-- **DIV-009**: em ASTs muito profundas, o visitor pode continuar em outra thread.
+- **DIV-009**: em ASTs muito profundas, o visitor pode continuar em outra thread: os ganchos de `SqlVisitor`/`SqlRewriter` não devem depender da thread (nada de controles de UI ou objetos COM STA dentro deles).
+- **DIV-010**: `==`, `Equals` e `GetHashCode` dos nós da AST são recursivos e sem proteção de pilha. Em ASTs com milhares de níveis (8.000 `OR` na thread principal; 1.000 numa thread de 256 KB), estouram a pilha e derrubam o processo. Para comparar ASTs de origem desconhecida, compare `ToSql()`, que é protegido.
+
+Árvores profundas: o parser limita o aninhamento (limite de recursão 50, configurável em `new SqlQueryParser(recursionLimit)`), mas cadeias de operadores e de `UNION ALL` não contam para o limite. O parse, o `ToSql()` e os visitors aguentam essas árvores em qualquer pilha; a igualdade (DIV-010) e o `Span()` de aninhamentos muito profundos não. Para SQL de terceiros, limite também o tamanho do texto aceito. Detalhes em [`src/SqlParser/README.md`](src/SqlParser/README.md#árvores-profundas-e-threads).
 
 ## Versões
 
@@ -152,7 +157,7 @@ Requisitos: .NET SDK 10 (`global.json`), PowerShell 7 e Git.
 ```bash
 dotnet build SqlParser.sln            # sem avisos (TreatWarningsAsErrors)
 dotnet test SqlParser.sln             # net48, net8.0 e net10.0
-pwsh tools/pack/Pack.ps1              # Release + testes + pacote em artifacts/
+pwsh tools/pack/Pack.ps1              # Release + testes + pacote em artifacts/ (exige a árvore limpa; -AllowDirty para teste)
 pwsh tools/pack/Test-Package.ps1      # instala o pacote em apps net48 e net8.0 e confere
 ```
 
@@ -166,7 +171,7 @@ pwsh tools/pack/Test-Package.ps1      # instala o pacote em apps net48 e net8.0 
 
    Sem o Claude Code, o mesmo roteiro está escrito na própria skill.
 2. **Subir a versão.** Altere `VersionPrefix`/`VersionSuffix` em [`Directory.Build.props`](Directory.Build.props) (tag nova do Rust, por exemplo v0.64.0 → `0.64.x`) e registre a mudança no [`CHANGELOG.md`](CHANGELOG.md).
-3. **Gerar e conferir o pacote:** `pwsh tools/pack/Pack.ps1` e depois `pwsh tools/pack/Test-Package.ps1`.
+3. **Gerar e conferir o pacote:** depois do commit, `pwsh tools/pack/Pack.ps1` e `pwsh tools/pack/Test-Package.ps1`. Com alterações não commitadas, o `Pack.ps1` para (ou, com `-AllowDirty`, gera um pacote só para teste, marcado com `.dirty`).
 4. **Atualizar os consumidores:** nos projetos que usam a biblioteca, troque a versão de `LeptonTI.SqlParser`. As mudanças que quebram a API estão no `CHANGELOG.md`.
 
 - [Análise técnica e plano](docs/analise-tecnica-e-plano.md) e [decisões de arquitetura (ADRs)](docs/adr/)

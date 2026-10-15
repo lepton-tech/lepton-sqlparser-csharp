@@ -5,7 +5,7 @@
 - **Baseline do upstream:** `v0.63.0` (`85b1a6f`). Ver `UPSTREAM.json`.
 - **Sincronização com o upstream:** Rodada 1 (`v0.63.0` → `dacdbc9`) **concluída**: os 63 PRs têm status final (41 `portado`, 22 `não-aplicável`); `portedThroughCommit` = `dacdbc9`. Não há tag nova: o baseline e os cabeçalhos continuam `v0.63.0` (`upstream-ledger.md`).
 - **Fase atual:** 2, AST e parser portados (ondas A e B); testes de integração portados (onda C, todos passando); visitor (C18) e onda D (correções, lista em "Pendências para a onda D") em andamento; API pública fases 1 (E1) e 2 (E2: visitors e análise) prontas. Plano em [`../analise-tecnica-e-plano.md`](../analise-tecnica-e-plano.md) §8.
-- **Pacote:** `LeptonTI.SqlParser` `0.63.1-preview.1`, gerado localmente por `tools/pack/Pack.ps1` em `artifacts/` e conferido por `tools/pack/Test-Package.ps1` ([ADR-0010](../adr/0010-empacotamento.md), [`CHANGELOG.md`](../../CHANGELOG.md)). Nada publicado.
+- **Pacote:** `LeptonTI.SqlParser` `0.63.1-preview.1`, gerado localmente por `tools/pack/Pack.ps1` em `artifacts/` (só com a árvore do Git limpa, ou com `-AllowDirty`, que marca `.dirty`) e conferido por `tools/pack/Test-Package.ps1` ([ADR-0010](../adr/0010-empacotamento.md), [`CHANGELOG.md`](../../CHANGELOG.md)). PDBs embutidos nas DLLs, sem `.snupkg` (F1). Nada publicado.
 
 ## Estado por arquivo Rust
 
@@ -153,6 +153,19 @@ Levantadas nas notas das ondas B e C e nas revisões R1–R3 (consolidação de 
 ## Diário de sessões
 
 Registre ao fim de cada sessão: data, o que foi feito, decisões tomadas e próximo passo. Entradas mais recentes no topo.
+
+### 2026-10-15 (F1: correções da revisão R4 da API pública e do pacote; worktree isolado, a integrar)
+- **Feito** (status por item em [`onda-d/R4.md`](onda-d/R4.md); decisões do integrador):
+  - **Pilha no `Display` (item 2):** `StackGuard` em `Query.Fmt`, `SetExpr.Fmt` e `TableFactor.Fmt`, com `// PORT-DEVIATION DIV-005`. Só o `Query.Fmt` não bastava: medido antes da correção (net8.0, Release), 80 subconsultas aninhadas com limite 200 e 200 junções entre parênteses com limite 1.000 estouravam uma thread de 256 KB, e 5.000 `UNION ALL` estouravam a thread principal de 1 MB **com o limite padrão**. Depois: 400 subconsultas, 1.000 junções e 20.000 `UNION ALL` numa thread de 256 KB. DIV-005 e caso 123 da §13 atualizados; aviso nos `<remarks>` de `SqlQueryParser(int recursionLimit)`.
+  - **DIV-010 nova (item 1):** igualdade/`GetHashCode` dos records recursivos e sem proteção (8.000 `OR` estouram no net8.0). Records do Core sem mudança, por decisão; uso seguro (comparar `ToSql()`) no ADR-0008, nos dois READMEs e no README do pacote.
+  - **Análise (itens 3–6 e 10):** `SqlStatementKind.Block` para `StartTransaction` com `HasEndKeyword` (bloco `BEGIN ... END`); alvos de `SELECT ... INTO` e `OUTPUT ... INTO` como tabelas, fora das colunas (registrados por referência no `Select`/DML e reconhecidos no gancho de expressão); autorreferência de CTE só com `RECURSIVE` ou definição em operação de conjunto (item 4 de "A confirmar" do ADR-0009 decidido); funções de tabela (`TableFactor.Function` e `TableFactor.Table` com `Args`) em `GetReferencedFunctions`; regra de comparação de nomes de CTE com aspas documentada, com tabela por banco (ADR-0009, decisão 5). `GetReferencedColumns` e `GetReferencedFunctions` passaram de atalhos com lambda a visitors privados.
+  - **Threads (item 8):** `<remarks>` em `SqlVisitor`, `SqlRewriter` e `SqlVisitorExtensions` (DIV-009, STA/UI) e seção "Árvores profundas e threads" no `src/SqlParser/README.md`.
+  - **`ToSql` com item nulo (item 9):** `ArgumentNullException` com `ParamName = "statements"`.
+  - **Pacote (itens 11 e 12):** `Pack.ps1` recusa árvore suja ou fora do Git (`git status --porcelain`, só leitura); `-AllowDirty` passa `SqlParserDirtyBuild=true`, e o alvo `_SqlParserMarkDirtyBuild` (`Directory.Build.targets`) acrescenta `.dirty` à `InformationalVersion`. `DebugType=embedded` nas duas DLLs do pacote, `IncludeSymbols=false` (sem `.snupkg`); o alvo `_IncludeSqlParserCoreSymbolsInPackage` saiu; `InternalsVisibleTo` mantido; marcadores comentados de `PackageProjectUrl`/`RepositoryUrl`. ADR-0010, seção "Revisão R4".
+- **Testes novos:** `ArvoresProfundasTests` (5, numa thread de 256 KB), 3 em `StackGuardTests` (Core), 32 casos novos em `SqlAnalysisTests` e 1 em `SqlWritingExtensionsTests`.
+- **Resultado:** build com 0 avisos; `SqlParser.Core.Tests` 1.704 aprovados e 10 ignorados, `SqlParser.Tests` 279, em net48, net8.0 e net10.0 (Debug e Release); `Pack.ps1 -AllowDirty` e `Test-Package.ps1` passando. Pacote de 1.928.038 bytes (`SqlParser.Core.dll` 4.527.104 bytes com o PDB embutido; antes 4.175.360 + `.snupkg`).
+- **Em aberto:** o `Span()` tem o mesmo problema do `Display` corrigido: 5.000 `UNION ALL` estouram a thread principal com o limite padrão, e 80 subconsultas ou 200 junções aninhadas (limite elevado) estouram uma thread de 256 KB. Corrigir exigiria o mesmo desvio em `Query.Span()`, `SetExpr.Span()` e `TableFactor.Span()` (decisão do integrador); por ora, documentado na DIV-005. Item 7 da R4 (exceções no caminho comum do parser) fica para a unidade de desempenho.
+- **Próximo:** integrar no `main` e gerar o pacote de novo depois do commit (sem `-AllowDirty`).
 
 ### 2026-10-15 (empacotamento: pacote local `LeptonTI.SqlParser` `0.63.1-preview.1`; worktree isolado, a integrar)
 - **Feito** (decisões no [ADR-0010](../adr/0010-empacotamento.md), "Notas de implementação"):

@@ -28,15 +28,16 @@ O objetivo é deixar a biblioteca "publicável" (pacote pronto para ser distribu
 
 **Como o pacote único é montado.** Só o `src/SqlParser/SqlParser.csproj` gera pacote; o `SqlParser.Core` tem `IsPackable=false`.
 - A referência ao Core usa `PrivateAssets="all"`, para que ele não vire dependência do pacote. Efeito colateral: o Core não chega por transitividade a quem referencia o `SqlParser` dentro da solução, e por isso o `SqlParser.Tests` referencia o Core diretamente.
-- Dois alvos do `SqlParser.csproj` levam os arquivos do Core para o pacote: `_IncludeSqlParserCoreInPackage` (`TargetsForTfmSpecificBuildOutput`: `SqlParser.Core.dll` e `.xml`) e `_IncludeSqlParserCoreSymbolsInPackage` (`TargetsForTfmSpecificDebugSymbolsInPackage`: `SqlParser.Core.pdb` no `.snupkg`). Os dois leem a saída já compilada; com `--no-build`, `BuildProjectReferences=false` impede uma nova compilação do Core.
+- O alvo `_IncludeSqlParserCoreInPackage` do `SqlParser.csproj` (`TargetsForTfmSpecificBuildOutput`) leva `SqlParser.Core.dll` e `.xml` para o pacote, lendo a saída já compilada; com `--no-build`, `BuildProjectReferences=false` impede uma nova compilação do Core. (Até a F1 havia um segundo alvo, `_IncludeSqlParserCoreSymbolsInPackage`, que levava `SqlParser.Core.pdb` para o `.snupkg`; com os PDBs embutidos, saiu.)
 - Dependências de runtime: **nenhuma**. O grupo `.NETStandard2.0` do `.nuspec` sai vazio; o PolySharp é só de compilação (`PrivateAssets=all`), e nada do código precisa de `System.Memory`, `System.ValueTuple` ou afins em `netstandard2.0`.
 
 **O que vai dentro.**
 
 | Pacote | Conteúdo |
 |---|---|
-| `LeptonTI.SqlParser.<versão>.nupkg` | `lib/netstandard2.0/`: `SqlParser.dll`, `SqlParser.xml`, `SqlParser.Core.dll`, `SqlParser.Core.xml`; na raiz: `README.md` (de `src/SqlParser/PACKAGE-README.md`), `NOTICE`, `THIRD-PARTY-NOTICES.md`; `licenses/` (sqlparser-rs, SqlParser-cs, Unicode) |
-| `LeptonTI.SqlParser.<versão>.snupkg` | `lib/netstandard2.0/`: `SqlParser.pdb` e `SqlParser.Core.pdb` (PDBs portáteis) |
+| `LeptonTI.SqlParser.<versão>.nupkg` | `lib/netstandard2.0/`: `SqlParser.dll`, `SqlParser.xml`, `SqlParser.Core.dll`, `SqlParser.Core.xml` (cada DLL com o PDB portátil embutido); na raiz: `README.md` (de `src/SqlParser/PACKAGE-README.md`), `NOTICE`, `THIRD-PARTY-NOTICES.md`; `licenses/` (sqlparser-rs, SqlParser-cs, Unicode) |
+
+Não há mais `.snupkg` (até a F1, ele levava `SqlParser.pdb` e `SqlParser.Core.pdb`; ver "Revisão R4" abaixo).
 
 Metadados: `PackageId` `LeptonTI.SqlParser`, `Authors`/`Company` "Lepton TI", `PackageLicenseExpression` `Apache-2.0`, descrição e tags em inglês (a descrição diz que o pacote não é afiliado nem endossado pela ASF, ADR-0003 §3), `PackageReleaseNotes` com o commit do Rust.
 
@@ -46,16 +47,35 @@ Metadados: `PackageId` `LeptonTI.SqlParser`, `Authors`/`Company` "Lepton TI", `P
 |---|---|---|
 | `VersionPrefix` / `VersionSuffix` | `0.63.1` / `preview.1` | Versão do pacote; a única coisa a mudar a cada versão (com o `CHANGELOG.md`) |
 | `AssemblyVersion` e `FileVersion` | `0.63.1.0` | `<VersionPrefix>.0`, sem o sufixo. Sem assinatura forte, o .NET Framework não usa a `AssemblyVersion` na vinculação. Se a assinatura forte for adotada, rever (ex.: fixar `0.<minor>.0.0` para reduzir *binding redirects*) |
-| `InformationalVersion` | `0.63.1-preview.1+sqlparser-rs.dacdbc9.<commit deste repositório>` | `$(Version)+sqlparser-rs.<commit curto>`, com o commit lido do `UPSTREAM.json` (`portedThroughCommit`); o SDK acrescenta o commit do Git deste repositório (`SourceRevisionId`). Com alterações não commitadas, esse último commit não identifica o conteúdo exato |
+| `InformationalVersion` | `0.63.1-preview.1+sqlparser-rs.dacdbc9.<commit deste repositório>` | `$(Version)+sqlparser-rs.<commit curto>`, com o commit lido do `UPSTREAM.json` (`portedThroughCommit`); o SDK acrescenta o commit do Git deste repositório (`SourceRevisionId`). Com alterações não commitadas, esse commit não identificaria o conteúdo: o `Pack.ps1` recusa empacotar, e com `-AllowDirty` a versão termina em `.dirty` (`SqlParserDirtyBuild=true`, alvo `_SqlParserMarkDirtyBuild` em `Directory.Build.targets`) |
 | `AssemblyMetadata` | `SqlParserRsBaselineTag`, `SqlParserRsCommit` | Tag-base e commit completo do Rust, também lidos do `UPSTREAM.json` |
 
 **Documentação XML.** Gerada nas duas DLLs. A API pública (`SqlParser`) não suprime nada: todo membro público tem `<summary>`. O Core suprime só o CS1591 (membro público sem comentário XML; cerca de 1.500 membros), porque a documentação do Core é a do Rust, verbatim (`convencoes.md` §12), e itens sem doc no Rust não ganham texto inventado. Os demais avisos de XML doc continuam valendo.
 
-**Build reproduzível e símbolos.** `Deterministic` sempre; `ContinuousIntegrationBuild` (caminhos `/_/` nos PDBs) quando há variável de CI (`CI`, `TF_BUILD`, `BITBUCKET_BUILD_NUMBER`) ou quando passado explicitamente, como faz o `Pack.ps1`. `EmbedUntrackedSources` embute nos PDBs os fontes que o Git não rastreia (os gerados em `obj/`). `.snupkg` com PDBs portáteis.
+**Build reproduzível e símbolos.** `Deterministic` sempre; `ContinuousIntegrationBuild` (caminhos `/_/` nos PDBs) quando há variável de CI (`CI`, `TF_BUILD`, `BITBUCKET_BUILD_NUMBER`) ou quando passado explicitamente, como faz o `Pack.ps1`. `EmbedUntrackedSources` embute nos PDBs os fontes que o Git não rastreia (os gerados em `obj/`). PDBs portáteis, **embutidos** nas duas DLLs do pacote (`DebugType=embedded` para `SqlParser` e `SqlParser.Core` em `Directory.Build.props`; os projetos de teste continuam com o PDB em arquivo). Sem `.snupkg` (`IncludeSymbols=false`).
 
-**Scripts.** `tools/pack/Pack.ps1`: restaura, compila em Release, roda a suíte inteira (net48, net8.0 e net10.0) e só então empacota em `artifacts/` (fora do Git), listando o conteúdo dos pacotes. `tools/pack/Test-Package.ps1`: apaga a entrada do pacote no cache global do NuGet e roda `tests/PackageSmoke/` (fora da solução): dois apps de console, net48 e net8.0, em C# 7.3, que instalam o pacote do feed local (`tests/PackageSmoke/nuget.config`, com mapeamento de fontes: `LeptonTI.*` só de `artifacts/`), analisam SQL em três dialetos e conferem `ToSql`, `GetReferencedTables`, a posição de um erro e uma reescrita.
+**Scripts.** `tools/pack/Pack.ps1`: confere que a árvore de trabalho do Git está limpa (`git status --porcelain`, só leitura), restaura, compila em Release, roda a suíte inteira (net48, net8.0 e net10.0) e só então empacota em `artifacts/` (fora do Git), listando o conteúdo do pacote e a `InformationalVersion` das DLLs. Com alterações não commitadas (ou arquivos novos fora do `.gitignore`), ou fora de um repositório Git, o script para antes de compilar; `-AllowDirty` empacota assim mesmo, com `.dirty` no fim da `InformationalVersion`. `tools/pack/Test-Package.ps1`: apaga a entrada do pacote no cache global do NuGet e roda `tests/PackageSmoke/` (fora da solução): dois apps de console, net48 e net8.0, em C# 7.3, que instalam o pacote do feed local (`tests/PackageSmoke/nuget.config`, com mapeamento de fontes: `LeptonTI.*` só de `artifacts/`), analisam SQL em três dialetos e conferem `ToSql`, `GetReferencedTables`, a posição de um erro e uma reescrita.
 
 **Pendências para o responsável:**
 - **Assinatura forte:** continua em aberto (ver Consequências). As DLLs saem sem assinatura.
-- **SourceLink:** o repositório não tem remoto. Quando for para o Bitbucket, definir `RepositoryUrl` e `PublishRepositoryUrl`; o SourceLink embutido no SDK 8 ou superior passa a gerar os links (para Bitbucket Server, declarar também o item `SourceLinkBitbucketGitHost`).
+- **SourceLink e endereços do projeto:** o repositório não tem remoto. Quando for para o Bitbucket, descomentar e preencher os marcadores do `src/SqlParser/SqlParser.csproj` (`PackageProjectUrl`, `RepositoryUrl`, `RepositoryType`, `PublishRepositoryUrl`); o SourceLink embutido no SDK 8 ou superior passa a gerar os links (para Bitbucket Server, declarar também o item `SourceLinkBitbucketGitHost`). Até lá, o `.nuspec` sai sem `projectUrl`.
 - **Feed:** a escolha (interno, Bitbucket ou nuget.org) define a publicação e a validação de pacote (`EnablePackageValidation` com versão de referência).
+
+## Revisão R4 (F1, 2026-10-15)
+
+A revisão R4 (`docs/port/onda-d/R4.md`, itens 11 e 12) apontou três problemas no pacote `0.63.1-preview.1`. Decisões da F1:
+
+**1. Árvore suja (item 11).** O pacote tinha sido gerado com alterações não commitadas, então o commit gravado na `InformationalVersion` (e no `repository commit` do `.nuspec`) não identificava o conteúdo.
+- O `Pack.ps1` recusa empacotar quando `git status --porcelain` lista qualquer coisa (inclusive arquivos novos fora do `.gitignore`; `artifacts/`, `bin/` e `obj/` são ignorados) ou quando não está num repositório Git. O comando é só de leitura.
+- `-AllowDirty` empacota assim mesmo, para testes locais, e passa `-p:SqlParserDirtyBuild=true` à compilação: a `InformationalVersion` termina em `.dirty` (ex.: `0.63.1-preview.1+sqlparser-rs.dacdbc9.<commit>.dirty`). A versão do pacote não muda; o `.dirty` é metadado de compilação (SemVer 2.0, depois do `+`) e não entra na resolução do NuGet. O `repository commit` do `.nuspec` continua sendo o commit do `HEAD` (o campo só aceita um commit); a marca fica nas DLLs, e o `Pack.ps1` e o `Test-Package.ps1` a mostram.
+- Alternativa rejeitada: só um aviso. O pacote sai igual e o aviso some no meio da saída do `dotnet`.
+
+**2. Símbolos (item 12).** O `.snupkg` só é aceito pelo nuget.org e por servidores de símbolos; num feed local (pasta) ou interno, o depurador não o encontra.
+- **Decisão:** PDB portátil **embutido** nas duas DLLs (`DebugType=embedded`) e nenhum `.snupkg`. O depurador do Visual Studio/Rider e os rastros de pilha (`StackTrace` com arquivo e linha, no .NET Framework 4.7.2+ e no .NET Core) acham os símbolos na própria DLL, em qualquer feed. O nuget.org também aceita esse formato, caso seja o destino.
+- **Custo:** as DLLs crescem o tamanho do PDB, que vai comprimido. Medido na F1 (que também acrescentou um pouco de código), em relação ao pacote anterior: `SqlParser.Core.dll` de 4.175.360 para 4.527.104 bytes (+8%) e `SqlParser.dll` de 36.352 para 71.680 bytes; o `.nupkg` de 1.542.867 para 1.928.038 bytes, sem o `.snupkg` de 386.555 bytes. Para uma biblioteca de análise, sem restrição de tamanho de implantação, compensa.
+- Alternativas rejeitadas: manter o `.snupkg` além do PDB embutido (com o PDB dentro da DLL, não há `.pdb` em arquivo para ele levar; gerar os dois duplicaria os símbolos sem ganho); copiar os `.pdb` para dentro do `.nupkg` (funciona em feed local, mas é a forma que o NuGet desaconselha).
+
+**3. `InternalsVisibleTo` (item 12).** As DLLs do pacote dão acesso aos membros `internal` para `SqlParser.Tests` e `SqlParser.Core.Tests`.
+- **Decisão: manter.** O `Pack.ps1` roda os testes em Release contra as **mesmas** DLLs que empacota (`dotnet pack --no-build`): tirar o atributo só no pacote exigiria uma segunda compilação, e o pacote deixaria de conter os binários testados. Os testes do Core usam membros `internal` (ex.: `StackGuard`, `RustString`); os da API hoje não usam nenhum, mas o atributo fica, pelo mesmo motivo, para quando precisarem.
+- **Risco:** sem assinatura forte, qualquer assembly chamado `SqlParser.Tests` ou `SqlParser.Core.Tests` enxerga os membros `internal`. Isso não é fronteira de segurança (reflexão também chega a eles), e um consumidor não tem motivo para usar esses nomes. Se a assinatura forte for adotada, o atributo passa a exigir a chave pública dos testes, e o risco desaparece.
+- Comentário no `.csproj` dos dois projetos aponta para esta seção.

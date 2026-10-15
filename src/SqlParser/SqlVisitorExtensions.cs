@@ -26,6 +26,10 @@ namespace SqlParser;
 /// (<c>RewriteRelations</c>, <c>RewriteExpressions</c>, <c>RewriteStatements</c>) usam o gancho <c>post</c>, ou
 /// seja, a função recebe o nó com os filhos já reescritos, e o nó devolvido não é visitado de novo.
 /// </para>
+/// <para>
+/// <b>Thread:</b> em árvores muito profundas, os ganchos e as funções passadas aos atalhos podem rodar numa thread
+/// nova, criada quando falta pilha (DIV-009; ver "Thread dos ganchos" em <see cref="SqlVisitor"/>).
+/// </para>
 /// </remarks>
 public static class SqlVisitorExtensions
 {

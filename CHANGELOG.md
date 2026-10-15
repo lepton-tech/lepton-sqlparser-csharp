@@ -6,6 +6,33 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). A
 
 ## [Não lançado]
 
+Correções da revisão R4 da API pública e do pacote (unidade F1; [`docs/port/onda-d/R4.md`](docs/port/onda-d/R4.md)).
+
+### Adicionado
+
+- `SqlStatementKind.Block`, para os blocos `BEGIN ... END` do SQL Server, do BigQuery e do Snowflake (no fim do enum: os valores dos membros existentes não mudam).
+
+### Alterado
+
+- **`GetStatementKind`:** um bloco `BEGIN ... END` passa a ser `Block`, e não `Transaction`. `BEGIN`/`START TRANSACTION` sem bloco continuam `Transaction`.
+- **`GetReferencedTables` e `GetReferencedColumns`:** o alvo de `SELECT ... INTO t` e de `OUTPUT ... INTO t` (SQL Server) passa a ser tabela e sai das colunas (antes, `SELECT * INTO #tmp FROM t` dava as tabelas `[t]` e as colunas `[#tmp]`).
+- **`GetReferencedTables`:** dentro da definição de uma CTE, o próprio nome só conta como a CTE quando ela pode ser recursiva (`WITH RECURSIVE`, ou a definição é uma operação de conjunto como `UNION ALL`). Antes contava sempre, e `WITH orders AS (SELECT * FROM orders WHERE x = 1) SELECT * FROM orders` dava uma lista vazia; agora dá `orders`.
+- **`GetReferencedFunctions`:** passa a incluir as funções de tabela: `LATERAL fn(x)`, `LATERAL FLATTEN(...)` e a chamada direta no `FROM` (`generate_series(1, 3)`, `CROSS APPLY dbo.fn(x)`; esta continua também nas tabelas). `TABLE(fn(x))` já entrava.
+- **`ToSql(IEnumerable<Statement>)`:** um item `null` lança `ArgumentNullException` com `ParamName = "statements"` e a posição do item na mensagem (antes, `ParamName = "node"`).
+- **Pacote:** os PDBs portáteis vão embutidos nas duas DLLs, e não há mais `.snupkg` (a depuração funciona a partir de feed local ou interno). As DLLs crescem cerca de 8% (`SqlParser.Core.dll`).
+- **`tools/pack/Pack.ps1`:** recusa empacotar com alterações não commitadas (ou fora de um repositório Git); `-AllowDirty` empacota assim mesmo e marca a `InformationalVersion` com `.dirty`.
+
+### Corrigido
+
+- `ToSql()`/`ToString()` de subconsultas aninhadas e de junções entre parênteses (possíveis com limite de recursão elevado) e de cadeias longas de `UNION ALL` (5.000 termos, com o limite padrão) estouravam a pilha e derrubavam o processo; o `Display` de `Query`, `SetExpr` e `TableFactor` ganhou a mesma proteção do de `Expr` (desvio registrado na DIV-005).
+
+### Documentação
+
+- DIV-010 nova: a igualdade (`==`, `Equals`, `GetHashCode`) dos nós da AST é recursiva e sem proteção de pilha; com milhares de níveis, estoura. Uso seguro: comparar `ToSql()`.
+- `SqlVisitor`, `SqlRewriter` e `SqlVisitorExtensions` avisam que, em árvores profundas, os ganchos podem rodar em outra thread (DIV-009), com o cuidado para threads de UI (STA); o construtor `SqlQueryParser(int recursionLimit)` avisa o que um limite alto implica.
+- A regra de comparação do nome de uma CTE com nomes entre aspas ficou documentada, com as diferenças por banco (ADR-0009).
+- ADR-0010: decisões sobre árvore suja, símbolos embutidos e `InternalsVisibleTo` (mantido para os testes); marcadores comentados de `PackageProjectUrl`/`RepositoryUrl` no `.csproj`, para quando houver remoto.
+
 ## [0.63.1-preview.1] - 2026-10-15
 
 Primeira versão empacotada. Pré-lançamento, gerada só como pacote local (nada publicado).

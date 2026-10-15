@@ -27,12 +27,19 @@
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageReleaseNotes>Port of sqlparser-rs through commit $(SqlParserRsShortCommit) (after $(SqlParserRsBaselineTag)); public API phases 1 and 2. See CHANGELOG.md in the source repository.</PackageReleaseNotes>
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <!-- O SqlParser.Core entra como arquivo do pacote (alvos abaixo), não como dependência. -->
+    <!-- Símbolos: PDB portátil embutido nas duas DLLs (DebugType=embedded em Directory.Build.props); sem .snupkg. -->
+    <IncludeSymbols>false</IncludeSymbols>
+    <!--
+      Endereços do projeto: o repositório ainda não tem remoto (ADR-0010, pendências). Quando tiver, descomentar e
+      preencher; RepositoryUrl e PublishRepositoryUrl também ativam o SourceLink do SDK nos PDBs.
+      <PackageProjectUrl>https://(endereço do repositório)</PackageProjectUrl>
+      <RepositoryUrl>https://(endereço do repositório).git</RepositoryUrl>
+      <RepositoryType>git</RepositoryType>
+      <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    -->
+    <!-- O SqlParser.Core entra como arquivo do pacote (alvo abaixo), não como dependência. -->
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);_IncludeSqlParserCoreInPackage</TargetsForTfmSpecificBuildOutput>
-    <TargetsForTfmSpecificDebugSymbolsInPackage>$(TargetsForTfmSpecificDebugSymbolsInPackage);_IncludeSqlParserCoreSymbolsInPackage</TargetsForTfmSpecificDebugSymbolsInPackage>
-    <!-- No pack sem compilação (opção no-build), os alvos abaixo só leem a saída já compilada do Core. -->
+    <!-- No pack sem compilação (opção no-build), o alvo abaixo só lê a saída já compilada do Core. -->
     <BuildProjectReferences Condition="'$(NoBuild)' == 'true'">false</BuildProjectReferences>
   </PropertyGroup>
 
@@ -48,6 +55,7 @@
     <ProjectReference Include="..\SqlParser.Core\SqlParser.Core.csproj" PrivateAssets="all" />
   </ItemGroup>
 
+  <!-- Mantido no pacote: o Pack.ps1 roda os testes em Release contra as mesmas DLLs que empacota (ADR-0010). -->
   <ItemGroup>
     <InternalsVisibleTo Include="SqlParser.Tests" />
   </ItemGroup>
@@ -69,19 +77,11 @@
     <Error Condition="'@(_SqlParserCoreAssembly)' == ''" Text="SqlParser.Core.dll não foi encontrada entre as referências de projeto." />
   </Target>
 
-  <!-- SqlParser.Core.dll e SqlParser.Core.xml em lib/netstandard2.0, ao lado de SqlParser.dll e SqlParser.xml. -->
+  <!-- SqlParser.Core.dll (com o PDB embutido) e SqlParser.Core.xml em lib/netstandard2.0, ao lado de SqlParser.dll e SqlParser.xml. -->
   <Target Name="_IncludeSqlParserCoreInPackage" DependsOnTargets="_GetSqlParserCoreFiles">
     <ItemGroup>
       <BuildOutputInPackage Include="@(_SqlParserCoreAssembly->'%(FullPath)')" />
       <BuildOutputInPackage Include="@(_SqlParserCoreAssembly->'%(RootDir)%(Directory)%(Filename).xml')" />
-    </ItemGroup>
-  </Target>
-
-  <!-- SqlParser.Core.pdb no pacote de símbolos (.snupkg), ao lado de SqlParser.pdb. -->
-  <Target Name="_IncludeSqlParserCoreSymbolsInPackage" DependsOnTargets="_GetSqlParserCoreFiles">
-    <ItemGroup>
-      <TfmSpecificDebugSymbolsFile Include="@(_SqlParserCoreAssembly->'%(RootDir)%(Directory)%(Filename).pdb')"
-                                   TargetFramework="$(TargetFramework)" />
     </ItemGroup>
   </Target>
 

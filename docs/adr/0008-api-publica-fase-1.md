@@ -43,12 +43,15 @@ public sealed class SqlQueryParser
   - **Custo conhecido:** a chamada `Parse(sql, null, options)` é ambígua (CS0121) entre as duas sobrecargas. A forma recomendada é o argumento nomeado `Parse(sql, options: options)`, registrada na documentação XML e no README.
   - Não há `TryParse` por nome, para não multiplicar sobrecargas. Use `Dialect.DialectFromStr(nome)`.
 - **Limite de recursão:** parâmetro do construtor, porque no Rust ele não faz parte de `ParserOptions` (`Parser::with_recursion_limit`). `null` significa "padrão do Core" (50 na v0.63.0). A constante não é copiada, para que uma mudança do upstream chegue sozinha. Valor negativo lança `ArgumentOutOfRangeException`.
+  - Um limite alto aceita árvores mais profundas, e tudo o que as percorre desce o mesmo tanto. A documentação XML do construtor avisa (revisão R4, item 2): o parse, o `ToSql` e os visitors continuam numa thread nova quando falta pilha (DIV-005 e DIV-009), mas a igualdade dos nós (DIV-010) e o `Span()` de consultas e junções aninhadas não têm essa proteção.
 
 ### 3. Tipo de retorno: `Sequence<Statement>` do Core
 
 - É o tipo que o Core já devolve: sem cópia e sem conversão.
 - Implementa `IReadOnlyList<Statement>`, então o consumidor pode tratá-lo como tal.
 - Tem igualdade estrutural, útil para comparar ASTs.
+  - **Limite (DIV-010, revisão R4, item 1):** a igualdade e o `GetHashCode` são os que o compilador gera para os records do Core, recursivos e sem `StackGuard`. Numa AST com milhares de níveis, `==`, `Equals` e `GetHashCode` estouram a pilha e derrubam o processo: `WHERE id = 0 OR id = 1 ...` com 8.000 termos estoura a thread principal no net8.0 (6.000 no net48; 1.000 numa thread de 256 KB). Os records não mudam, por serem port fiel do `derive(PartialEq)`.
+  - **Uso seguro:** para ASTs de origem desconhecida, comparar o SQL gerado (`a.ToSql() == b.ToSql()`, protegido contra estouro pela DIV-005); se a igualdade estrutural for necessária, compará-las numa thread com pilha grande ou limitar antes o tamanho do SQL aceito; não usar nós profundos como chave de `Dictionary`/`HashSet`. O parse, o `ToSql`, os visitors e a análise não usam a igualdade dos nós.
 - É `struct`: nunca é `null`. Em `TryParse` com falha, `statements` é a sequência vazia.
 - Tem o mesmo nome do tipo do SqlParser-cs (lá, uma `List<T>` mutável).
 - **Alternativa rejeitada:** `IReadOnlyList<Statement>`. Faria boxing da `struct`, perderia a igualdade estrutural e não isolaria nada, porque os elementos já são tipos do Core.
@@ -97,7 +100,7 @@ public static class SqlWritingExtensions
 - `pretty: false` = `Formatter.Format` = `ToString()` (Rust `{}`); `pretty: true` = `Formatter.FormatAlternate` (Rust `{:#}`).
 - Um método com parâmetro opcional (e não dois métodos), para a chamada `ToSql(pretty: true)` do esboço do plano (§7.4).
 - **Quebras de linha do pretty:** sempre `"\n"`, como no Rust. Não usa `Environment.NewLine`, para a saída ser a mesma em qualquer sistema.
-- **Coleção de instruções:** o Rust não tem `Display` para `Vec<Statement>`; o SqlParser-cs separa com `", "`, o que não gera SQL válido. Aqui: `"; "` no modo compacto e `";\n"` no pretty, sem `;` depois da última instrução.
+- **Coleção de instruções:** o Rust não tem `Display` para `Vec<Statement>`; o SqlParser-cs separa com `", "`, o que não gera SQL válido. Aqui: `"; "` no modo compacto e `";\n"` no pretty, sem `;` depois da última instrução. Um item `null` lança `ArgumentNullException` com `ParamName = "statements"` e a posição do item na mensagem (revisão R4, item 9).
 - O nome da classe é o mesmo do SqlParser-cs (`SqlWritingExtensions`). Não há conflito com a extensão `Keyword.ToSql()` do Core, que é sobre um `enum`.
 
 ### 7. Comentários: `ParseWithComments`

@@ -44,6 +44,8 @@ Também há `SqlVisitor` (ganchos `PreVisit*`/`PostVisit*` e `ControlFlow`), `Sq
 
 - Consumidores com C# 7.3 (padrão em projetos antigos do .NET Framework) usam a biblioteca normalmente; `with` e `init` nos records exigem `LangVersion` 9 ou superior.
 - As diferenças conhecidas em relação ao Rust são poucas e de baixo impacto (classificação Unicode de identificadores sem aspas fora do ASCII comum, proteção de pilha em outra thread, ausência da feature `bigdecimal`). A lista completa (`DIV-NNN`) acompanha o código-fonte.
+- Árvores muito profundas (milhares de `OR` ou de `UNION ALL`): o parse, o `ToSql()` e os visitors funcionam, mas os ganchos dos visitors podem rodar em outra thread (não use controles de UI dentro deles), e `==`/`Equals`/`GetHashCode` dos nós não têm proteção de pilha e podem derrubar o processo. Para comparar ASTs de origem desconhecida, compare `ToSql()`.
+- Os símbolos de depuração (PDB portátil) vão embutidos nas DLLs.
 
 ## Licença e atribuição
 

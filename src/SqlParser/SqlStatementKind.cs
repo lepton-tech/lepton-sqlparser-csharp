@@ -8,7 +8,8 @@ namespace SqlParser;
 /// </summary>
 /// <remarks>
 /// <para>
-/// É uma classificação sintática e grossa, para os casos comuns (consulta, DML, DDL, permissões e transações).
+/// É uma classificação sintática e grossa, para os casos comuns (consulta, DML, DDL, permissões, transações e
+/// blocos <c>BEGIN ... END</c>).
 /// Para distinguir qualquer variante, use o tipo da instrução (<c>statement is Statement.CreateTable</c>).
 /// </para>
 /// <para>
@@ -68,9 +69,16 @@ public enum SqlStatementKind
     Deny,
 
     /// <summary>
-    /// Controle de transação: <c>Statement.StartTransaction</c> (<c>START TRANSACTION</c>, <c>BEGIN</c>),
-    /// <c>Statement.Commit</c> (<c>COMMIT</c>, <c>END</c>), <c>Statement.Rollback</c>, <c>Statement.Savepoint</c> e
-    /// <c>Statement.ReleaseSavepoint</c>.
+    /// Controle de transação: <c>Statement.StartTransaction</c> sem bloco (<c>START TRANSACTION</c>,
+    /// <c>BEGIN</c>, <c>BEGIN TRANSACTION</c>), <c>Statement.Commit</c> (<c>COMMIT</c>, <c>END</c>),
+    /// <c>Statement.Rollback</c>, <c>Statement.Savepoint</c> e <c>Statement.ReleaseSavepoint</c>.
     /// </summary>
     Transaction,
+
+    /// <summary>
+    /// Bloco de instruções <c>BEGIN ... END</c> (SQL Server, BigQuery, Snowflake), inclusive com
+    /// <c>EXCEPTION WHEN ...</c>. O Rust guarda o bloco como <c>Statement.StartTransaction</c> com
+    /// <c>HasEndKeyword</c> verdadeiro e as instruções em <c>Statements</c>, mas ele não abre transação.
+    /// </summary>
+    Block,
 }

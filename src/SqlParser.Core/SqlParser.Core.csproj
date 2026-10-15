@@ -15,7 +15,7 @@
          Rust, verbatim (convencoes.md §12), e itens sem doc no Rust não ganham texto inventado (cerca de 1.500
          membros públicos ficam sem <summary>). Os demais avisos de XML doc continuam valendo. Ver ADR-0010. -->
     <NoWarn>$(NoWarn);CS1591</NoWarn>
-    <!-- Não vira pacote próprio: a DLL, o XML e o PDB entram no pacote LeptonTI.SqlParser, junto com a API
+    <!-- Não vira pacote próprio: a DLL (com o PDB embutido) e o XML entram no pacote LeptonTI.SqlParser, junto com a API
          (src/SqlParser/SqlParser.csproj; docs/adr/0010-empacotamento.md). -->
     <IsPackable>false</IsPackable>
   </PropertyGroup>
@@ -29,6 +29,7 @@
     </PackageReference>
   </ItemGroup>
 
+  <!-- Mantido no pacote: o Pack.ps1 roda os testes em Release contra as mesmas DLLs que empacota (ADR-0010). -->
   <ItemGroup>
     <InternalsVisibleTo Include="SqlParser.Core.Tests" />
   </ItemGroup>

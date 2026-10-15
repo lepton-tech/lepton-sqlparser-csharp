@@ -46,7 +46,10 @@ public static class SqlWritingExtensions
     /// </param>
     /// <returns>O texto SQL, sem <c>;</c> depois da última instrução.</returns>
     /// <remarks>O Rust não tem <c>Display</c> para <c>Vec&lt;Statement&gt;</c>; o separador é uma escolha desta camada.</remarks>
-    /// <exception cref="ArgumentNullException"><paramref name="statements"/> ou um de seus itens é <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="statements"/> ou um de seus itens é <see langword="null"/> (nos dois casos,
+    /// <see cref="ArgumentException.ParamName"/> é <c>"statements"</c>; a mensagem diz a posição do item).
+    /// </exception>
     public static string ToSql(this IEnumerable<Statement> statements, bool pretty = false)
     {
         if (statements is null)
@@ -55,15 +58,19 @@ public static class SqlWritingExtensions
         }
         var separator = pretty ? PrettyStatementSeparator : StatementSeparator;
         var sb = new StringBuilder();
-        var first = true;
+        var index = 0;
         foreach (var statement in statements)
         {
-            if (!first)
+            if (statement is null)
+            {
+                throw new ArgumentNullException(nameof(statements), $"O item {index} da coleção de instruções é null.");
+            }
+            if (index > 0)
             {
                 sb.Append(separator);
             }
-            first = false;
             sb.Append(statement.ToSql(pretty));
+            index++;
         }
         return sb.ToString();
     }

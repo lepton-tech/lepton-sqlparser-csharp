@@ -36,6 +36,15 @@ namespace SqlParser;
 /// Um gancho não pode devolver <see langword="null"/> (lança <see cref="InvalidOperationException"/>). Uma
 /// instância pode ser reutilizada em várias reescritas, mas não em reescritas simultâneas.
 /// </para>
+/// <para>
+/// <b>Thread dos ganchos:</b> como no <see cref="SqlVisitor"/>, em árvores muito profundas a travessia do Core
+/// continua numa thread nova quando falta pilha, e os ganchos seguintes rodam nela (DIV-009 em
+/// <c>docs/port/divergencias.md</c>). Quem chamou <c>Rewrite</c> espera o fim e recebe as exceções dos ganchos.
+/// Os ganchos não devem depender da thread: estado <c>[ThreadStatic]</c> e <c>ThreadLocal</c> não acompanha, e
+/// objetos presos a uma thread (controles do WinForms/WPF, objetos COM de apartamento STA) não podem ser usados
+/// dentro de um gancho. Numa thread STA (a thread de UI), a espera bombeia mensagens COM, o que pode reentrar no
+/// código da interface.
+/// </para>
 /// </remarks>
 /// <example>
 /// <code>

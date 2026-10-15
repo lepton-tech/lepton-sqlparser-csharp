@@ -84,6 +84,18 @@ public class SqlWritingExtensionsTests
     public void ToSql_com_argumento_nulo_lanca_ArgumentNullException()
     {
         Assert.Throws<ArgumentNullException>(() => ((IDisplay)null!).ToSql());
-        Assert.Throws<ArgumentNullException>(() => ((IEnumerable<Statement>)null!).ToSql());
+        Assert.Equal("statements", Assert.Throws<ArgumentNullException>(() => ((IEnumerable<Statement>)null!).ToSql()).ParamName);
+    }
+
+    [Fact]
+    public void ToSql_com_item_nulo_aponta_o_parametro_statements()
+    {
+        // R4, item 9: antes, a exceção vinha do ToSql do item, com ParamName "node".
+        var statement = Assert.Single(_parser.Parse("SELECT 1"));
+
+        var error = Assert.Throws<ArgumentNullException>(() => new[] { statement, null! }.ToSql());
+
+        Assert.Equal("statements", error.ParamName);
+        Assert.Contains("item 1", error.Message);
     }
 }

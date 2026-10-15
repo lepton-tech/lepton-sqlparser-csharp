@@ -67,6 +67,15 @@ public sealed partial record Query(
 {
     public void Fmt(Formatter f)
     {
+        // PORT-DEVIATION DIV-005: o Rust não marca este método com #[recursive::recursive], mas aqui cada nível
+        // de subconsulta aninhada (`SELECT * FROM (SELECT * FROM (...) x) x`, possível com o limite de recursão
+        // elevado) gasta KBs de pilha; recebe a mesma proteção do Display de Expr (convencoes.md §13, caso 123).
+        if (StackGuard.IsStackLow())
+        {
+            StackGuard.Grow(this, f, static (query, formatter) => query.Fmt(formatter));
+            return;
+        }
+
         if (With is { } withClause)
         {
             withClause.Fmt(f);

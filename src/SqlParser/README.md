@@ -36,7 +36,7 @@ O que **não** entra aqui: tradução do Rust. Isso fica no `SqlParser.Core`, qu
 | `SqlAnalysisExtensions` | `IReadOnlyList<ObjectName> GetReferencedTables<T>(this T node) where T : IVisit` |
 | | `IReadOnlyList<ObjectName> GetReferencedColumns<T>(this T node)`, `IReadOnlyList<ObjectName> GetReferencedFunctions<T>(this T node)` |
 | | `SqlStatementKind GetStatementKind(this Statement statement)` |
-| `SqlStatementKind` (enum) | `Other`, `Query`, `Insert`, `Update`, `Delete`, `Merge`, `Create`, `Alter`, `Drop`, `Truncate`, `Grant`, `Revoke`, `Deny`, `Transaction` |
+| `SqlStatementKind` (enum) | `Other`, `Query`, `Insert`, `Update`, `Delete`, `Merge`, `Create`, `Alter`, `Drop`, `Truncate`, `Grant`, `Revoke`, `Deny`, `Transaction`, `Block` |
 
 Os tipos da AST, os dialetos, `ParserOptions`, `ParserError`, `Location` e `Comments` são os do Core (namespaces `SqlParser.Core`, `SqlParser.Core.Ast` e `SqlParser.Core.Dialects`). A API pública não duplica a AST.
 
@@ -136,6 +136,8 @@ var deep = new SqlQueryParser(recursionLimit: 200); // padrão do Core: 50
 
 Opções informadas **substituem** as opções padrão do dialeto por inteiro, como `Parser::with_options` no Rust. Exemplo: o DuckDB aceita vírgula final por padrão, mas `Parse(sql, new DuckDbDialect(), new ParserOptions())` não aceita. Para usar o dialeto padrão com opções, use o argumento nomeado: `Parse(sql, options: options)`. A forma `Parse(sql, null, options)` não compila, porque é ambígua com a sobrecarga que recebe o nome do dialeto.
 
+Um limite de recursão acima do padrão aceita árvores mais profundas, e todo código que percorre a árvore desce o mesmo tanto: veja [Árvores profundas e threads](#árvores-profundas-e-threads).
+
 ### 7. Comentários
 
 ```csharp
@@ -169,6 +171,8 @@ new SqlQueryParser().Parse("SELECT * FROM a JOIN b ON a.id = b.id WHERE a.x IN (
 ```
 
 Os ganchos existem para os 11 tipos que o Rust visita: `Statement`, `Query`, `Select`, `TableFactor`, `Relation` (o `ObjectName` de uma tabela, visão etc.), `Expression` (`Expr`), `Value`, `Identifier`, `OrderBy`, `OrderByExpression` e `GroupBy`. Um gancho que devolve `ControlFlow.Break` interrompe a visita, sem chamar os `PostVisit*` pendentes, e `Visit` devolve `ControlFlow.Break`.
+
+Em árvores muito profundas, os ganchos podem rodar em **outra thread** (ver [Árvores profundas e threads](#árvores-profundas-e-threads)): não dependa da thread dentro de um gancho.
 
 ### 9. Atalhos com lambdas
 
@@ -231,10 +235,22 @@ var tipo = statements[0].GetStatementKind();       // SqlStatementKind.Query
 
 A análise é sintática (sem catálogo e sem dialeto). Os nomes vêm como `ObjectName`, como no texto, sem repetição e na ordem da primeira ocorrência. Semântica exata ([ADR-0009](../../docs/adr/0009-api-publica-fase-2.md), decisão 5):
 
-- **Tabelas:** as relações da AST (`FROM`/`JOIN`, alvos de `INSERT`/`UPDATE`/`DELETE`/`MERGE`, nomes de `CREATE TABLE`/`VIEW`, `ALTER TABLE`, `TRUNCATE` etc.), sem as referências a CTEs visíveis no ponto da referência. Os nomes de `DROP TABLE` não são relações no Rust e não aparecem.
-- **Colunas:** expressões que são identificadores (`a`, `t.a`). Não entram `*`, `t.*`, a lista de colunas de `INSERT`, o alvo de `UPDATE ... SET a =` nem aliases. Um alias usado no `ORDER BY` entra, porque a análise não resolve nomes.
-- **Funções:** nomes de `Expr.Function`. `CAST`, `EXTRACT`, `TRIM`, `SUBSTRING` e afins têm nós próprios e não entram.
-- **Tipo da instrução:** `SqlStatementKind`, uma classificação pelo comando (`Query`, `Insert`, `Create`, `Transaction`...). Para distinguir qualquer variante, use o tipo da instrução (`statement is Statement.CreateTable`).
+- **Tabelas:** as relações da AST (`FROM`/`JOIN`, alvos de `INSERT`/`UPDATE`/`DELETE`/`MERGE`, nomes de `CREATE TABLE`/`VIEW`, `ALTER TABLE`, `TRUNCATE` etc.) e os alvos de `SELECT ... INTO t` e `OUTPUT ... INTO t`, sem as referências a CTEs visíveis no ponto da referência. Os nomes de `DROP TABLE` não são relações no Rust e não aparecem. Uma função de tabela chamada direto no `FROM` (`generate_series(1, 3)`, `CROSS APPLY dbo.fn(x)`) é relação e aparece aqui e nas funções; `LATERAL fn(x)` e `TABLE(fn(x))` só aparecem nas funções. Um alvo de `INTO` que é variável (`SELECT a INTO @x` do MySQL) também aparece, porque a análise não distingue.
+- **CTEs:** no corpo da consulta, todas as CTEs do `WITH` (e dos `WITH` de fora) são visíveis; dentro da definição de uma CTE, as anteriores. O próprio nome, dentro da definição, só é a CTE quando ela pode ser recursiva (`WITH RECURSIVE`, ou a definição é um `UNION`/`UNION ALL`/`EXCEPT`/`INTERSECT`); senão, é a tabela de verdade: `WITH pedidos AS (SELECT * FROM pedidos WHERE ...)` devolve `pedidos`.
+- **Comparação com o nome da CTE:** sem aspas dos dois lados, sem diferenciar maiúsculas; com aspas em algum lado, diferenciando. Os bancos têm regras próprias (o PostgreSQL passa nomes sem aspas para minúsculas, o Oracle e o Snowflake para maiúsculas, o SQL Server segue a ordenação do banco), e a análise não conhece o dialeto: `WITH "c" ... FROM C` dá `C` como tabela, embora no PostgreSQL `C` seja a CTE. Na maioria das diferenças, a lista sai com um nome a mais; em poucas (nomes que só diferem por maiúsculas ou aspas, em bancos que dobram para maiúsculas ou diferenciam maiúsculas), uma tabela fica de fora. A tabela completa está no [ADR-0009](../../docs/adr/0009-api-publica-fase-2.md), decisão 5.
+- **Colunas:** expressões que são identificadores (`a`, `t.a`). Não entram `*`, `t.*`, a lista de colunas de `INSERT`, o alvo de `UPDATE ... SET a =`, os alvos de `INTO` nem aliases. Um alias usado no `ORDER BY` entra, porque a análise não resolve nomes.
+- **Funções:** nomes de `Expr.Function` e das funções de tabela no `FROM`: `LATERAL fn(x)`, `LATERAL FLATTEN(...)`, `TABLE(fn(x))` e a chamada direta (`generate_series(1, 3)`). `CAST`, `EXTRACT`, `TRIM`, `SUBSTRING`, `UNNEST`, `JSON_TABLE` e afins têm nós próprios e não entram. No SQL Server, a dica antiga `FROM t (NOLOCK)` fica guardada como argumentos de função de tabela, e `t` também aparece aqui.
+- **Tipo da instrução:** `SqlStatementKind`, uma classificação pelo comando (`Query`, `Insert`, `Create`, `Transaction`, `Block`...). Um bloco `BEGIN ... END` (SQL Server, BigQuery, Snowflake) é `Block`; `BEGIN`/`START TRANSACTION` sem bloco é `Transaction`. Para distinguir qualquer variante, use o tipo da instrução (`statement is Statement.CreateTable`).
+
+## Árvores profundas e threads
+
+O parser recusa aninhamentos acima do limite de recursão (50 por padrão), mas cadeias de operadores (`a OR b OR ...`, `a + b + ...`) e de `UNION ALL` não contam para o limite e podem ter milhares de níveis. Para não derrubar o processo com estouro de pilha, o parse, o `ToSql()`, os visitors e a reescrita continuam numa **thread nova** (pilha de 2 MiB) quando falta pilha, como o `#[recursive::recursive]` do Rust ([DIV-005 e DIV-009](../../docs/port/divergencias.md)). Isso tem duas consequências e um limite:
+
+- **Ganchos em outra thread.** Em árvores profundas, os ganchos de `SqlVisitor`/`SqlRewriter` e as funções passadas a `VisitExpressions`, `RewriteRelations` etc. podem rodar em outra thread. Quem chamou espera o fim, e uma exceção de um gancho chega a ele com o tipo e o rastro de pilha originais. Estado `[ThreadStatic]`/`ThreadLocal` não acompanha (a cultura e o `AsyncLocal` acompanham).
+- **Thread de UI (STA).** Não use controles do WinForms/WPF nem objetos COM de apartamento STA dentro de um gancho. Chamado numa thread STA, o `Visit` espera com um `Join` que bombeia mensagens COM, o que pode reentrar no código da interface. Junte os dados no visitor e atualize a interface depois que `Visit` voltar, ou chame `Visit` fora da thread de UI.
+- **Igualdade sem proteção ([DIV-010](../../docs/port/divergencias.md)).** `==`, `Equals` e `GetHashCode` dos nós (e de `Sequence<Statement>`) são os gerados para os records, recursivos e sem essa proteção: com milhares de níveis, estouram a pilha e derrubam o processo (8.000 `OR` na thread principal do .NET 8; 1.000 numa thread de 256 KB). Para comparar ASTs de origem desconhecida, compare o SQL gerado (`a.ToSql() == b.ToSql()`); não use nós profundos como chave de `Dictionary`/`HashSet`.
+
+Com `new SqlQueryParser(recursionLimit: N)` acima do padrão, subconsultas, parênteses e junções aninhadas passam a ter até `N` níveis. O `ToSql()` e os visitors aguentam, mas a igualdade e o `Span()` (dos nós do Core) de consultas e junções profundas não têm proteção. Use um limite alto só quando as entradas precisarem e, para SQL de terceiros, limite também o tamanho do texto aceito.
 
 ## Correspondência com o SqlParser-cs
 

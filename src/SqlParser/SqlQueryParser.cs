@@ -52,6 +52,19 @@ public sealed class SqlQueryParser
     /// Profundidade máxima de aninhamento aceita. Ao excedê-la, o parse falha com
     /// <see cref="ParserError.RecursionLimitExceeded"/>.
     /// </param>
+    /// <remarks>
+    /// <para>
+    /// Um limite acima do padrão aceita árvores mais profundas (subconsultas, parênteses e junções aninhadas), e
+    /// todo código que percorre a árvore recursivamente desce o mesmo tanto. O parse, o <c>ToSql</c> e os visitors
+    /// continuam numa thread nova quando falta pilha (DIV-005 e DIV-009 em <c>docs/port/divergencias.md</c>), mas
+    /// nem tudo tem essa proteção: a igualdade dos nós (<c>==</c>, <c>Equals</c>, <c>GetHashCode</c>; DIV-010) e
+    /// o <c>Span()</c> de consultas e junções aninhadas podem estourar a pilha e derrubar o processo.
+    /// </para>
+    /// <para>
+    /// Use um limite alto só quando as entradas precisarem dele e, para texto de terceiros, limite também o
+    /// tamanho do SQL aceito.
+    /// </para>
+    /// </remarks>
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="recursionLimit"/> é negativo.</exception>
     public SqlQueryParser(int recursionLimit)
     {

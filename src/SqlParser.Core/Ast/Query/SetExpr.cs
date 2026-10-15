@@ -81,6 +81,15 @@ public abstract partial record SetExpr : IDisplay
 
     public void Fmt(Formatter f)
     {
+        // PORT-DEVIATION DIV-005: o Rust não marca este método com #[recursive::recursive], mas aqui cada
+        // operação de uma cadeia `SELECT 1 UNION ALL SELECT 2 ...` (não limitada pelo contador de recursão)
+        // gasta KBs de pilha; recebe a mesma proteção do Display de Expr (convencoes.md §13, caso 123).
+        if (StackGuard.IsStackLow())
+        {
+            StackGuard.Grow(this, f, static (setExpr, formatter) => setExpr.Fmt(formatter));
+            return;
+        }
+
         switch (this)
         {
             case Select s:

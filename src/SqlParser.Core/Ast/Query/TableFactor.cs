@@ -351,6 +351,15 @@ public abstract partial record TableFactor : IDisplay
     // Rust: o `impl fmt::Display for TableFactor` vem depois de `RepetitionQuantifier` no arquivo.
     public void Fmt(Formatter f)
     {
+        // PORT-DEVIATION DIV-005: o Rust não marca este método com #[recursive::recursive], mas aqui cada nível
+        // de junções entre parênteses (`FROM ((a JOIN b))`, possível com o limite de recursão elevado) gasta KBs
+        // de pilha; recebe a mesma proteção do Display de Expr (convencoes.md §13, caso 123).
+        if (StackGuard.IsStackLow())
+        {
+            StackGuard.Grow(this, f, static (tableFactor, formatter) => tableFactor.Fmt(formatter));
+            return;
+        }
+
         switch (this)
         {
             case Table t:

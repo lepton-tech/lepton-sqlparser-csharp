@@ -112,7 +112,7 @@ public static class SqlAnalysisExtensions
 - Dois nomes são iguais quando têm as mesmas partes, com o mesmo texto e o mesmo estilo de aspas (igualdade de `ObjectName`). `t`, `T`, `"t"` e `dbo.t` são quatro nomes.
 - O retorno é `IReadOnlyList<ObjectName>` (somente leitura), inclusive para colunas: `ObjectName` já representa um nome de várias partes e gera `t.a` como o `CompoundIdentifier`.
 
-**`GetReferencedTables`:** as relações (gancho `PreVisitRelation`) menos as referências a CTEs.
+**`GetReferencedTables`:** as relações (gancho `PreVisitRelation`) menos as referências a CTEs, mais os alvos de `INTO`.
 
 As relações são os 21 campos que o sqlparser-rs v0.63.0 marca com `visit(with = "visit_relation")`:
 
@@ -135,29 +135,55 @@ As relações são os 21 campos que o sqlparser-rs v0.63.0 marca com `visit(with
 
 - Os nomes de `DROP TABLE` (`Statement::Drop.names`) **não** são relações no Rust e não aparecem.
 - Entram também os alvos de DDL e DML (a tabela criada por `CREATE TABLE t2 AS SELECT ...`, o alvo de `INSERT`) e um alias usado como alvo (`UPDATE t ... FROM produtos AS t`, no SQL Server), porque a análise não resolve aliases.
+- **Funções de tabela:** só a chamada direta no `FROM` (`FROM generate_series(1, 3)`, `CROSS APPLY dbo.fn(x)`) é relação no Rust (`TableFactor::Table` com `args`), e aparece aqui **e** em `GetReferencedFunctions`. `LATERAL fn(x)`/`LATERAL FLATTEN(...)` (`TableFactor::Function`) e `TABLE(fn(x))` (`TableFactor::TableFunction`) não são relações e só aparecem nas funções.
+
+**Alvos de `INTO` (F1, revisão R4, item 4):** o nome que recebe as linhas em `SELECT ... INTO t` (SQL Server, PostgreSQL) e em `OUTPUT ... INTO t` (SQL Server) entra como tabela. O Rust guarda esses alvos como expressões (`SelectInto.targets: Vec<Expr>`, campo sem `visit_relation`), e antes da F1 eles saíam em `GetReferencedColumns` e sumiam das tabelas.
+- Entram os alvos que são identificadores (`#tmp`, `@ids`) ou identificadores compostos (`dbo.novo`), na ordem da travessia (o `INTO` vem depois da lista do `SELECT` e antes do `FROM`).
+- O alvo nunca é tratado como CTE: ele cria ou recebe linhas.
+- Como a análise é sintática, uma variável usada como alvo (`SELECT a INTO @x` do MySQL, o `INTO` do PL/pgSQL) também aparece como tabela.
+- Implementação: ao visitar um `Select` ou uma instrução de DML com `OUTPUT ... INTO`, os alvos são registrados por referência; quando o gancho de expressão chega a eles, viram tabela (e são pulados nas colunas).
 
 **CTEs não são tabelas:** uma relação de uma parte só cujo nome é o de uma CTE visível no ponto da referência é descartada.
 - No corpo da consulta (e em `ORDER BY`, `LIMIT` etc.) são visíveis todas as CTEs do seu `WITH` e dos `WITH` das consultas que a contêm.
-- Dentro da definição de uma CTE são visíveis as CTEs anteriores do mesmo `WITH` e ela própria. A autorreferência conta com ou sem `RECURSIVE`, porque o SQL Server, o Oracle e o SQLite aceitam CTE recursiva sem a palavra.
-- Uma CTE posterior do mesmo `WITH` não é visível: `WITH a AS (SELECT * FROM b), b AS (...)` devolve `b` como tabela.
+- Dentro da definição de uma CTE são visíveis as CTEs anteriores do mesmo `WITH`.
+- **Autorreferência** (decidida na F1, revisão R4, item 5): o próprio nome, dentro da definição, só é a CTE quando ela pode ser recursiva: o `WITH` tem `RECURSIVE` (PostgreSQL, MySQL, SQLite...) ou a definição é uma operação de conjunto (`UNION`, `UNION ALL`, `EXCEPT`, `INTERSECT`, também entre parênteses), a forma de CTE recursiva sem a palavra do SQL Server e do Oracle. Fora desses casos, o nome é a tabela de verdade: `WITH orders AS (SELECT * FROM orders WHERE x = 1) SELECT * FROM orders` devolve `orders`. Antes da F1 a autorreferência contava sempre como CTE, e a lista ficava vazia, o que deixaria passar a tabela num controle de acesso.
+- Uma CTE posterior do mesmo `WITH` não é visível: `WITH a AS (SELECT * FROM b), b AS (...)` devolve `b` como tabela (inclusive com `RECURSIVE`, em que o PostgreSQL aceitaria a referência adiante; o erro, aqui, é para o lado seguro).
 - Fora do escopo (outra instrução, uma tabela derivada vizinha), o mesmo nome volta a ser tabela.
-- **Comparação de nomes:** sem aspas dos dois lados, sem diferenciar maiúsculas; com aspas em algum dos lados, diferenciando (o texto sem as aspas). É o que vale no PostgreSQL para os casos comuns; dialetos que dobram para maiúsculas (Oracle, Snowflake) divergem só em nomes com aspas e maiúsculas.
 - Nomes qualificados (`s.cte`) nunca são CTE.
 - O escopo depende do nó analisado: uma subconsulta analisada sozinha não vê o `WITH` de fora.
 
+**Comparação do nome da CTE com a referência** (documentada na F1, revisão R4, item 10): se nenhum dos dois lados tem aspas, compara sem diferenciar maiúsculas; se algum lado tem aspas (de qualquer estilo: `"c"`, `[c]`, `` `c` ``), compara o texto sem as aspas diferenciando maiúsculas. A análise não conhece o dialeto, e cada banco tem uma regra; esta não segue nenhum deles exatamente:
+
+| Consulta | Aqui | No banco (em negrito, onde difere) |
+|---|---|---|
+| `WITH c ... FROM C` | CTE | CTE no PostgreSQL, Oracle, Snowflake e SQL Server com ordenação sem diferenciar maiúsculas; **tabela** no SQL Server com ordenação que diferencia |
+| `WITH "c" ... FROM C` | tabela | **CTE** no PostgreSQL (`C` vira `c`); tabela no Oracle e no Snowflake |
+| `WITH "C" ... FROM c` | tabela | tabela no PostgreSQL; **CTE** no Oracle e no Snowflake (`c` vira `C`) |
+| `WITH "c" ... FROM c` e `WITH c ... FROM "c"` | CTE | CTE no PostgreSQL; **tabela** no Oracle e no Snowflake |
+| `WITH "C" ... FROM C` e `WITH C ... FROM "C"` | CTE | **tabela** no PostgreSQL; CTE no Oracle e no Snowflake |
+| `WITH [C] ... FROM c` | tabela | **CTE** no SQL Server com ordenação sem diferenciar maiúsculas |
+
+- Quando "aqui" diz tabela e o banco diz CTE, a lista tem um nome a mais (falso positivo; para controle de acesso, o lado seguro).
+- Quando "aqui" diz CTE e o banco diz tabela (linhas 1, 4 e 5, nos bancos em negrito), a tabela de verdade some da lista. Só acontece quando o nome da CTE e o da tabela diferem apenas por maiúsculas ou por aspas, um caso raro; quem usa a lista para controle de acesso nesses bancos deve recusar ou normalizar esses nomes antes.
+- Os testes `CTEs_nao_sao_tabelas` fixam a regra, inclusive com aspas de um lado só.
+
 **`GetReferencedColumns`:** cada `Expr.Identifier` (`a`) e `Expr.CompoundIdentifier` (`t.a`, `s.t.a`) entregue pelo gancho de expressão.
 - `a` e `t.a` são entradas diferentes: a análise não resolve a tabela de cada coluna.
-- Todo identificador usado como expressão entra, mesmo quando não é coluna: um alias usado no `ORDER BY`, um parâmetro de lambda, uma variável `@x` do SQL Server, a unidade de `DATEADD(day, ...)`.
+- Todo identificador usado como expressão entra, mesmo quando não é coluna: um alias usado no `ORDER BY`, um parâmetro de lambda, uma variável `@x` do SQL Server, a unidade de `DATEADD(day, ...)`, uma dica `WITH (NOLOCK)` do SQL Server.
 - Não entram nomes que a AST não guarda como expressão: `*` e `t.*`, a lista de colunas de `INSERT INTO t (a, b)`, o alvo de `UPDATE ... SET a = 1` (o lado direito entra), as colunas de `CREATE TABLE` e os aliases (`AS x`).
+- Não entram os alvos de `SELECT ... INTO` e `OUTPUT ... INTO`, que são tabelas (F1).
 
-**`GetReferencedFunctions`:** o nome de cada `Expr.Function` (escalar, de agregação, de janela, definida pelo usuário), como escrito: `COUNT` e `count` são entradas diferentes.
-- Não entram as construções que o parser representa com nós próprios (`CAST`, `EXTRACT`, `SUBSTRING`, `TRIM`, `POSITION`...), as funções de tabela no `FROM` (são relações) nem os procedimentos de `CALL`.
+**`GetReferencedFunctions`:** o nome de cada `Expr.Function` (escalar, de agregação, de janela, definida pelo usuário) e de cada função de tabela no `FROM`, como escrito: `COUNT` e `count` são entradas diferentes.
+- **Funções de tabela** (F1, revisão R4, item 6), nas três formas da AST: `LATERAL fn(x)` e `LATERAL FLATTEN(...)` (`TableFactor.Function`, nome pelo gancho de `TableFactor`); `TABLE(fn(x))` (`TableFactor.TableFunction`, cuja expressão já é uma `Expr.Function`); e a chamada direta no `FROM` (`TableFactor.Table` com `Args`), que também é relação. Na mesma ordem da travessia: o nome da função de tabela vem antes das funções dos seus argumentos.
+- No SQL Server, a dica antiga sem `WITH` (`FROM t (NOLOCK)`) é guardada pelo Rust como argumentos de função de tabela, então `t` também aparece nas funções. Com `WITH (NOLOCK)`, não.
+- Não entram as construções que o parser representa com nós próprios (`CAST`, `EXTRACT`, `SUBSTRING`, `TRIM`, `POSITION`, `UNNEST`, `JSON_TABLE`, `OPENJSON`, `XMLTABLE`...) nem os procedimentos de `CALL`.
 
 ### 6. Tipo da instrução: `SqlStatementKind`
 
-- Classificação grossa pelo comando que inicia a instrução: `Query`, `Insert`, `Update`, `Delete`, `Merge`, `Create`, `Alter`, `Drop`, `Truncate`, `Grant`, `Revoke`, `Deny`, `Transaction` e `Other` (valor padrão, `0`).
+- Classificação grossa pelo comando que inicia a instrução: `Query`, `Insert`, `Update`, `Delete`, `Merge`, `Create`, `Alter`, `Drop`, `Truncate`, `Grant`, `Revoke`, `Deny`, `Transaction`, `Block` e `Other` (valor padrão, `0`).
 - `Create`, `Alter` e `Drop` valem para toda variante cujo **nome começa** com `Create`, `Alter` ou `Drop`. Os nomes das variantes são os do Rust (convencoes.md §6), então variantes novas do upstream entram sozinhas. Os demais membros correspondem a variantes fixas.
-- `Transaction` = `StartTransaction` (`START TRANSACTION`, `BEGIN`), `Commit` (`COMMIT`, `END`), `Rollback`, `Savepoint` e `ReleaseSavepoint`.
+- `Transaction` = `StartTransaction` sem bloco (`START TRANSACTION`, `BEGIN`, `BEGIN TRANSACTION`), `Commit` (`COMMIT`, `END`), `Rollback`, `Savepoint` e `ReleaseSavepoint`.
+- **`Block`** (F1, revisão R4, item 3) = bloco `BEGIN ... END` do SQL Server, do BigQuery e do Snowflake, inclusive com `EXCEPTION WHEN ...`. O Rust guarda o bloco na mesma variante do `BEGIN [TRANSACTION]` (`Statement::StartTransaction`, montada por `parse_begin_exception_end` com `has_end_keyword: true` e as instruções em `statements`), mas o bloco não abre transação. O critério é `HasEndKeyword`: `BEGIN` seguido de `END` em instruções separadas (PostgreSQL) continua `Transaction` + `Transaction` (`StartTransaction` e `Commit`). `Block` foi acrescentado no fim do enum, para não mudar os valores dos membros existentes.
 - Uma `Statement.Query` cujo corpo é `INSERT`/`UPDATE`/`DELETE`/`MERGE` (o `WITH ... INSERT` do PostgreSQL) é classificada pela instrução interna. `SELECT ... INTO` continua `Query`, como no Rust.
 - **Alternativas rejeitadas:**
   - um enum com um membro por variante (cerca de 150), que duplicaria a hierarquia de tipos e mudaria a cada versão do upstream; para isso já existe `statement is Statement.X`;
@@ -168,7 +194,8 @@ As relações são os 21 campos que o sqlparser-rs v0.63.0 marca com `visit(with
 - Testes em `tests/SqlParser.Tests` (net48, net8.0 e net10.0):
   - `SqlVisitorTests`: ordem igual à do Core em 8 instruções de 7 dialetos; `Break`; subárvores; atalhos de leitura comparados com as funções do Core;
   - `SqlRewriterTests`: ordem e trocas iguais às do `VisitorMut`; renomear tabela e trocar literais com ida e volta pelo `ToSql()` e por um novo parse; `Break`; troca da raiz; `null`; atalhos de reescrita;
-  - `SqlAnalysisTests`: tabelas (inclusive as regras de CTE), colunas, funções e o tipo de 36 instruções, em vários dialetos;
+  - `SqlAnalysisTests`: tabelas (inclusive as regras de CTE e os alvos de `INTO`), colunas, funções (inclusive as de tabela) e o tipo de 41 instruções, em vários dialetos;
+  - `ArvoresProfundasTests` (F1): `ToSql` de consultas aninhadas e de cadeias de `UNION`, comparação segura de ASTs profundas e ganchos do visitor em outra thread, numa thread de 256 KB;
   - `ReadmeExamplesTests`: exemplos 8 a 11 do README.
   - Os visitors de registro ficam em `Recorders.cs`.
 - Nenhum código foi copiado do SqlParser-cs. São imitados como referência de desenho: o enum `ControlFlow` (`Continue`, `Break`), os nomes `PreVisit*`/`PostVisit*` e `PreVisitExpression`, e o uso `node.Visit(visitor)`. Registrado em `THIRD-PARTY-NOTICES.md`.
@@ -181,12 +208,12 @@ Decisões tomadas para esta fase, que o responsável deve confirmar ou trocar:
 2. **`ControlFlow` público com o mesmo nome do tipo do Core** (aridades diferentes, sem conflito de compilação). Alternativa: outro nome (`VisitAction`), que se afasta do SqlParser-cs.
 3. **Nomes dos ganchos** no estilo .NET (`PreVisitExpression`, `PreVisitIdentifier`, `PreVisitOrderByExpression`), em vez dos do Core (`PreVisitExpr`, `PreVisitIdent`, `PreVisitOrderByExpr`).
 4. **Regras de CTE em `GetReferencedTables`:**
-   - autorreferência sempre como CTE (certo no SQL Server e no Oracle; no PostgreSQL sem `RECURSIVE`, o nome se referiria a uma tabela);
-   - comparação de maiúsculas (sem aspas: ignora; com aspas: diferencia);
-   - um alvo de `INSERT`/`UPDATE`/`DELETE` com o mesmo nome de uma CTE do mesmo `WITH` é tratado como CTE (colisão rara; o banco usaria a tabela).
+   - ~~autorreferência sempre como CTE (certo no SQL Server e no Oracle; no PostgreSQL sem `RECURSIVE`, o nome se referiria a uma tabela)~~ **Decidido na F1 (revisão R4, item 5):** a autorreferência só é CTE com `RECURSIVE` ou com a definição numa operação de conjunto; senão, é a tabela (decisão 5);
+   - comparação de maiúsculas (sem aspas: ignora; com aspas: diferencia): mantida e **documentada na F1** (revisão R4, item 10), com a tabela de diferenças por banco (decisão 5);
+   - um alvo de `INSERT`/`UPDATE`/`DELETE` com o mesmo nome de uma CTE do mesmo `WITH` é tratado como CTE (colisão rara; o banco usaria a tabela). O alvo de `SELECT ... INTO`/`OUTPUT ... INTO` nunca é CTE (F1).
 5. **Colunas de DML:** incluir em `GetReferencedColumns` a lista de colunas de `INSERT` e os alvos de `UPDATE ... SET` (hoje só entram expressões).
 6. **`DROP TABLE`:** incluir os nomes de `Statement.Drop` em `GetReferencedTables`, embora o Rust não os marque como relação.
-7. **Membros de `SqlStatementKind`:** acrescentar `Show`, `Explain`, `Set`, `Use` ou `Call`? Classificar `RENAME TABLE` como `Alter`? Separar `CREATE USER`/`ROLE` de `Create`?
+7. **Membros de `SqlStatementKind`:** acrescentar `Show`, `Explain`, `Set`, `Use` ou `Call`? Classificar `RENAME TABLE` como `Alter`? Separar `CREATE USER`/`ROLE` de `Create`? (`Block` entrou na F1, para os blocos `BEGIN ... END`.)
 8. **Tipo das colunas:** `ObjectName` (atual) ou um tipo próprio (por exemplo, `ColumnReference` com `Qualifier` e `Name`).
 9. **Interrupção no `SqlRewriter`** por `protected void Break()` (atual) ou por um gancho que devolva também um `ControlFlow`.
 
@@ -213,3 +240,17 @@ A Rodada 1 levou o Core de `v0.63.0` a `dacdbc9` (63 PRs; `docs/port/upstream-le
 - A mesma entrada pode dar outra AST: `S*?` no `MATCH_RECOGNIZE`, `IN ((SELECT 1), 2)` (agora `InList`), `IN expr` sem parênteses no ClickHouse, `OBJECT(..)`, `TRIM(BOTH FROM ..)`.
 - `SqlVisitor`/`SqlRewriter` passam a receber `PreVisitIdentifier`/`PostVisitIdentifier` para os nomes do comando `TABLE t`, porque `Table` agora guarda `Ident`, como no Rust. `GetReferencedTables` não muda: esses nomes não são relações no Rust.
 - `GetStatementKind` classifica `CREATE FOREIGN TABLE` como `Create` sem código novo (decisão 6).
+
+## Correções da revisão R4 (F1, 2026-10-15)
+
+A revisão R4 (`docs/port/onda-d/R4.md`) testou a API pública e o pacote de contexto limpo. A unidade F1 mudou o comportamento de `SqlParser` nestes pontos (todos registrados no `CHANGELOG.md`, em "Não lançado"):
+
+| Item da R4 | Antes | Depois |
+|---|---|---|
+| 3 | `BEGIN ... END` (bloco) dava `Transaction` | `SqlStatementKind.Block` (membro novo, no fim do enum) |
+| 4 | O alvo de `SELECT ... INTO t` saía nas colunas e sumia das tabelas | É tabela e não é coluna; o mesmo vale para `OUTPUT ... INTO t` |
+| 5 | A autorreferência numa CTE sem `RECURSIVE` contava como CTE (a tabela real sumia) | Só conta com `RECURSIVE` ou com a definição numa operação de conjunto |
+| 6 | `LATERAL fn(x)`/`LATERAL FLATTEN(...)` não apareciam em nenhuma lista; a documentação dizia que funções de tabela eram relações | Todas as funções de tabela aparecem em `GetReferencedFunctions`; `GetReferencedTables` não mudou (só a chamada direta no `FROM` é relação) |
+| 9 | Item `null` em `ToSql(IEnumerable<Statement>)` lançava `ArgumentNullException` com `ParamName = "node"` | `ParamName = "statements"`, com a posição do item na mensagem |
+
+Também na F1: a documentação de `SqlVisitor`, `SqlRewriter` e `SqlVisitorExtensions` avisa que os ganchos podem rodar em outra thread (DIV-009, item 8); a de `SqlQueryParser(int recursionLimit)` avisa o que um limite alto implica (item 2); a regra de comparação de nomes de CTE ganhou a tabela da decisão 5 (item 10). O `ToSql` de consultas aninhadas, de junções entre parênteses e de cadeias de `UNION` deixou de estourar a pilha, por desvios no Core registrados na DIV-005; a igualdade dos records, que continua recursiva, ficou registrada como DIV-010 ([ADR-0008](0008-api-publica-fase-1.md), decisão 3).

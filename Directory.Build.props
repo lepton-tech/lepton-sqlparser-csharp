@@ -14,7 +14,8 @@
     - AssemblyVersion e FileVersion: <VersionPrefix>.0 (ex.: 0.63.1.0), sem o sufixo de pré-lançamento.
       As DLLs não têm assinatura forte, então o .NET Framework não usa a AssemblyVersion na vinculação.
     - InformationalVersion: <versão do pacote>+sqlparser-rs.<commit do Rust portado>, e o SDK acrescenta
-      ".<commit deste repositório>" (SourceRevisionId, lido do Git).
+      ".<commit deste repositório>" (SourceRevisionId, lido do Git). Com SqlParserDirtyBuild=true (passado por
+      tools/pack/Pack.ps1 -AllowDirty quando há alterações não commitadas), termina em ".dirty" (Directory.Build.targets).
   -->
   <PropertyGroup>
     <VersionPrefix>0.63.1</VersionPrefix>
@@ -44,14 +45,19 @@
   <!--
     Build reproduzível. Deterministic vale sempre; ContinuousIntegrationBuild (caminhos normalizados para /_/ nos PDBs)
     vale em servidores de CI (CI, TF_BUILD, BITBUCKET_BUILD_NUMBER) ou quando passado explicitamente
-    (tools/pack/Pack.ps1 usa -p:ContinuousIntegrationBuild=true). Os PDBs são portáteis; EmbedUntrackedSources embute
-    nos PDBs os fontes que o Git não rastreia (ex.: os gerados em obj/).
+    (tools/pack/Pack.ps1 usa -p:ContinuousIntegrationBuild=true). EmbedUntrackedSources embute nos PDBs os fontes que
+    o Git não rastreia (ex.: os gerados em obj/).
+    Símbolos: os PDBs são portáteis. Nas duas DLLs do pacote (SqlParser e SqlParser.Core), o PDB vai EMBUTIDO na DLL
+    (DebugType=embedded): o depurador e os rastros de pilha acham os símbolos em qualquer feed (local, interno ou
+    nuget.org) sem servidor de símbolos, e não há .snupkg. Os demais projetos (testes) mantêm o PDB em arquivo.
+    Ver docs/adr/0010-empacotamento.md.
     TODO (SourceLink): o repositório ainda não tem remoto. Quando for para o Bitbucket, definir RepositoryUrl e
     PublishRepositoryUrl; o SourceLink embutido no SDK (8 ou superior) passa a gerar os links. Para Bitbucket Server,
-    declarar também o item SourceLinkBitbucketGitHost.
+    declarar também o item SourceLinkBitbucketGitHost. Os marcadores ficam comentados em src/SqlParser/SqlParser.csproj.
   -->
   <PropertyGroup>
     <DebugType>portable</DebugType>
+    <DebugType Condition="'$(MSBuildProjectName)' == 'SqlParser' or '$(MSBuildProjectName)' == 'SqlParser.Core'">embedded</DebugType>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
   </PropertyGroup>
   <PropertyGroup Condition="'$(ContinuousIntegrationBuild)' == '' and ('$(CI)' == 'true' or '$(TF_BUILD)' == 'true' or '$(BITBUCKET_BUILD_NUMBER)' != '')">

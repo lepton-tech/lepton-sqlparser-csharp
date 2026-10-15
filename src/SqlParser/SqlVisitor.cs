@@ -33,6 +33,18 @@ namespace SqlParser;
 /// Uma instância pode ser reutilizada em várias visitas, mas não em visitas simultâneas (o estado é o do
 /// próprio visitor).
 /// </para>
+/// <para>
+/// <b>Thread dos ganchos:</b> em árvores muito profundas (centenas de níveis no build Debug, como uma cadeia
+/// longa de <c>OR</c>), a travessia do Core continua numa thread nova quando falta pilha, e os ganchos seguintes
+/// rodam nela (DIV-009 em <c>docs/port/divergencias.md</c>; é o equivalente do <c>#[recursive::recursive]</c>
+/// do Rust). Quem chamou <c>Visit</c> espera o fim, e uma exceção de um gancho chega a ele com o tipo e o rastro
+/// de pilha originais. Os ganchos não devem depender da thread: estado <c>[ThreadStatic]</c> e
+/// <c>ThreadLocal</c> não acompanha (a cultura e o <c>AsyncLocal</c> acompanham), e objetos presos a uma thread,
+/// como controles do WinForms/WPF e objetos COM de apartamento STA, não podem ser usados dentro de um gancho.
+/// Numa thread STA (a thread de UI), a espera bombeia mensagens COM, o que pode reentrar no código da interface.
+/// Para atualizar a interface, junte os dados no visitor e use-os depois que <c>Visit</c> voltar, ou chame
+/// <c>Visit</c> fora da thread de UI.
+/// </para>
 /// </remarks>
 /// <example>
 /// <code>
