@@ -177,3 +177,4 @@ pwsh tools/pack/Test-Package.ps1      # instala o pacote em apps net48 e net8.0 
 - [Análise técnica e plano](docs/analise-tecnica-e-plano.md) e [decisões de arquitetura (ADRs)](docs/adr/)
 - [Convenções de tradução Rust → C#](docs/port/convencoes.md), [glossário de nomes](docs/port/nomes.md) e [divergências](docs/port/divergencias.md)
 - [Sincronização com o upstream](docs/port/upstream-ledger.md) e [referências e boas práticas](docs/port/referencias-e-boas-praticas.md)
+- [Geradores de código](tools/codegen/README.md) (keywords, visitor e tabelas de maiúsculas/minúsculas) e [benchmark](tools/bench/README.md)
