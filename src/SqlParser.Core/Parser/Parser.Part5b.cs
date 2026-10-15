@@ -997,6 +997,9 @@ public sealed partial class Parser
             case Expr.Wildcard { Value: var token }:
                 return new SelectItem.Wildcard(
                     ParseWildcardAdditionalOptions(token.Value));
+            // PORT-DEVIATION DIV-001: `to_lowercase()` → `ToLowerInvariant()` (mapeamento simples). Sem efeito
+            // aqui, em todos os alvos: fora do ASCII, só U+212A (`k`) e U+0130 (`i` + U+0307 no Rust) minusculizam
+            // para algo que começa por letra ASCII, e "from" não tem `k` nem `i`.
             case Expr.Identifier { Value: var v } when v.Value.ToLowerInvariant() == "from" && v.QuoteStyle is null:
                 throw ParserErr(
                     $"Expected an expression, found: {v}",

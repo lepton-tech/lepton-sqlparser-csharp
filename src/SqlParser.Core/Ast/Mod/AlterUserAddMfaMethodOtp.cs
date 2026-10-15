@@ -25,6 +25,6 @@ namespace SqlParser.Core.Ast;
 /// ADD MFA METHOD OTP [ COUNT = number ]
 /// </code>
 /// </summary>
-/// <remarks>Sem <c>impl Display</c> no Rust: quem formata é <see cref="AlterUser"/>.</remarks>
 /// <param name="Count">Optional OTP count parameter.</param>
+// Sem `impl Display` no Rust: quem formata é AlterUser.
 public sealed partial record AlterUserAddMfaMethodOtp(ValueWithSpan? Count);

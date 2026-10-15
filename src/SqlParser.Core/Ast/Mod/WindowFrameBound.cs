@@ -27,11 +27,11 @@ public abstract partial record WindowFrameBound : IDisplay
     public sealed record CurrentRow : WindowFrameBound;
 
     /// <summary><c>&lt;N&gt; PRECEDING</c> or <c>UNBOUNDED PRECEDING</c></summary>
-    /// <param name="Value">Rust: campo <c>.0</c> (<c>None</c> = <c>UNBOUNDED</c>).</param>
+    // Value: Rust: campo `.0` (`None` = `UNBOUNDED`).
     public sealed record Preceding(Expr? Value) : WindowFrameBound;
 
     /// <summary><c>&lt;N&gt; FOLLOWING</c> or <c>UNBOUNDED FOLLOWING</c>.</summary>
-    /// <param name="Value">Rust: campo <c>.0</c> (<c>None</c> = <c>UNBOUNDED</c>).</param>
+    // Value: Rust: campo `.0` (`None` = `UNBOUNDED`).
     public sealed record Following(Expr? Value) : WindowFrameBound;
 
     public void Fmt(Formatter f)

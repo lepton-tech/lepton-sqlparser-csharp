@@ -21,17 +21,13 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>A top-level statement (SELECT, INSERT, CREATE, etc.)</summary>
-/// <remarks>
-/// <c>partial</c>: as variantes e os <c>impl From</c> de <c>mod.rs</c> 5026–5048 ficam aqui; o
-/// <c>impl fmt::Display for Statement</c> fica em <c>Statement.Display.cs</c>. Outros trechos de
-/// <c>mod.rs</c> (os demais <c>impl From&lt;X&gt; for Statement</c>) acrescentam membros em arquivos próprios.
-/// <para>
-/// Variantes-tupla cujo tipo tem o nome da variante (<c>Insert(Insert)</c>) qualificam o tipo como
-/// <c>Ast.X</c> (convencoes.md §13, caso 38). Campos de variantes-struct com o nome de outra variante
-/// (<c>AlterView.Query</c>, <c>Explain.Analyze</c>...) declaram a propriedade explicitamente com <c>new</c>:
-/// sem isso, o membro herdado (o tipo aninhado <c>Statement.Query</c>) impede a propriedade sintetizada (CS8866).
-/// </para>
-/// </remarks>
+// `partial`: as variantes e os `impl From` de `mod.rs` 5026–5048 ficam aqui; o
+// `impl fmt::Display for Statement` fica em `Statement.Display.cs`. Outros trechos de
+// `mod.rs` (os demais `impl From<X> for Statement`) acrescentam membros em arquivos próprios.
+// Variantes-tupla cujo tipo tem o nome da variante (`Insert(Insert)`) qualificam o tipo como
+// `Ast.X` (convencoes.md §13, caso 38). Campos de variantes-struct com o nome de outra variante
+// (`AlterView.Query`, `Explain.Analyze`...) declaram a propriedade explicitamente com `new`:
+// sem isso, o membro herdado (o tipo aninhado `Statement.Query`) impede a propriedade sintetizada (CS8866).
 [VisitWith("visit_statement")]
 public abstract partial record Statement
 {
@@ -967,13 +963,13 @@ public abstract partial record Statement
     /// <param name="ObjectName">Name of the object the comment applies to.</param>
     /// <param name="CommentValue">
     /// Optional comment text (None to remove comment).
-    /// Rust: campo <c>comment</c>; renomeado porque um membro não pode ter o nome do tipo que o contém
-    /// (CS0542; convencoes.md §13, caso 41).
     /// </param>
     /// <param name="IfExists">
     /// An optional <c>IF EXISTS</c> clause. (Non-standard.)
     /// See <see href="https://docs.snowflake.com/en/sql-reference/sql/comment"/>
     /// </param>
+    // CommentValue: Rust: campo `comment`; renomeado porque um membro não pode ter o nome do tipo que o contém
+    // (CS0542; convencoes.md §13, caso 41).
     public sealed record Comment(
         CommentObject ObjectType,
         ObjectName ObjectName,
@@ -1045,8 +1041,8 @@ public abstract partial record Statement
     /// CREATE SCHEMA myschema CLONE otherschema
     /// </code>
     /// <see href="https://docs.snowflake.com/en/sql-reference/sql/create-clone#databases-schemas">Snowflake</see>
-    /// <para>Rust: campo <c>clone</c>; renomeado porque records não aceitam membros chamados <c>Clone</c> (CS8859).</para>
     /// </param>
+    // CloneValue: Rust: campo `clone`; renomeado porque records não aceitam membros chamados `Clone` (CS8859).
     public sealed record CreateSchema(
         SchemaName SchemaName,
         bool OrReplace,
@@ -1071,7 +1067,6 @@ public abstract partial record Statement
     /// <param name="Transient"><c>TRANSIENT</c> flag.</param>
     /// <param name="CloneValue">
     /// Optional clone source.
-    /// <para>Rust: campo <c>clone</c>; renomeado porque records não aceitam membros chamados <c>Clone</c> (CS8859).</para>
     /// </param>
     /// <param name="DataRetentionTimeInDays">Optional data retention time in days.</param>
     /// <param name="MaxDataExtensionTimeInDays">Optional maximum data extension time in days.</param>
@@ -1088,6 +1083,7 @@ public abstract partial record Statement
     /// <param name="CatalogSyncNamespaceFlattenDelimiter">Optional flatten delimiter for namespace sync.</param>
     /// <param name="WithTags">Optional tags for the database.</param>
     /// <param name="WithContacts">Optional contact entries for the database.</param>
+    // CloneValue: Rust: campo `clone`; renomeado porque records não aceitam membros chamados `Clone` (CS8859).
     public sealed record CreateDatabase(
         ObjectName DbName,
         bool IfNotExists,
@@ -1790,15 +1786,15 @@ public abstract partial record Statement
     /// </summary>
     public sealed record Reset(ResetStatement Value) : Statement;
 
-    /// <summary>Rust: <c>impl From&lt;Analyze&gt; for Statement</c>.</summary>
+    // Rust: `impl From<Analyze> for Statement`.
     public static Statement From(Ast.Analyze analyze) => new Analyze(analyze);
 
-    /// <summary>Rust: <c>impl From&lt;ddl::Truncate&gt; for Statement</c>.</summary>
+    // Rust: `impl From<ddl::Truncate> for Statement`.
     public static Statement From(Ast.Truncate truncate) => new Truncate(truncate);
 
-    /// <summary>Rust: <c>impl From&lt;Lock&gt; for Statement</c>.</summary>
+    // Rust: `impl From<Lock> for Statement`.
     public static Statement From(Ast.Lock @lock) => new Lock(@lock);
 
-    /// <summary>Rust: <c>impl From&lt;ddl::Msck&gt; for Statement</c>.</summary>
+    // Rust: `impl From<ddl::Msck> for Statement`.
     public static Statement From(Ast.Msck msck) => new Msck(msck);
 }

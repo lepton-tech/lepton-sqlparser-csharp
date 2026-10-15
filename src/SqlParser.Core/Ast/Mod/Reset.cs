@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Variants of the RESET statement</summary>
-/// <remarks>Sem <c>impl Display</c> no Rust: quem formata é <see cref="ResetStatement"/>.</remarks>
+// Sem `impl Display` no Rust: quem formata é ResetStatement.
 public abstract partial record Reset
 {
     /// <summary>Resets all session parameters to their default values.</summary>

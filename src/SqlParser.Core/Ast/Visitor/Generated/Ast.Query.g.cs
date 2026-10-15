@@ -374,7 +374,7 @@ namespace SqlParser.Core.Ast
     public abstract partial record CteAsMaterialized : global::SqlParser.Core.Ast.IVisit, global::SqlParser.Core.Ast.IVisitMut<global::SqlParser.Core.Ast.CteAsMaterialized>
     {
         /// <inheritdoc/>
-        /// <remarks>Nenhum campo alcança um gancho do <see cref="global::SqlParser.Core.Ast.Visitor{TBreak}"/>: a visita do derive Rust não tem efeito.</remarks>
+        // Nenhum campo alcança um gancho do Visitor<TBreak>: a visita do derive Rust não tem efeito.
         public global::SqlParser.Core.ControlFlow<TBreak> Visit<TBreak>(global::SqlParser.Core.Ast.Visitor<TBreak> visitor) => global::SqlParser.Core.ControlFlow<TBreak>.Continue;
 
         /// <inheritdoc/>
@@ -485,7 +485,7 @@ namespace SqlParser.Core.Ast
     public abstract partial record EmptyMatchesMode : global::SqlParser.Core.Ast.IVisit, global::SqlParser.Core.Ast.IVisitMut<global::SqlParser.Core.Ast.EmptyMatchesMode>
     {
         /// <inheritdoc/>
-        /// <remarks>Nenhum campo alcança um gancho do <see cref="global::SqlParser.Core.Ast.Visitor{TBreak}"/>: a visita do derive Rust não tem efeito.</remarks>
+        // Nenhum campo alcança um gancho do Visitor<TBreak>: a visita do derive Rust não tem efeito.
         public global::SqlParser.Core.ControlFlow<TBreak> Visit<TBreak>(global::SqlParser.Core.Ast.Visitor<TBreak> visitor) => global::SqlParser.Core.ControlFlow<TBreak>.Continue;
 
         /// <inheritdoc/>
@@ -899,7 +899,7 @@ namespace SqlParser.Core.Ast
     public abstract partial record ForClause : global::SqlParser.Core.Ast.IVisit, global::SqlParser.Core.Ast.IVisitMut<global::SqlParser.Core.Ast.ForClause>
     {
         /// <inheritdoc/>
-        /// <remarks>Nenhum campo alcança um gancho do <see cref="global::SqlParser.Core.Ast.Visitor{TBreak}"/>: a visita do derive Rust não tem efeito.</remarks>
+        // Nenhum campo alcança um gancho do Visitor<TBreak>: a visita do derive Rust não tem efeito.
         public global::SqlParser.Core.ControlFlow<TBreak> Visit<TBreak>(global::SqlParser.Core.Ast.Visitor<TBreak> visitor) => global::SqlParser.Core.ControlFlow<TBreak>.Continue;
 
         /// <inheritdoc/>
@@ -914,7 +914,7 @@ namespace SqlParser.Core.Ast
     public abstract partial record ForJson : global::SqlParser.Core.Ast.IVisit, global::SqlParser.Core.Ast.IVisitMut<global::SqlParser.Core.Ast.ForJson>
     {
         /// <inheritdoc/>
-        /// <remarks>Nenhum campo alcança um gancho do <see cref="global::SqlParser.Core.Ast.Visitor{TBreak}"/>: a visita do derive Rust não tem efeito.</remarks>
+        // Nenhum campo alcança um gancho do Visitor<TBreak>: a visita do derive Rust não tem efeito.
         public global::SqlParser.Core.ControlFlow<TBreak> Visit<TBreak>(global::SqlParser.Core.Ast.Visitor<TBreak> visitor) => global::SqlParser.Core.ControlFlow<TBreak>.Continue;
 
         /// <inheritdoc/>
@@ -929,7 +929,7 @@ namespace SqlParser.Core.Ast
     public abstract partial record ForXml : global::SqlParser.Core.Ast.IVisit, global::SqlParser.Core.Ast.IVisitMut<global::SqlParser.Core.Ast.ForXml>
     {
         /// <inheritdoc/>
-        /// <remarks>Nenhum campo alcança um gancho do <see cref="global::SqlParser.Core.Ast.Visitor{TBreak}"/>: a visita do derive Rust não tem efeito.</remarks>
+        // Nenhum campo alcança um gancho do Visitor<TBreak>: a visita do derive Rust não tem efeito.
         public global::SqlParser.Core.ControlFlow<TBreak> Visit<TBreak>(global::SqlParser.Core.Ast.Visitor<TBreak> visitor) => global::SqlParser.Core.ControlFlow<TBreak>.Continue;
 
         /// <inheritdoc/>
@@ -1358,7 +1358,7 @@ namespace SqlParser.Core.Ast
     public sealed partial record IlikeSelectItem : global::SqlParser.Core.Ast.IVisit, global::SqlParser.Core.Ast.IVisitMut<global::SqlParser.Core.Ast.IlikeSelectItem>
     {
         /// <inheritdoc/>
-        /// <remarks>Nenhum campo alcança um gancho do <see cref="global::SqlParser.Core.Ast.Visitor{TBreak}"/>: a visita do derive Rust não tem efeito.</remarks>
+        // Nenhum campo alcança um gancho do Visitor<TBreak>: a visita do derive Rust não tem efeito.
         public global::SqlParser.Core.ControlFlow<TBreak> Visit<TBreak>(global::SqlParser.Core.Ast.Visitor<TBreak> visitor) => global::SqlParser.Core.ControlFlow<TBreak>.Continue;
 
         /// <inheritdoc/>
@@ -3264,7 +3264,7 @@ namespace SqlParser.Core.Ast
     public abstract partial record LockType : global::SqlParser.Core.Ast.IVisit, global::SqlParser.Core.Ast.IVisitMut<global::SqlParser.Core.Ast.LockType>
     {
         /// <inheritdoc/>
-        /// <remarks>Nenhum campo alcança um gancho do <see cref="global::SqlParser.Core.Ast.Visitor{TBreak}"/>: a visita do derive Rust não tem efeito.</remarks>
+        // Nenhum campo alcança um gancho do Visitor<TBreak>: a visita do derive Rust não tem efeito.
         public global::SqlParser.Core.ControlFlow<TBreak> Visit<TBreak>(global::SqlParser.Core.Ast.Visitor<TBreak> visitor) => global::SqlParser.Core.ControlFlow<TBreak>.Continue;
 
         /// <inheritdoc/>
@@ -3977,7 +3977,7 @@ namespace SqlParser.Core.Ast
     public abstract partial record NonBlock : global::SqlParser.Core.Ast.IVisit, global::SqlParser.Core.Ast.IVisitMut<global::SqlParser.Core.Ast.NonBlock>
     {
         /// <inheritdoc/>
-        /// <remarks>Nenhum campo alcança um gancho do <see cref="global::SqlParser.Core.Ast.Visitor{TBreak}"/>: a visita do derive Rust não tem efeito.</remarks>
+        // Nenhum campo alcança um gancho do Visitor<TBreak>: a visita do derive Rust não tem efeito.
         public global::SqlParser.Core.ControlFlow<TBreak> Visit<TBreak>(global::SqlParser.Core.Ast.Visitor<TBreak> visitor) => global::SqlParser.Core.ControlFlow<TBreak>.Continue;
 
         /// <inheritdoc/>
@@ -4041,7 +4041,7 @@ namespace SqlParser.Core.Ast
     public abstract partial record OffsetRows : global::SqlParser.Core.Ast.IVisit, global::SqlParser.Core.Ast.IVisitMut<global::SqlParser.Core.Ast.OffsetRows>
     {
         /// <inheritdoc/>
-        /// <remarks>Nenhum campo alcança um gancho do <see cref="global::SqlParser.Core.Ast.Visitor{TBreak}"/>: a visita do derive Rust não tem efeito.</remarks>
+        // Nenhum campo alcança um gancho do Visitor<TBreak>: a visita do derive Rust não tem efeito.
         public global::SqlParser.Core.ControlFlow<TBreak> Visit<TBreak>(global::SqlParser.Core.Ast.Visitor<TBreak> visitor) => global::SqlParser.Core.ControlFlow<TBreak>.Continue;
 
         /// <inheritdoc/>
@@ -6422,7 +6422,7 @@ namespace SqlParser.Core.Ast
     public abstract partial record RepetitionQuantifier : global::SqlParser.Core.Ast.IVisit, global::SqlParser.Core.Ast.IVisitMut<global::SqlParser.Core.Ast.RepetitionQuantifier>
     {
         /// <inheritdoc/>
-        /// <remarks>Nenhum campo alcança um gancho do <see cref="global::SqlParser.Core.Ast.Visitor{TBreak}"/>: a visita do derive Rust não tem efeito.</remarks>
+        // Nenhum campo alcança um gancho do Visitor<TBreak>: a visita do derive Rust não tem efeito.
         public global::SqlParser.Core.ControlFlow<TBreak> Visit<TBreak>(global::SqlParser.Core.Ast.Visitor<TBreak> visitor) => global::SqlParser.Core.ControlFlow<TBreak>.Continue;
 
         /// <inheritdoc/>
@@ -6570,7 +6570,7 @@ namespace SqlParser.Core.Ast
     public abstract partial record RowsPerMatch : global::SqlParser.Core.Ast.IVisit, global::SqlParser.Core.Ast.IVisitMut<global::SqlParser.Core.Ast.RowsPerMatch>
     {
         /// <inheritdoc/>
-        /// <remarks>Nenhum campo alcança um gancho do <see cref="global::SqlParser.Core.Ast.Visitor{TBreak}"/>: a visita do derive Rust não tem efeito.</remarks>
+        // Nenhum campo alcança um gancho do Visitor<TBreak>: a visita do derive Rust não tem efeito.
         public global::SqlParser.Core.ControlFlow<TBreak> Visit<TBreak>(global::SqlParser.Core.Ast.Visitor<TBreak> visitor) => global::SqlParser.Core.ControlFlow<TBreak>.Continue;
 
         /// <inheritdoc/>
@@ -7578,7 +7578,7 @@ namespace SqlParser.Core.Ast
     public sealed partial record SelectModifiers : global::SqlParser.Core.Ast.IVisit, global::SqlParser.Core.Ast.IVisitMut<global::SqlParser.Core.Ast.SelectModifiers>
     {
         /// <inheritdoc/>
-        /// <remarks>Nenhum campo alcança um gancho do <see cref="global::SqlParser.Core.Ast.Visitor{TBreak}"/>: a visita do derive Rust não tem efeito.</remarks>
+        // Nenhum campo alcança um gancho do Visitor<TBreak>: a visita do derive Rust não tem efeito.
         public global::SqlParser.Core.ControlFlow<TBreak> Visit<TBreak>(global::SqlParser.Core.Ast.Visitor<TBreak> visitor) => global::SqlParser.Core.ControlFlow<TBreak>.Continue;
 
         /// <inheritdoc/>
@@ -7970,7 +7970,7 @@ namespace SqlParser.Core.Ast
     public abstract partial record SetOperator : global::SqlParser.Core.Ast.IVisit, global::SqlParser.Core.Ast.IVisitMut<global::SqlParser.Core.Ast.SetOperator>
     {
         /// <inheritdoc/>
-        /// <remarks>Nenhum campo alcança um gancho do <see cref="global::SqlParser.Core.Ast.Visitor{TBreak}"/>: a visita do derive Rust não tem efeito.</remarks>
+        // Nenhum campo alcança um gancho do Visitor<TBreak>: a visita do derive Rust não tem efeito.
         public global::SqlParser.Core.ControlFlow<TBreak> Visit<TBreak>(global::SqlParser.Core.Ast.Visitor<TBreak> visitor) => global::SqlParser.Core.ControlFlow<TBreak>.Continue;
 
         /// <inheritdoc/>
@@ -7985,7 +7985,7 @@ namespace SqlParser.Core.Ast
     public abstract partial record SetQuantifier : global::SqlParser.Core.Ast.IVisit, global::SqlParser.Core.Ast.IVisitMut<global::SqlParser.Core.Ast.SetQuantifier>
     {
         /// <inheritdoc/>
-        /// <remarks>Nenhum campo alcança um gancho do <see cref="global::SqlParser.Core.Ast.Visitor{TBreak}"/>: a visita do derive Rust não tem efeito.</remarks>
+        // Nenhum campo alcança um gancho do Visitor<TBreak>: a visita do derive Rust não tem efeito.
         public global::SqlParser.Core.ControlFlow<TBreak> Visit<TBreak>(global::SqlParser.Core.Ast.Visitor<TBreak> visitor) => global::SqlParser.Core.ControlFlow<TBreak>.Continue;
 
         /// <inheritdoc/>
@@ -8128,7 +8128,7 @@ namespace SqlParser.Core.Ast
     public sealed partial record Table : global::SqlParser.Core.Ast.IVisit, global::SqlParser.Core.Ast.IVisitMut<global::SqlParser.Core.Ast.Table>
     {
         /// <inheritdoc/>
-        /// <remarks>Nenhum campo alcança um gancho do <see cref="global::SqlParser.Core.Ast.Visitor{TBreak}"/>: a visita do derive Rust não tem efeito.</remarks>
+        // Nenhum campo alcança um gancho do Visitor<TBreak>: a visita do derive Rust não tem efeito.
         public global::SqlParser.Core.ControlFlow<TBreak> Visit<TBreak>(global::SqlParser.Core.Ast.Visitor<TBreak> visitor) => global::SqlParser.Core.ControlFlow<TBreak>.Continue;
 
         /// <inheritdoc/>
@@ -10264,7 +10264,7 @@ namespace SqlParser.Core.Ast
     public abstract partial record TableIndexHintForClause : global::SqlParser.Core.Ast.IVisit, global::SqlParser.Core.Ast.IVisitMut<global::SqlParser.Core.Ast.TableIndexHintForClause>
     {
         /// <inheritdoc/>
-        /// <remarks>Nenhum campo alcança um gancho do <see cref="global::SqlParser.Core.Ast.Visitor{TBreak}"/>: a visita do derive Rust não tem efeito.</remarks>
+        // Nenhum campo alcança um gancho do Visitor<TBreak>: a visita do derive Rust não tem efeito.
         public global::SqlParser.Core.ControlFlow<TBreak> Visit<TBreak>(global::SqlParser.Core.Ast.Visitor<TBreak> visitor) => global::SqlParser.Core.ControlFlow<TBreak>.Continue;
 
         /// <inheritdoc/>
@@ -10279,7 +10279,7 @@ namespace SqlParser.Core.Ast
     public abstract partial record TableIndexHintType : global::SqlParser.Core.Ast.IVisit, global::SqlParser.Core.Ast.IVisitMut<global::SqlParser.Core.Ast.TableIndexHintType>
     {
         /// <inheritdoc/>
-        /// <remarks>Nenhum campo alcança um gancho do <see cref="global::SqlParser.Core.Ast.Visitor{TBreak}"/>: a visita do derive Rust não tem efeito.</remarks>
+        // Nenhum campo alcança um gancho do Visitor<TBreak>: a visita do derive Rust não tem efeito.
         public global::SqlParser.Core.ControlFlow<TBreak> Visit<TBreak>(global::SqlParser.Core.Ast.Visitor<TBreak> visitor) => global::SqlParser.Core.ControlFlow<TBreak>.Continue;
 
         /// <inheritdoc/>
@@ -10367,7 +10367,7 @@ namespace SqlParser.Core.Ast
     public abstract partial record TableIndexType : global::SqlParser.Core.Ast.IVisit, global::SqlParser.Core.Ast.IVisitMut<global::SqlParser.Core.Ast.TableIndexType>
     {
         /// <inheritdoc/>
-        /// <remarks>Nenhum campo alcança um gancho do <see cref="global::SqlParser.Core.Ast.Visitor{TBreak}"/>: a visita do derive Rust não tem efeito.</remarks>
+        // Nenhum campo alcança um gancho do Visitor<TBreak>: a visita do derive Rust não tem efeito.
         public global::SqlParser.Core.ControlFlow<TBreak> Visit<TBreak>(global::SqlParser.Core.Ast.Visitor<TBreak> visitor) => global::SqlParser.Core.ControlFlow<TBreak>.Continue;
 
         /// <inheritdoc/>
@@ -10681,7 +10681,7 @@ namespace SqlParser.Core.Ast
     public abstract partial record TableSampleMethod : global::SqlParser.Core.Ast.IVisit, global::SqlParser.Core.Ast.IVisitMut<global::SqlParser.Core.Ast.TableSampleMethod>
     {
         /// <inheritdoc/>
-        /// <remarks>Nenhum campo alcança um gancho do <see cref="global::SqlParser.Core.Ast.Visitor{TBreak}"/>: a visita do derive Rust não tem efeito.</remarks>
+        // Nenhum campo alcança um gancho do Visitor<TBreak>: a visita do derive Rust não tem efeito.
         public global::SqlParser.Core.ControlFlow<TBreak> Visit<TBreak>(global::SqlParser.Core.Ast.Visitor<TBreak> visitor) => global::SqlParser.Core.ControlFlow<TBreak>.Continue;
 
         /// <inheritdoc/>
@@ -10696,7 +10696,7 @@ namespace SqlParser.Core.Ast
     public abstract partial record TableSampleModifier : global::SqlParser.Core.Ast.IVisit, global::SqlParser.Core.Ast.IVisitMut<global::SqlParser.Core.Ast.TableSampleModifier>
     {
         /// <inheritdoc/>
-        /// <remarks>Nenhum campo alcança um gancho do <see cref="global::SqlParser.Core.Ast.Visitor{TBreak}"/>: a visita do derive Rust não tem efeito.</remarks>
+        // Nenhum campo alcança um gancho do Visitor<TBreak>: a visita do derive Rust não tem efeito.
         public global::SqlParser.Core.ControlFlow<TBreak> Visit<TBreak>(global::SqlParser.Core.Ast.Visitor<TBreak> visitor) => global::SqlParser.Core.ControlFlow<TBreak>.Continue;
 
         /// <inheritdoc/>
@@ -10811,7 +10811,7 @@ namespace SqlParser.Core.Ast
     public abstract partial record TableSampleSeedModifier : global::SqlParser.Core.Ast.IVisit, global::SqlParser.Core.Ast.IVisitMut<global::SqlParser.Core.Ast.TableSampleSeedModifier>
     {
         /// <inheritdoc/>
-        /// <remarks>Nenhum campo alcança um gancho do <see cref="global::SqlParser.Core.Ast.Visitor{TBreak}"/>: a visita do derive Rust não tem efeito.</remarks>
+        // Nenhum campo alcança um gancho do Visitor<TBreak>: a visita do derive Rust não tem efeito.
         public global::SqlParser.Core.ControlFlow<TBreak> Visit<TBreak>(global::SqlParser.Core.Ast.Visitor<TBreak> visitor) => global::SqlParser.Core.ControlFlow<TBreak>.Continue;
 
         /// <inheritdoc/>
@@ -10826,7 +10826,7 @@ namespace SqlParser.Core.Ast
     public abstract partial record TableSampleUnit : global::SqlParser.Core.Ast.IVisit, global::SqlParser.Core.Ast.IVisitMut<global::SqlParser.Core.Ast.TableSampleUnit>
     {
         /// <inheritdoc/>
-        /// <remarks>Nenhum campo alcança um gancho do <see cref="global::SqlParser.Core.Ast.Visitor{TBreak}"/>: a visita do derive Rust não tem efeito.</remarks>
+        // Nenhum campo alcança um gancho do Visitor<TBreak>: a visita do derive Rust não tem efeito.
         public global::SqlParser.Core.ControlFlow<TBreak> Visit<TBreak>(global::SqlParser.Core.Ast.Visitor<TBreak> visitor) => global::SqlParser.Core.ControlFlow<TBreak>.Continue;
 
         /// <inheritdoc/>
@@ -11478,7 +11478,7 @@ namespace SqlParser.Core.Ast
     public abstract partial record ValueTableMode : global::SqlParser.Core.Ast.IVisit, global::SqlParser.Core.Ast.IVisitMut<global::SqlParser.Core.Ast.ValueTableMode>
     {
         /// <inheritdoc/>
-        /// <remarks>Nenhum campo alcança um gancho do <see cref="global::SqlParser.Core.Ast.Visitor{TBreak}"/>: a visita do derive Rust não tem efeito.</remarks>
+        // Nenhum campo alcança um gancho do Visitor<TBreak>: a visita do derive Rust não tem efeito.
         public global::SqlParser.Core.ControlFlow<TBreak> Visit<TBreak>(global::SqlParser.Core.Ast.Visitor<TBreak> visitor) => global::SqlParser.Core.ControlFlow<TBreak>.Continue;
 
         /// <inheritdoc/>

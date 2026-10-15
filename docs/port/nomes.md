@@ -185,7 +185,7 @@ Regras em `convencoes.md` §13, casos 125–134, e `docs/adr/0007-visitor.md`.
 
 ## Camada pública (`SqlParser`)
 
-Nomes "amigáveis" herdados do SqlParser-cs, aplicáveis **somente** à API pública ([ADR-0002](../adr/0002-arquitetura-em-camadas-e-api.md)). Decisões da fase 1 em [ADR-0008](../adr/0008-api-publica-fase-1.md).
+Nomes "amigáveis" herdados do SqlParser-cs, aplicáveis **somente** à API pública ([ADR-0002](../adr/0002-arquitetura-em-camadas-e-api.md)). Decisões da fase 1 em [ADR-0008](../adr/0008-api-publica-fase-1.md) e da fase 2 em [ADR-0009](../adr/0009-api-publica-fase-2.md).
 
 | Conceito (Core) | API pública | Observação |
 |---|---|---|
@@ -196,3 +196,15 @@ Nomes "amigáveis" herdados do SqlParser-cs, aplicáveis **somente** à API púb
 | `Parser::with_recursion_limit` | `new SqlQueryParser(recursionLimit)` / `SqlQueryParser.RecursionLimit` | `null` = padrão do Core |
 | `ParserException` (Core) / `ParserError` | `SqlParseException` (`Error`, `Location`, `Line`, `Column`) | Não pode se chamar `ParserException` (CS0104 com o Core) |
 | `format!("{}", x)` / `format!("{:#}", x)` | `x.ToSql()` / `x.ToSql(pretty: true)` (`SqlWritingExtensions`) | Sobre `IDisplay`; também sobre `IEnumerable<Statement>` (separadores `"; "` e `";\n"`) |
+| `trait Visitor` (Core: `Visitor<TBreak>`) | `SqlVisitor` (abstrata) | Adaptador sobre o `Visitor<ValueTuple>` do Core. `Visitor` colidiria com `Visitor`/`Visitor<TBreak>` do Core (CS0104) |
+| `core::ops::ControlFlow<B>` (Core: `ControlFlow<TBreak>`) | `ControlFlow` (enum: `Continue`, `Break`) | Como no SqlParser-cs, sem valor no `Break`. Aridade diferente da do Core: sem conflito |
+| `pre_visit_expr`/`post_visit_expr` (Core: `PreVisitExpr`/`PostVisitExpr`) | `PreVisitExpression`/`PostVisitExpression` | Nome do SqlParser-cs; parâmetro `Expr` |
+| `pre_visit_ident`/`post_visit_ident` (Core: `PreVisitIdent`/`PostVisitIdent`) | `PreVisitIdentifier`/`PostVisitIdentifier` | Por extenso (diretrizes do .NET) |
+| `pre_visit_order_by_expr`/`post_visit_order_by_expr` (Core: `PreVisitOrderByExpr`/`PostVisitOrderByExpr`) | `PreVisitOrderByExpression`/`PostVisitOrderByExpression` | Por extenso |
+| Demais ganchos (`pre_visit_query`, `_select`, `_relation`, `_table_factor`, `_statement`, `_value`, `_order_by`, `_group_by`) | Mesmo nome do Core (`PreVisitQuery`...) | Em `SqlVisitor` e em `SqlRewriter` |
+| `trait VisitorMut` (Core: `VisitorMut<TBreak>`, ganchos `ref`) | `SqlRewriter` (abstrata): ganchos devolvem o nó; `protected void Break()` | Sem `ref`, como o `ExpressionVisitor` do .NET |
+| `Visit::visit` (Core: `IVisit.Visit(Visitor<TBreak>)`) | `node.Visit(SqlVisitor)` → `ControlFlow` (`SqlVisitorExtensions`) | Extensão genérica `where T : IVisit` (sem boxing de `Sequence<T>`) |
+| `VisitMut::visit` (Core: `IVisitMut<T>.Visit(VisitorMut<TBreak>, out T)`) | `node.Rewrite(SqlRewriter)` → `T` | `where T : IVisitMut<T>`: o nó tipado pelo tipo-base |
+| `visit_relations`, `visit_expressions`, `visit_statements` | `node.VisitRelations`, `VisitExpressions`, `VisitStatements` (`Action<T>` ou `Func<T, ControlFlow>`) | Gancho `pre`, como no Rust |
+| `visit_relations_mut`, `visit_expressions_mut`, `visit_statements_mut` | `node.RewriteRelations`, `RewriteExpressions`, `RewriteStatements` (`Func<T, T>`) → árvore nova | Gancho `post`, como no Rust |
+| (sem equivalente no Rust nem no SqlParser-cs) | `GetReferencedTables`, `GetReferencedColumns`, `GetReferencedFunctions`, `GetStatementKind` (`SqlAnalysisExtensions`); enum `SqlStatementKind` | Semântica no ADR-0009, decisões 5 e 6 |

@@ -20,10 +20,9 @@
 
 namespace SqlParser.Core.Ast;
 
-/// <summary>
-/// Funções livres do módulo <c>ast::spans</c> (convencoes.md §13, caso 29: o módulo não tem tipo
-/// homônimo). Usadas com <c>using static SqlParser.Core.Ast.SpansModule;</c>.
-/// </summary>
+/// <summary>Free functions of the <c>ast::spans</c> module.</summary>
+// Funções livres do módulo `ast::spans` (convencoes.md §13, caso 29: o módulo não tem tipo
+// homônimo). Usadas com `using static SqlParser.Core.Ast.SpansModule;`.
 internal static class SpansModule
 {
     /// <summary>Given an iterator of spans, return the <see cref="Span.Union"/> of all spans.</summary>

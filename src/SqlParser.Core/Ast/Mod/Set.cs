@@ -61,14 +61,14 @@ public abstract partial record Set : IDisplay
     /// See <see href="https://www.postgresql.org/docs/current/sql-set-session-authorization.html"/>
     /// See <see href="https://docs.aws.amazon.com/redshift/latest/dg/r_SET_SESSION_AUTHORIZATION.html"/>
     /// </summary>
-    /// <param name="Value">Rust: campo <c>.0</c>.</param>
+    // Value: Rust: campo `.0`.
     public sealed record SetSessionAuthorization(SetSessionAuthorizationParam Value) : Set;
 
     /// <summary>
     /// MS-SQL session
     /// <para>See <see href="https://learn.microsoft.com/en-us/sql/t-sql/statements/set-statements-transact-sql"/></para>
     /// </summary>
-    /// <param name="Value">Rust: campo <c>.0</c>.</param>
+    // Value: Rust: campo `.0`.
     public sealed record SetSessionParam(SetSessionParamKind Value) : Set;
 
     /// <summary>
@@ -114,7 +114,7 @@ public abstract partial record Set : IDisplay
     /// </code>
     /// Note: this is a MySQL-specific statement.
     /// </summary>
-    /// <remarks>Rust: variante-struct sem campos (<c>SetNamesDefault {}</c>), tratada como unitária.</remarks>
+    // Rust: variante-struct sem campos (`SetNamesDefault {}`), tratada como unitária.
     public sealed record SetNamesDefault : Set;
 
     /// <summary>

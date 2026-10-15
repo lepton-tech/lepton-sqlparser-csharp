@@ -24,11 +24,9 @@ namespace SqlParser.Core.Ast;
 public abstract partial record Password
 {
     /// <summary>A concrete password expression.</summary>
-    /// <remarks>
-    /// Rust: variante <c>Password::Password(Expr)</c>. Renomeada para <c>PasswordValue</c> porque um tipo
-    /// aninhado não pode ter o nome do tipo que o contém (CS0542). Ver "Nomes" em docs/port/onda-a/A1.md.
-    /// </remarks>
-    /// <param name="Value">Rust: campo <c>.0</c>.</param>
+    // Rust: variante `Password::Password(Expr)`. Renomeada para `PasswordValue` porque um tipo
+    // aninhado não pode ter o nome do tipo que o contém (CS0542). Ver "Nomes" em docs/port/onda-a/A1.md.
+    // Value: Rust: campo `.0`.
     public sealed record PasswordValue(Expr Value) : Password;
 
     /// <summary>Represents a <c>NULL</c> password.</summary>

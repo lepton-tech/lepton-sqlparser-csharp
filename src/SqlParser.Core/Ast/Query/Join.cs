@@ -126,15 +126,13 @@ public sealed partial record Join(TableFactor Relation, bool Global, JoinOperato
 
     public override string ToString() => Formatter.Format(this);
 
-    /// <summary>
-    /// Rust: <c>struct Suffix&lt;'a&gt;(&amp;'a JoinConstraint)</c>, declarado dentro de <c>fn suffix</c> no
-    /// <c>impl Display for Join</c>. C# não declara tipos dentro de métodos: vira classe privada aninhada.
-    /// </summary>
+    // Rust: `struct Suffix<'a>(&'a JoinConstraint)`, declarado dentro de `fn suffix` no
+    // `impl Display for Join`. C# não declara tipos dentro de métodos: vira classe privada aninhada.
     private sealed class Suffix : IDisplay
     {
         public Suffix(JoinConstraint value) => Value = value;
 
-        /// <summary>Rust: campo <c>.0</c>.</summary>
+        // Rust: campo `.0`.
         public JoinConstraint Value { get; }
 
         public void Fmt(Formatter f)

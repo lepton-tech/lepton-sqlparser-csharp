@@ -45,8 +45,8 @@ public abstract partial record RepetitionQuantifier : IDisplay
     public sealed record AtMost(uint Value) : RepetitionQuantifier;
 
     /// <summary>`{n,m}</summary>
-    /// <param name="Min">Rust: campo <c>.0</c> (o <c>n</c>; nomes.md).</param>
-    /// <param name="Max">Rust: campo <c>.1</c> (o <c>m</c>; nomes.md).</param>
+    // Min: Rust: campo `.0` (o `n`; nomes.md).
+    // Max: Rust: campo `.1` (o `m`; nomes.md).
     public sealed record Range(uint Min, uint Max) : RepetitionQuantifier;
 
     public void Fmt(Formatter f)

@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Stores the keyword after <c>OFFSET &lt;number&gt;</c></summary>
-/// <remarks>Enum sem dados com <c>Display</c> → records (convencoes.md §13, caso 37).</remarks>
+// Enum sem dados com `Display` → records (convencoes.md §13, caso 37).
 public abstract partial record OffsetRows : IDisplay
 {
     /// <summary>Omitting <c>ROW</c>/<c>ROWS</c> entirely (non-standard MySQL quirk).</summary>

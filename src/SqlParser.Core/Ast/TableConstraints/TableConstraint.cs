@@ -122,25 +122,25 @@ public abstract partial record TableConstraint : IDisplay
     /// </remarks>
     public sealed record Exclude(ExcludeConstraint Value) : TableConstraint;
 
-    /// <summary>Rust: <c>impl From&lt;UniqueConstraint&gt; for TableConstraint</c>.</summary>
+    // Rust: `impl From<UniqueConstraint> for TableConstraint`.
     public static TableConstraint From(UniqueConstraint constraint) => new Unique(constraint);
 
-    /// <summary>Rust: <c>impl From&lt;PrimaryKeyConstraint&gt; for TableConstraint</c>.</summary>
+    // Rust: `impl From<PrimaryKeyConstraint> for TableConstraint`.
     public static TableConstraint From(PrimaryKeyConstraint constraint) => new PrimaryKey(constraint);
 
-    /// <summary>Rust: <c>impl From&lt;ForeignKeyConstraint&gt; for TableConstraint</c>.</summary>
+    // Rust: `impl From<ForeignKeyConstraint> for TableConstraint`.
     public static TableConstraint From(ForeignKeyConstraint constraint) => new ForeignKey(constraint);
 
-    /// <summary>Rust: <c>impl From&lt;CheckConstraint&gt; for TableConstraint</c>.</summary>
+    // Rust: `impl From<CheckConstraint> for TableConstraint`.
     public static TableConstraint From(CheckConstraint constraint) => new Check(constraint);
 
-    /// <summary>Rust: <c>impl From&lt;IndexConstraint&gt; for TableConstraint</c>.</summary>
+    // Rust: `impl From<IndexConstraint> for TableConstraint`.
     public static TableConstraint From(IndexConstraint constraint) => new Index(constraint);
 
-    /// <summary>Rust: <c>impl From&lt;FullTextOrSpatialConstraint&gt; for TableConstraint</c>.</summary>
+    // Rust: `impl From<FullTextOrSpatialConstraint> for TableConstraint`.
     public static TableConstraint From(FullTextOrSpatialConstraint constraint) => new FulltextOrSpatial(constraint);
 
-    /// <summary>Rust: <c>impl From&lt;ExcludeConstraint&gt; for TableConstraint</c>.</summary>
+    // Rust: `impl From<ExcludeConstraint> for TableConstraint`.
     public static TableConstraint From(ExcludeConstraint constraint) => new Exclude(constraint);
 
     public void Fmt(Formatter f)

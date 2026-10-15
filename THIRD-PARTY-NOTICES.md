@@ -36,6 +36,8 @@ copies or substantial portions of the Software.
 
 Os arquivos de `src/SqlParser/` (API pública, fase 1: `SqlQueryParser.cs`, `SqlParseException.cs`, `SqlParseResult.cs`, `SqlWritingExtensions.cs`) **imitam nomes e formato de uso** do SqlParser-cs (`SqlQueryParser`, `Parse(sql, dialect, options)`, `ToSql`, `SqlWritingExtensions`, `Line`/`Column` na exceção) como referência de desenho, **sem cópia de código** ([ADR-0008](docs/adr/0008-api-publica-fase-1.md)).
 
+Na fase 2, `ControlFlow.cs`, `SqlVisitor.cs` e `SqlVisitorExtensions.cs` **imitam nomes e formato de uso** do visitor do SqlParser-cs (o enum `ControlFlow` com `Continue` e `Break`, os ganchos `PreVisit*`/`PostVisit*`, o nome `PreVisitExpression` e a chamada `node.Visit(visitor)`), também **sem cópia de código**: a travessia é a do visitor do Core, gerado a partir do sqlparser-rs ([ADR-0009](docs/adr/0009-api-publica-fase-2.md)). `SqlRewriter.cs`, `SqlAnalysisExtensions.cs` e `SqlStatementKind.cs` não têm equivalente no SqlParser-cs.
+
 ## Ferramentas de build (não distribuídas)
 
 | Pacote | Licença | Uso |

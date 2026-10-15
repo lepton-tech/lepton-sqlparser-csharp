@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Representation of how multiple <c>ColumnOption</c>s are grouped for a column.</summary>
-/// <remarks>Sem <c>impl Display</c> no Rust: o texto é escrito por <see cref="ViewColumnDef"/>.</remarks>
+// Sem `impl Display` no Rust: o texto é escrito por ViewColumnDef.
 public abstract partial record ColumnOptions
 {
     /// <summary>Options separated by comma: <c>OPTIONS(a, b, c)</c>.</summary>

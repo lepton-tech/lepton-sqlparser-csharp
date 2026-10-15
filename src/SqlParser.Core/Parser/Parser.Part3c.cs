@@ -1177,7 +1177,7 @@ public sealed partial class Parser
 
         // `optional_precision?`
         static ulong? Unwrap((ulong? Value, ParserException? Error) result) =>
-            result.Error is { } error ? throw error : result.Value;
+            result.Error is { } error ? throw StackGuard.Rethrow(error) : result.Value;
 
         MatchedTrailingBracket trailingBracket = MatchedTrailingBracket.From(false);
         DataType data;

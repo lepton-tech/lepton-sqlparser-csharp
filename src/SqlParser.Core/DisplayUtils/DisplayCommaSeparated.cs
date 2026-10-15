@@ -24,15 +24,13 @@ namespace SqlParser.Core;
 /// A value that displays a comma-separated list of values.
 /// When pretty-printed (using {:#}), it displays each value on a new line.
 /// </summary>
-/// <remarks>
-/// Não confundir com <c>ast::display_comma_separated</c> (→ <c>AstModule.DisplayCommaSeparated</c>), que
-/// não quebra linhas no pretty-print. Os dois existem no Rust com o mesmo papel em contextos diferentes.
-/// </remarks>
+// Não confundir com `ast::display_comma_separated` (→ `AstModule.DisplayCommaSeparated`), que
+// não quebra linhas no pretty-print. Os dois existem no Rust com o mesmo papel em contextos diferentes.
 internal sealed class DisplayCommaSeparated<T> : IDisplay
 {
     public DisplayCommaSeparated(IReadOnlyList<T> value) => Value = value;
 
-    /// <summary>Rust: campo <c>.0</c>.</summary>
+    // Rust: campo `.0`.
     public IReadOnlyList<T> Value { get; }
 
     public void Fmt(Formatter f)

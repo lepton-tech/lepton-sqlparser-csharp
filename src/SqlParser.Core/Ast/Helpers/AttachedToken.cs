@@ -29,27 +29,25 @@ namespace SqlParser.Core.Ast;
 /// but is still needed for accurate source location tracking, for example, in
 /// the nodes in the ast module.
 /// <para>Note: <b>All</b> <c>AttachedTokens</c> are equal.</para>
-/// <para>
-/// Por isso, um record que contém um <see cref="AttachedToken"/> ignora esse campo na igualdade
-/// sintetizada, exatamente como o <c>#[derive(PartialEq)]</c> do Rust.
-/// </para>
 /// </remarks>
+// Por isso, um record que contém um AttachedToken ignora esse campo na igualdade
+// sintetizada, exatamente como o `#[derive(PartialEq)]` do Rust.
 public sealed partial record AttachedToken(TokenWithSpan Value)
 {
     /// <summary>Return a new Empty AttachedToken</summary>
     public static AttachedToken Empty() => new AttachedToken(TokenWithSpan.NewEof());
 
-    /// <summary>Rust: <c>impl PartialEq for AttachedToken</c> (sempre igual).</summary>
+    // Rust: `impl PartialEq for AttachedToken` (sempre igual).
     public bool Equals(AttachedToken? other) => other is not null;
 
-    /// <summary>Rust: <c>impl Hash for AttachedToken</c> (não contribui para o hash).</summary>
+    // Rust: `impl Hash for AttachedToken` (não contribui para o hash).
     public override int GetHashCode() => 0;
 
-    /// <summary>Rust: <c>impl From&lt;TokenWithSpan&gt; for AttachedToken</c>.</summary>
+    // Rust: `impl From<TokenWithSpan> for AttachedToken`.
     public static AttachedToken From(TokenWithSpan value) => new AttachedToken(value);
 
     // `impl From<AttachedToken> for TokenWithSpan` → use `.Value` (convencoes.md §13, caso 7).
 
-    /// <summary>Rust: <c>impl Debug for AttachedToken</c> (delega ao token).</summary>
+    // Rust: `impl Debug for AttachedToken` (delega ao token).
     public override string ToString() => Value.ToString();
 }

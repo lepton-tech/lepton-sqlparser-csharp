@@ -22,5 +22,5 @@ namespace SqlParser.Core.Ast;
 
 /// <summary><c>INTERPOLATE</c> clause used with ClickHouse <c>WITH FILL</c> to compute missing values.</summary>
 /// <param name="Exprs">Optional list of interpolation expressions.</param>
-/// <remarks>Sem <c>Display</c> no Rust (o texto é gerado por <c>OrderBy</c>): o tipo não implementa <c>IDisplay</c>.</remarks>
+// Sem `Display` no Rust (o texto é gerado por `OrderBy`): o tipo não implementa `IDisplay`.
 public sealed partial record Interpolate(Sequence<InterpolateExpr>? Exprs);

@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Where a <c>SHOW</c> filter appears relative to the main clause.</summary>
-/// <remarks>Sem <c>impl Display</c> no Rust: quem formata é <see cref="ShowStatementOptions"/>.</remarks>
+// Sem `impl Display` no Rust: quem formata é ShowStatementOptions.
 public abstract partial record ShowStatementFilterPosition
 {
     /// <summary>Put the filter in an infix position (e.g. <c>SHOW COLUMNS LIKE '%name%' IN TABLE tbl</c>).</summary>

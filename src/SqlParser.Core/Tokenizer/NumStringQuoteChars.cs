@@ -40,7 +40,7 @@ internal abstract record NumStringQuoteChars
             Value = value;
         }
 
-        /// <summary>Rust: o <c>NonZeroU8</c> (<c>count.get()</c>).</summary>
+        // Rust: o `NonZeroU8` (`count.get()`).
         public byte Value { get; }
     }
 }

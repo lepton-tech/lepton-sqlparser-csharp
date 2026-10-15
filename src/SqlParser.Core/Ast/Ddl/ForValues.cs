@@ -35,9 +35,9 @@ public abstract partial record ForValues : IDisplay
     /// <summary><c>FOR VALUES FROM (expr|MINVALUE|MAXVALUE, ...) TO (expr|MINVALUE|MAXVALUE, ...)</c></summary>
     /// <param name="FromValue">
     /// The lower bound values for the partition.
-    /// <para>Rust: campo <c>from</c>. Sufixo <c>Value</c> por CS0542 (convencoes.md §13, caso 41).</para>
     /// </param>
     /// <param name="To">The upper bound values for the partition.</param>
+    // FromValue: Rust: campo `from`. Sufixo `Value` por CS0542 (convencoes.md §13, caso 41).
     public sealed record From(Sequence<PartitionBoundValue> FromValue, Sequence<PartitionBoundValue> To) : ForValues;
 
     /// <summary><c>FOR VALUES WITH (MODULUS n, REMAINDER r)</c></summary>

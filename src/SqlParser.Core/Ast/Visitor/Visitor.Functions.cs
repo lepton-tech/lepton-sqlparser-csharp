@@ -22,16 +22,13 @@
 
 namespace SqlParser.Core.Ast;
 
-/// <summary>
-/// Funções livres de <c>ast/visitor.rs</c> (convencoes.md §13, caso 5: tipo homônimo do módulo; a classe
-/// estática <c>Visitor</c> convive com <see cref="Visitor{TBreak}"/>, como <c>Sequence</c> e <c>Sequence&lt;T&gt;</c>).
-/// </summary>
-/// <remarks>
-/// Cada <c>struct XVisitor&lt;F&gt;(F)</c> do Rust implementa <c>Visitor</c> e <c>VisitorMut</c>; uma classe C# não
-/// herda de duas classes, então cada uma vira duas classes privadas: <c>XVisitor&lt;E&gt;</c> (<c>Visitor</c>) e
-/// <c>XVisitorMut&lt;E&gt;</c> (<c>VisitorMut</c>) (nomes.md). As closures <c>FnMut(&amp;T)</c> viram
-/// <see cref="Func{T, TResult}"/>, e <c>FnMut(&amp;mut T)</c> viram <see cref="RefFunc{T, TResult}"/>.
-/// </remarks>
+/// <summary>Free functions of <c>ast/visitor.rs</c>.</summary>
+// Funções livres de `ast/visitor.rs` (convencoes.md §13, caso 5: tipo homônimo do módulo; a classe
+// estática `Visitor` convive com Visitor<TBreak>, como `Sequence` e `Sequence<T>`).
+// Cada `struct XVisitor<F>(F)` do Rust implementa `Visitor` e `VisitorMut`; uma classe C# não
+// herda de duas classes, então cada uma vira duas classes privadas: `XVisitor<E>` (`Visitor`) e
+// `XVisitorMut<E>` (`VisitorMut`) (nomes.md). As closures `FnMut(&T)` viram
+// Func<T, TResult>, e `FnMut(&mut T)` viram RefFunc<T, TResult>.
 public static class Visitor
 {
     // struct RelationVisitor<F>(F);
@@ -200,7 +197,7 @@ public static class Visitor
     /// <para><b>Wrap column name in function call</b></para>
     /// <para>
     /// This demonstrates how to effectively replace an expression with another more complicated one
-    /// that references the original. (No C#, basta montar o nó novo com o antigo: a AST é imutável.)
+    /// that references the original.
     /// </para>
     /// <code>
     /// var sql = "SELECT x, y FROM t";
@@ -230,6 +227,8 @@ public static class Visitor
     /// // statements[0].ToString() == "SELECT f(x), y FROM t"
     /// </code>
     /// </example>
+    // Segundo exemplo: o Rust diz ainda "This example avoids unnecessary allocations by using the
+    // [`std::mem`] family of functions."; no C#, basta montar o nó novo com o antigo (a AST é imutável).
     public static ControlFlow<E> VisitExpressionsMut<V, E>(ref V v, RefFunc<Expr, ControlFlow<E>> f)
         where V : IVisitMut<V>
     {

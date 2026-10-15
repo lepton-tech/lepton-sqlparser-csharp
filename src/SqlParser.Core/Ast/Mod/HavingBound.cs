@@ -21,8 +21,8 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>The <c>HAVING</c> clause in a call to <c>ANY_VALUE</c> on BigQuery.</summary>
-/// <param name="Kind">Rust: campo <c>.0</c> do tuple struct (convencoes.md §13, caso 35; nome registrado em nomes.md).</param>
-/// <param name="Expr">Rust: campo <c>.1</c> do tuple struct (convencoes.md §13, caso 35; nome registrado em nomes.md).</param>
+// Kind: Rust: campo `.0` do tuple struct (convencoes.md §13, caso 35; nome registrado em nomes.md).
+// Expr: Rust: campo `.1` do tuple struct (convencoes.md §13, caso 35; nome registrado em nomes.md).
 public sealed partial record HavingBound(HavingBoundKind Kind, Expr Expr) : IDisplay
 {
     public void Fmt(Formatter f)

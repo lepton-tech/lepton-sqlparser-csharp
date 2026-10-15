@@ -44,9 +44,9 @@ public abstract partial record AlterFunctionOperation : IDisplay
     /// <summary><c>action [ ... ] [ RESTRICT ]</c> (function only).</summary>
     /// <param name="ActionsValue">
     /// One or more function actions.
-    /// <para>Rust: campo <c>actions</c>. Sufixo <c>Value</c> por CS0542 (convencoes.md §13, caso 41).</para>
     /// </param>
     /// <param name="Restrict">Whether <c>RESTRICT</c> is present.</param>
+    // ActionsValue: Rust: campo `actions`. Sufixo `Value` por CS0542 (convencoes.md §13, caso 41).
     public sealed record Actions(Sequence<AlterFunctionAction> ActionsValue, bool Restrict) : AlterFunctionOperation;
 
     public void Fmt(Formatter f)

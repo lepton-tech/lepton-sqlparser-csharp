@@ -919,7 +919,8 @@ public sealed partial class Parser
                 {
                     objectsError = e;
                 }
-                Sequence<ObjectName> UnwrapObjects() => objectsError is null ? objectsResult : throw objectsError;
+                Sequence<ObjectName> UnwrapObjects() =>
+                    objectsError is null ? objectsResult : throw StackGuard.Rethrow(objectsError);
 
                 switch (objectType)
                 {

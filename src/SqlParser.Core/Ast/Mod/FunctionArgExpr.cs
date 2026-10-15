@@ -21,10 +21,8 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Expression forms allowed as a function argument.</summary>
-/// <remarks>
-/// A variante aninhada <c>Expr</c> esconde o tipo de topo <c>Expr</c> dentro deste record: o tipo
-/// de topo é qualificado como <c>Ast.Expr</c> (convencoes.md §13, caso 38).
-/// </remarks>
+// A variante aninhada `Expr` esconde o tipo de topo `Expr` dentro deste record: o tipo
+// de topo é qualificado como `Ast.Expr` (convencoes.md §13, caso 38).
 public abstract partial record FunctionArgExpr : IDisplay
 {
     /// <summary>A normal expression argument.</summary>
@@ -42,7 +40,7 @@ public abstract partial record FunctionArgExpr : IDisplay
     /// </summary>
     public sealed record WildcardWithOptions(WildcardAdditionalOptions Value) : FunctionArgExpr;
 
-    /// <summary>Rust: <c>impl From&lt;Expr&gt; for FunctionArgExpr</c>.</summary>
+    // Rust: `impl From<Expr> for FunctionArgExpr`.
     public static FunctionArgExpr From(Ast.Expr wildcardExpr) =>
         wildcardExpr switch
         {

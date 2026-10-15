@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Storage type options for a tablespace.</summary>
-/// <remarks>Enum sem dados e sem nenhum <c>impl</c> no Rust: <c>enum</c> C# (convencoes.md §6, regra 1).</remarks>
+// Enum sem dados e sem nenhum `impl` no Rust: `enum` C# (convencoes.md §6, regra 1).
 public enum StorageType
 {
     /// <summary>Store on disk.</summary>

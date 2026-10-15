@@ -26,8 +26,8 @@ namespace SqlParser.Core.Ast;
 /// </summary>
 /// <remarks>
 /// For example: Bigquery/Hive use <c>ARRAY&lt;INT&gt;</c> whereas snowflake uses ARRAY.
-/// <para>Sem <c>Display</c> no Rust (o texto é montado pelo <c>Display</c> de <c>DataType::Array</c>).</para>
 /// </remarks>
+// Sem `Display` no Rust (o texto é montado pelo `Display` de `DataType::Array`).
 public abstract partial record ArrayElemTypeDef
 {
     /// <summary>Use <c>ARRAY</c> style without an explicit element type.</summary>
@@ -37,13 +37,13 @@ public abstract partial record ArrayElemTypeDef
     public sealed record AngleBracket(DataType Value) : ArrayElemTypeDef;
 
     /// <summary>Square-bracket style, e.g. <c>INT[]</c> or <c>INT[2]</c>.</summary>
-    /// <remarks>Rust: <c>SquareBracket(Box&lt;DataType&gt;, Option&lt;u64&gt;)</c>; nomes dos campos em nomes.md.</remarks>
+    // Rust: `SquareBracket(Box<DataType>, Option<u64>)`; nomes dos campos em nomes.md.
     public sealed record SquareBracket(DataType DataType, ulong? Size) : ArrayElemTypeDef;
 
     /// <summary>Parenthesis style, e.g. <c>Array(Int64)</c>.</summary>
     public sealed record Parenthesis(DataType Value) : ArrayElemTypeDef;
 
     /// <summary>Qualified by a data type and optional size, e.g. <c>INT ARRAY</c> or <c>INT ARRAY[4]</c>.</summary>
-    /// <remarks>Rust: <c>Qualified(Box&lt;DataType&gt;, Option&lt;u64&gt;)</c>; nomes dos campos em nomes.md.</remarks>
+    // Rust: `Qualified(Box<DataType>, Option<u64>)`; nomes dos campos em nomes.md.
     public sealed record Qualified(DataType DataType, ulong? Size) : ArrayElemTypeDef;
 }

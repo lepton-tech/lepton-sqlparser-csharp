@@ -25,7 +25,7 @@ namespace SqlParser.Core.Ast;
 /// ALTER USER [ IF EXISTS ] [ &lt;name&gt; ] REMOVE DELEGATED { AUTHORIZATION OF ROLE &lt;role_name&gt; | AUTHORIZATIONS } FROM SECURITY INTEGRATION &lt;integration_name&gt;
 /// </code>
 /// </summary>
-/// <remarks>Sem <c>impl Display</c> no Rust: quem formata é <see cref="AlterUser"/>.</remarks>
 /// <param name="Role">Optional role name to remove delegation for.</param>
 /// <param name="Integration">Security integration from which to remove delegation.</param>
+// Sem `impl Display` no Rust: quem formata é AlterUser.
 public sealed partial record AlterUserRemoveRoleDelegation(Ident? Role, Ident Integration);

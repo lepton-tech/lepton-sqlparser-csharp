@@ -29,7 +29,7 @@ namespace SqlParser.Core;
 // O código gerado percorre as sequências de tipo conhecido em laço próprio, sem estes testes de tipo.
 public readonly partial struct Sequence<T> : IVisit, IVisitMut<Sequence<T>>, ISequenceStorage
 {
-    /// <summary>Rust: <c>impl&lt;T: Visit&gt; Visit for Vec&lt;T&gt;</c>.</summary>
+    // Rust: `impl<T: Visit> Visit for Vec<T>`.
     public ControlFlow<TBreak> Visit<TBreak>(Visitor<TBreak> visitor)
     {
         // for v in self { v.visit(visitor)?; }
@@ -47,8 +47,8 @@ public readonly partial struct Sequence<T> : IVisit, IVisitMut<Sequence<T>>, ISe
         return ControlFlow<TBreak>.Continue;
     }
 
-    /// <summary>Rust: <c>impl&lt;T: VisitMut&gt; VisitMut for Vec&lt;T&gt;</c>.</summary>
-    /// <remarks>Devolve em <paramref name="self"/> a mesma sequência se nenhum elemento mudou.</remarks>
+    // Rust: `impl<T: VisitMut> VisitMut for Vec<T>`.
+    // Devolve em self a mesma sequência se nenhum elemento mudou.
     public ControlFlow<TBreak> Visit<TBreak>(VisitorMut<TBreak> visitor, out Sequence<T> self)
     {
         // for v in self { v.visit(visitor)?; }

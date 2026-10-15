@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>The <c>FROM</c> clause of an <c>UPDATE TABLE</c> statement</summary>
-/// <remarks>Sem <c>Display</c> no Rust: o tipo não implementa <c>IDisplay</c>.</remarks>
+// Sem `Display` no Rust: o tipo não implementa `IDisplay`.
 public abstract partial record UpdateTableFromKind
 {
     /// <summary>

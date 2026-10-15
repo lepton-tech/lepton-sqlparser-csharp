@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Type of brackets used for <c>MAP</c> types.</summary>
-/// <remarks>Enum sem dados e sem <c>impl</c>: <c>enum</c> C# (convencoes.md §6, regra 1).</remarks>
+// Enum sem dados e sem `impl`: `enum` C# (convencoes.md §6, regra 1).
 public enum MapBracketKind
 {
     /// <summary>Example: <c>Map(String, UInt16)</c></summary>

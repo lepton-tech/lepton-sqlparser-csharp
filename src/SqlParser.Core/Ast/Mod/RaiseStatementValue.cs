@@ -21,18 +21,16 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Represents the error value of a <c>RaiseStatement</c>.</summary>
-/// <remarks>
-/// A variante <c>Expr</c> esconde o tipo de topo <c>Expr</c> dentro deste record: o tipo dos campos é
-/// qualificado como <c>Ast.Expr</c> (convencoes.md §13, caso 38).
-/// </remarks>
+// A variante `Expr` esconde o tipo de topo `Expr` dentro deste record: o tipo dos campos é
+// qualificado como `Ast.Expr` (convencoes.md §13, caso 38).
 public abstract partial record RaiseStatementValue : IDisplay
 {
     /// <summary><c>RAISE USING MESSAGE = 'error'</c></summary>
-    /// <param name="Value">Rust: campo <c>.0</c>.</param>
+    // Value: Rust: campo `.0`.
     public sealed record UsingMessage(Ast.Expr Value) : RaiseStatementValue;
 
     /// <summary><c>RAISE myerror</c></summary>
-    /// <param name="Value">Rust: campo <c>.0</c>.</param>
+    // Value: Rust: campo `.0`.
     public sealed record Expr(Ast.Expr Value) : RaiseStatementValue;
 
     public void Fmt(Formatter f)

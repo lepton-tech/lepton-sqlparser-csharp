@@ -27,16 +27,14 @@ public abstract record ParserError : IDisplay
     public sealed record TokenizerError(string Value) : ParserError;
 
     /// <summary>Generic parser error with a message.</summary>
-    /// <remarks>
-    /// Rust: <c>ParserError::ParserError(String)</c>. Uma variante com o nome do próprio enum gera CS0542
-    /// em C#; recebe o sufixo <c>Value</c> (convencoes.md §13, caso 43).
-    /// </remarks>
+    // Rust: `ParserError::ParserError(String)`. Uma variante com o nome do próprio enum gera CS0542
+    // em C#; recebe o sufixo `Value` (convencoes.md §13, caso 43).
     public sealed record ParserErrorValue(string Value) : ParserError;
 
     /// <summary>Raised when a recursion depth limit is exceeded.</summary>
     public sealed record RecursionLimitExceeded : ParserError;
 
-    /// <summary>Rust: <c>impl From&lt;TokenizerError&gt; for ParserError</c>.</summary>
+    // Rust: `impl From<TokenizerError> for ParserError`.
     public static ParserError From(SqlParser.Core.TokenizerError e) => new TokenizerError(e.ToString());
 
     public void Fmt(Formatter f)
@@ -55,18 +53,20 @@ public abstract record ParserError : IDisplay
 }
 
 /// <summary>
-/// Lançada onde o Rust devolve <c>Err(ParserError)</c> (convencoes.md §8). A mensagem é o
-/// <c>Display</c> do erro (<c>"sql parser error: ..."</c>) e o valor fica em <see cref="Error"/>.
+/// The exception thrown when parsing fails. The message is the <c>Display</c> text of the error
+/// (<c>"sql parser error: ..."</c>) and the error itself is in <see cref="Error"/>.
 /// </summary>
+// Lançada onde o Rust devolve `Err(ParserError)` (convencoes.md §8).
 public sealed class ParserException : Exception
 {
-    /// <summary>Cria a exceção que carrega <paramref name="error"/>.</summary>
+    /// <summary>Creates the exception that carries <paramref name="error"/>.</summary>
     public ParserException(ParserError error)
         : base(error.ToString())
     {
         Error = error;
     }
 
-    /// <summary>O erro do parser (equivalente ao valor do <c>Err</c> no Rust).</summary>
+    /// <summary>The parser error.</summary>
+    // Equivale ao valor do `Err` no Rust.
     public ParserError Error { get; }
 }

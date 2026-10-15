@@ -22,18 +22,20 @@
 namespace SqlParser.Core;
 
 /// <summary>
-/// Lançada onde o Rust retorna <c>Err(TokenizerError)</c>. A mensagem é o <c>Display</c> do erro,
-/// idêntico ao Rust.
+/// The exception thrown when tokenizing fails. The message is the <c>Display</c> text of the error
+/// and the error itself is in <see cref="Error"/>.
 /// </summary>
+// Lançada onde o Rust retorna `Err(TokenizerError)`. A mensagem é o `Display` do erro, idêntico ao Rust.
 public sealed class TokenizerException : Exception
 {
-    /// <summary>Cria a exceção a partir do erro do tokenizer.</summary>
+    /// <summary>Creates the exception from the tokenizer error.</summary>
     public TokenizerException(TokenizerError error)
         : base(error.ToString())
     {
         Error = error;
     }
 
-    /// <summary>O erro original (Rust: o valor de <c>Err(..)</c>).</summary>
+    /// <summary>The original tokenizer error.</summary>
+    // Rust: o valor de `Err(..)`.
     public TokenizerError Error { get; }
 }

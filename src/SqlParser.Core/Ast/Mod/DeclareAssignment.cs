@@ -27,19 +27,17 @@ namespace SqlParser.Core.Ast;
 /// DECLARE variable_name := 42
 /// DECLARE variable_name DEFAULT 42
 /// </code>
-/// <para>
-/// A variante <c>Expr</c> esconde o tipo de topo <c>Expr</c> dentro deste record: o tipo dos campos é
-/// qualificado como <c>Ast.Expr</c> (convencoes.md §13, caso 38).
-/// </para>
 /// </remarks>
+// A variante `Expr` esconde o tipo de topo `Expr` dentro deste record: o tipo dos campos é
+// qualificado como `Ast.Expr` (convencoes.md §13, caso 38).
 public abstract partial record DeclareAssignment : IDisplay
 {
     /// <summary>Plain expression specified.</summary>
-    /// <param name="Value">Rust: campo <c>.0</c>.</param>
+    // Value: Rust: campo `.0`.
     public sealed record Expr(Ast.Expr Value) : DeclareAssignment;
 
     /// <summary>Expression assigned via the <c>DEFAULT</c> keyword</summary>
-    /// <param name="Value">Rust: campo <c>.0</c>.</param>
+    // Value: Rust: campo `.0`.
     public sealed record Default(Ast.Expr Value) : DeclareAssignment;
 
     /// <summary>
@@ -49,7 +47,7 @@ public abstract partial record DeclareAssignment : IDisplay
     /// DECLARE variable_name := 42;
     /// </code>
     /// </summary>
-    /// <param name="Value">Rust: campo <c>.0</c>.</param>
+    // Value: Rust: campo `.0`.
     public sealed record DuckAssignment(Ast.Expr Value) : DeclareAssignment;
 
     /// <summary>
@@ -59,7 +57,7 @@ public abstract partial record DeclareAssignment : IDisplay
     /// DECLARE c1 CURSOR FOR res
     /// </code>
     /// </summary>
-    /// <param name="Value">Rust: campo <c>.0</c>.</param>
+    // Value: Rust: campo `.0`.
     public sealed record For(Ast.Expr Value) : DeclareAssignment;
 
     /// <summary>
@@ -69,7 +67,7 @@ public abstract partial record DeclareAssignment : IDisplay
     /// DECLARE @variable AS INT = 100
     /// </code>
     /// </summary>
-    /// <param name="Value">Rust: campo <c>.0</c>.</param>
+    // Value: Rust: campo `.0`.
     public sealed record MsSqlAssignment(Ast.Expr Value) : DeclareAssignment;
 
     public void Fmt(Formatter f)

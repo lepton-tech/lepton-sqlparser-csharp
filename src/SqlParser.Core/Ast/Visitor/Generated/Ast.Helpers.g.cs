@@ -31,7 +31,7 @@ namespace SqlParser.Core.Ast
     public sealed partial record AttachedToken : global::SqlParser.Core.Ast.IVisit, global::SqlParser.Core.Ast.IVisitMut<global::SqlParser.Core.Ast.AttachedToken>
     {
         /// <inheritdoc/>
-        /// <remarks>Nenhum campo alcança um gancho do <see cref="global::SqlParser.Core.Ast.Visitor{TBreak}"/>: a visita do derive Rust não tem efeito.</remarks>
+        // Nenhum campo alcança um gancho do Visitor<TBreak>: a visita do derive Rust não tem efeito.
         public global::SqlParser.Core.ControlFlow<TBreak> Visit<TBreak>(global::SqlParser.Core.Ast.Visitor<TBreak> visitor) => global::SqlParser.Core.ControlFlow<TBreak>.Continue;
 
         /// <inheritdoc/>

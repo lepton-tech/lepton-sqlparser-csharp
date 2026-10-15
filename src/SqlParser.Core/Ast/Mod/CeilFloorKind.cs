@@ -33,10 +33,10 @@ namespace SqlParser.Core.Ast;
 public abstract partial record CeilFloorKind
 {
     /// <summary><c>CEIL( &lt;expr&gt; TO &lt;DateTimeField&gt;)</c></summary>
-    /// <param name="Value">Rust: campo <c>.0</c> (tipo qualificado: a variante tem o nome do tipo, convencoes.md §13, caso 38).</param>
+    // Value: Rust: campo `.0` (tipo qualificado: a variante tem o nome do tipo, convencoes.md §13, caso 38).
     public sealed record DateTimeField(Ast.DateTimeField Value) : CeilFloorKind;
 
     /// <summary><c>CEIL( &lt;expr&gt; [, &lt;scale&gt;])</c></summary>
-    /// <param name="Value">Rust: campo <c>.0</c>.</param>
+    // Value: Rust: campo `.0`.
     public sealed record Scale(ValueWithSpan Value) : CeilFloorKind;
 }

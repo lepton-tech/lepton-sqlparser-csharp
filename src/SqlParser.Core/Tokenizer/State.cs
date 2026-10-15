@@ -20,17 +20,13 @@
 
 namespace SqlParser.Core;
 
-/// <summary>
-/// Rust: <c>struct State { peekable: Peekable&lt;Chars&gt;, line, col }</c>, o cursor do tokenizer.
-/// </summary>
-/// <remarks>
-/// <see cref="Col"/> avança <b>uma vez por scalar value</b> Unicode, como no Rust: a segunda metade
-/// de um par substituto não incrementa a coluna (convencoes.md §10 e §13).
-/// Equivalências: <c>chars.next()</c> → <see cref="Next"/>; <c>chars.peek()</c> → <see cref="Peek"/>;
-/// <c>chars.peekable.clone()</c> → <see cref="Peekable"/> (cópia do <c>struct</c>), e
-/// <c>chars.peekable.clone().nth(n)</c> → <c>chars.Peekable.Nth(n)</c>.
-/// Privado do módulo <c>tokenizer</c> no Rust → <c>internal</c>.
-/// </remarks>
+// Rust: `struct State { peekable: Peekable<Chars>, line, col }`, o cursor do tokenizer.
+// Col avança uma vez por scalar value Unicode, como no Rust: a segunda metade
+// de um par substituto não incrementa a coluna (convencoes.md §10 e §13).
+// Equivalências: `chars.next()` → Next; `chars.peek()` → Peek;
+// `chars.peekable.clone()` → Peekable (cópia do `struct`), e
+// `chars.peekable.clone().nth(n)` → `chars.Peekable.Nth(n)`.
+// Privado do módulo `tokenizer` no Rust → `internal`.
 internal sealed class State
 {
     private PeekableChars _peekable;
@@ -38,9 +34,7 @@ internal sealed class State
     // Último caractere devolvido por Next(): identifica a segunda metade de um par substituto.
     private char? _last;
 
-    /// <summary>
-    /// Rust: <c>State { peekable: source.chars().peekable(), line, col }</c>.
-    /// </summary>
+    // Rust: `State { peekable: source.chars().peekable(), line, col }`.
     public State(string source, long line, long col)
     {
         _peekable = new PeekableChars(source);
@@ -48,16 +42,14 @@ internal sealed class State
         Col = col;
     }
 
-    /// <summary>
-    /// Rust: campo <c>peekable</c>. Devolve uma <b>cópia</b> do cursor (o <c>.clone()</c> do Rust):
-    /// avançar a cópia não avança este <c>State</c>.
-    /// </summary>
+    // Rust: campo `peekable`. Devolve uma cópia do cursor (o `.clone()` do Rust):
+    // avançar a cópia não avança este `State`.
     public PeekableChars Peekable => _peekable;
 
-    /// <summary>Rust: campo <c>line</c>.</summary>
+    // Rust: campo `line`.
     public long Line { get; private set; }
 
-    /// <summary>Rust: campo <c>col</c>.</summary>
+    // Rust: campo `col`.
     public long Col { get; private set; }
 
     /// <summary>return the next character and advance the stream</summary>

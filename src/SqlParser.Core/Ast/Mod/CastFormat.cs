@@ -27,12 +27,12 @@ namespace SqlParser.Core.Ast;
 public abstract partial record CastFormat : IDisplay
 {
     /// <summary>A simple cast format specified by a <c>Value</c>.</summary>
-    /// <param name="Inner">Rust: campo <c>.0</c> (variante chamada <c>Value</c>: parâmetro <c>Inner</c>, convencoes.md §6).</param>
+    // Inner: Rust: campo `.0` (variante chamada `Value`: parâmetro `Inner`, convencoes.md §6).
     public sealed record Value(ValueWithSpan Inner) : CastFormat;
 
     /// <summary>A cast format with an explicit time zone: <c>(format, timezone)</c>.</summary>
-    /// <param name="Format">Rust: campo <c>.0</c> (o formato).</param>
-    /// <param name="TimeZone">Rust: campo <c>.1</c> (o fuso horário).</param>
+    // Format: Rust: campo `.0` (o formato).
+    // TimeZone: Rust: campo `.1` (o fuso horário).
     public sealed record ValueAtTimeZone(ValueWithSpan Format, ValueWithSpan TimeZone) : CastFormat;
 
     // Rust: `impl fmt::Display for CastFormat` fica em mod.rs depois de `OneOrManyWithParens`;

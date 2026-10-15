@@ -39,11 +39,9 @@ namespace SqlParser.Core;
 /// the "next" token is the token at <c>index</c>;
 /// the "previous" token is the token at <c>index - 2</c>.
 /// If <c>index</c> is equal to the length of the token stream, the 'next' token is <c>Token::EOF</c>.</para>
-/// <para>
-/// O <c>Parser</c> é dividido em arquivos <c>partial</c> por trecho do <c>parser/mod.rs</c>; o cabeçalho
-/// de cada arquivo diz qual trecho ele porta (ver docs/port/progresso.md).
-/// </para>
 /// </remarks>
+// O `Parser` é dividido em arquivos `partial` por trecho do `parser/mod.rs`; o cabeçalho
+// de cada arquivo diz qual trecho ele porta (ver docs/port/progresso.md).
 public sealed partial class Parser
 {
     // By default, allow expressions up to this deep before erroring
@@ -256,7 +254,8 @@ public sealed partial class Parser
     /// Parses the given <c>sql</c> into an Abstract Syntax Tree (AST), returning
     /// also encountered source code comments.
     /// </summary>
-    /// <remarks>See <see cref="ParseSql"/>. A tupla Rust <c>(Vec&lt;Statement&gt;, Comments)</c> vira uma tupla nomeada (nomes.md).</remarks>
+    /// <remarks>See <see cref="ParseSql"/>.</remarks>
+    // A tupla Rust `(Vec<Statement>, Comments)` vira uma tupla nomeada (nomes.md).
     public static (Sequence<Statement> Statements, Comments Comments) ParseSqlWithComments(Dialect dialect, string sql)
     {
         var p = new Parser(dialect).TryWithSql(sql);

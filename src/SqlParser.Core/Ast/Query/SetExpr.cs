@@ -24,11 +24,9 @@ namespace SqlParser.Core.Ast;
 /// A node in a tree, representing a "query body" expression, roughly:
 /// <c>SELECT ... [ {UNION|EXCEPT|INTERSECT} SELECT ...]</c>
 /// </summary>
-/// <remarks>
-/// As variantes <c>Select</c>, <c>Query</c>, <c>Values</c> e <c>Table</c> escondem os tipos de topo
-/// homônimos dentro deste record; por isso eles aparecem qualificados como <c>Ast.X</c>
-/// (convencoes.md §6 e §13, caso 38).
-/// </remarks>
+// As variantes `Select`, `Query`, `Values` e `Table` escondem os tipos de topo
+// homônimos dentro deste record; por isso eles aparecem qualificados como `Ast.X`
+// (convencoes.md §6 e §13, caso 38).
 public abstract partial record SetExpr : IDisplay
 {
     /// <summary>Restricted SELECT .. FROM .. HAVING (no ORDER BY or set operations)</summary>

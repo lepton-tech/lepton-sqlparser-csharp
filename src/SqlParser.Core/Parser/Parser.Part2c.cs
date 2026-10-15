@@ -370,10 +370,8 @@ public sealed partial class Parser
     }
 
     /// <summary>Parse Hive formats.</summary>
-    /// <remarks>
-    /// <c>hive_format.get_or_insert_with(HiveFormat::default).campo = valor</c> →
-    /// <c>hiveFormat = (hiveFormat ?? HiveFormat.Default()) with { Campo = valor }</c> (o record é imutável).
-    /// </remarks>
+    // `hive_format.get_or_insert_with(HiveFormat::default).campo = valor` →
+    // `hiveFormat = (hiveFormat ?? HiveFormat.Default()) with { Campo = valor }` (o record é imutável).
     public HiveFormat? ParseHiveFormats()
     {
         HiveFormat? hiveFormat = null;
@@ -1291,6 +1289,9 @@ public sealed partial class Parser
                     switch (storageToken.Token)
                     {
                         case Token.Word { Value: var w }:
+                            // PORT-DEVIATION DIV-001: `to_uppercase()` → `ToUpperInvariant()` (mapeamento simples).
+                            // O Rust aceita `DISK` escrito com U+0131 no lugar do `i` ou com U+017F no lugar do
+                            // `s`; o .NET recusa o U+0131 em todos os alvos e o U+017F no .NET Framework 4.8.
                             switch (w.Value.ToUpperInvariant())
                             {
                                 case "DISK":

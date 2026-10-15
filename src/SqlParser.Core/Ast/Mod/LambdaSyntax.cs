@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>The syntax style for a lambda function.</summary>
-/// <remarks>Enum sem dados e sem nenhum <c>impl</c> no Rust: <c>enum</c> C# (convencoes.md §6, regra 1).</remarks>
+// Enum sem dados e sem nenhum `impl` no Rust: `enum` C# (convencoes.md §6, regra 1).
 public enum LambdaSyntax
 {
     /// <summary>

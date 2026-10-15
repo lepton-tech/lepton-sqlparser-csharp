@@ -23,7 +23,7 @@ using static SqlParser.Core.Ast.AstModule;
 namespace SqlParser.Core.Ast;
 
 /// <summary>Behavior to apply for <c>INSERT</c> when a conflict occurs.</summary>
-/// <remarks><c>#[non_exhaustive]</c> do Rust não tem equivalente em C# (sem efeito no port).</remarks>
+// `#[non_exhaustive]` do Rust não tem equivalente em C# (sem efeito no port).
 public abstract partial record OnInsert : IDisplay
 {
     /// <summary>ON DUPLICATE KEY UPDATE (MySQL when the key already exists, then execute an update instead)</summary>

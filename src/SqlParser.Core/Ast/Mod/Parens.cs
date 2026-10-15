@@ -24,10 +24,8 @@ namespace SqlParser.Core.Ast;
 /// <param name="OpeningToken">the opening parenthesis token, i.e. <c>(</c></param>
 /// <param name="Content">content enclosed in parentheses</param>
 /// <param name="ClosingToken">the closing parenthesis token, i.e. <c>)</c></param>
-/// <remarks>
-/// <c>impl Deref/DerefMut for Parens&lt;T&gt;</c> não é traduzido: acesse <see cref="Content"/>
-/// explicitamente (convencoes.md §13, caso 34).
-/// </remarks>
+// `impl Deref/DerefMut for Parens<T>` não é traduzido: acesse Content
+// explicitamente (convencoes.md §13, caso 34).
 public sealed partial record Parens<T>(AttachedToken OpeningToken, T Content, AttachedToken ClosingToken)
 {
     /// <summary>

@@ -23,10 +23,8 @@ using static SqlParser.Core.Ast.AstModule;
 namespace SqlParser.Core.Ast;
 
 /// <summary>SQL option syntax used in table and server definitions.</summary>
-/// <remarks>
-/// As variantes aninhadas <c>Ident</c> e <c>NamedParenthesizedList</c> escondem os tipos de topo homônimos
-/// dentro deste record: os tipos de topo são qualificados como <c>Ast.X</c> (convencoes.md §13, caso 38).
-/// </remarks>
+// As variantes aninhadas `Ident` e `NamedParenthesizedList` escondem os tipos de topo homônimos
+// dentro deste record: os tipos de topo são qualificados como `Ast.X` (convencoes.md §13, caso 38).
 public abstract partial record SqlOption : IDisplay
 {
     /// <summary>

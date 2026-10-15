@@ -61,14 +61,14 @@ public sealed record Ident(string Value, char? QuoteStyle, Span Span) : IDisplay
         return new Ident(value, quote, span);
     }
 
-    /// <summary>Rust: <c>impl From&lt;&amp;str&gt; for Ident</c>.</summary>
+    // Rust: `impl From<&str> for Ident`.
     public static Ident From(string value) => new Ident(value, null, Span.Empty());
 
-    /// <summary>Rust: <c>impl PartialEq for Ident</c>: we ignore spans in comparisons.</summary>
+    // Rust: `impl PartialEq for Ident`: we ignore spans in comparisons.
     public bool Equals(Ident? other) =>
         other is not null && Value == other.Value && QuoteStyle == other.QuoteStyle;
 
-    /// <summary>Rust: <c>impl Hash for Ident</c>: we ignore spans in hashes.</summary>
+    // Rust: `impl Hash for Ident`: we ignore spans in hashes.
     public override int GetHashCode()
     {
         unchecked
@@ -77,7 +77,7 @@ public sealed record Ident(string Value, char? QuoteStyle, Span Span) : IDisplay
         }
     }
 
-    /// <summary>Rust: <c>impl PartialOrd for Ident</c> e <c>impl Ord for Ident</c>: we ignore spans in ordering.</summary>
+    // Rust: `impl PartialOrd for Ident` e `impl Ord for Ident`: we ignore spans in ordering.
     public int CompareTo(Ident? other)
     {
         // Convenção do IComparable<T>: qualquer instância vem depois de null (o Rust não tem null).
@@ -122,7 +122,6 @@ public sealed record Ident(string Value, char? QuoteStyle, Span Span) : IDisplay
 
     // #[cfg(feature = "visitor")] impl Visit for Ident: escrito à mão no Rust (não usa o derive, e por isso
     // não visita `span`). O gerador do visitor detecta esta implementação e chama Ident.VisitMut nos pais.
-    /// <summary>Rust: <c>impl Visit for Ident</c>.</summary>
     public ControlFlow<TBreak> Visit<TBreak>(Visitor<TBreak> visitor)
     {
         var flow = visitor.PreVisitIdent(this);
@@ -134,7 +133,6 @@ public sealed record Ident(string Value, char? QuoteStyle, Span Span) : IDisplay
     }
 
     // #[cfg(feature = "visitor")] impl VisitMut for Ident
-    /// <summary>Rust: <c>impl VisitMut for Ident</c>.</summary>
     public ControlFlow<TBreak> Visit<TBreak>(VisitorMut<TBreak> visitor, out Ident self)
     {
         var node = this;
@@ -143,7 +141,7 @@ public sealed record Ident(string Value, char? QuoteStyle, Span Span) : IDisplay
         return flow;
     }
 
-    /// <summary>Corpo de <c>impl VisitMut for Ident</c> sobre a referência do pai (<c>&amp;mut self</c>).</summary>
+    // Corpo de `impl VisitMut for Ident` sobre a referência do pai (`&mut self`).
     internal static ControlFlow<TBreak> VisitMut<TBreak>(ref Ident node, VisitorMut<TBreak> visitor)
     {
         var flow = visitor.PreVisitIdent(ref node);

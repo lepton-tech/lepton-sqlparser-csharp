@@ -25,21 +25,20 @@ namespace SqlParser.Core.Ast;
 /// A type that can be visited by a <see cref="VisitorMut{TBreak}"/>. See <see cref="VisitorMut{TBreak}"/> for
 /// recursively visiting parsed SQL statements.
 /// </summary>
-/// <typeparam name="TSelf">O próprio tipo (o <c>Self</c> do Rust): é o tipo do nó devolvido em <c>self</c>.</typeparam>
+/// <typeparam name="TSelf">The implementing type: the type of the node returned in <c>self</c>.</typeparam>
 /// <remarks>
 /// <para><b>Note</b></para>
 /// <para>
 /// This trait should be automatically derived for sqlparser AST nodes
 /// using the VisitMut proc macro (<c>#[cfg_attr(feature = "visitor", derive(Visit, VisitMut))]</c>).
 /// </para>
-/// <para>
-/// No Rust, <c>fn visit(&amp;mut self, ..)</c> altera o nó no lugar. A AST C# é imutável (records, ADR-0002), então
-/// a visita devolve o nó resultante no parâmetro <c>self</c> (<c>var flow = s.Visit(mutador, out s);</c>):
-/// é a mesma instância quando nenhum gancho mudou nada; senão, cada pai do nó alterado é reconstruído com
-/// <c>with</c>, inclusive quando a visita para no meio com <c>Break</c> (o Rust também mantém as mudanças feitas
-/// até ali). Os ganchos de <see cref="VisitorMut{TBreak}"/> recebem o nó por <c>ref</c> (<c>&amp;mut</c>).
-/// </para>
 /// </remarks>
+// No Rust, `fn visit(&mut self, ..)` altera o nó no lugar. A AST C# é imutável (records, ADR-0002), então
+// a visita devolve o nó resultante no parâmetro `self` (`var flow = s.Visit(mutador, out s);`):
+// é a mesma instância quando nenhum gancho mudou nada; senão, cada pai do nó alterado é reconstruído com
+// `with`, inclusive quando a visita para no meio com `Break` (o Rust também mantém as mudanças feitas
+// até ali). Os ganchos de VisitorMut<TBreak> recebem o nó por `ref` (`&mut`).
+// TSelf: o próprio tipo (o `Self` do Rust).
 public interface IVisitMut<TSelf>
 {
     /// <summary>
@@ -50,7 +49,8 @@ public interface IVisitMut<TSelf>
     /// traverse and allow in-place mutation of child nodes. Returning a
     /// <c>ControlFlow</c> value permits early termination of the traversal.
     /// </remarks>
-    /// <param name="visitor">O visitor.</param>
-    /// <param name="self">O nó depois da visita (o <c>&amp;mut self</c> do Rust).</param>
+    /// <param name="visitor">The visitor.</param>
+    /// <param name="self">The node after the visit: the same instance if no hook changed anything.</param>
+    // self: o nó depois da visita (o `&mut self` do Rust).
     ControlFlow<TBreak> Visit<TBreak>(VisitorMut<TBreak> visitor, out TSelf self);
 }

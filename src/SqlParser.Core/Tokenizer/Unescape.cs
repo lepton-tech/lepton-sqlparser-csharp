@@ -22,12 +22,10 @@ using System.Text;
 
 namespace SqlParser.Core;
 
-/// <summary>Rust: <c>struct Unescape</c>, o "desescapador" de <c>E'...'</c>.</summary>
-/// <remarks>
-/// Os <c>Option&lt;char&gt;</c> dos métodos viram <c>int?</c> com o <b>scalar value</b> Unicode, porque
-/// <c>\U0010FFFF</c> produz um <c>char</c> Rust fora do BMP (convencoes.md §13).
-/// Privado do módulo <c>tokenizer</c> no Rust → <c>internal</c>.
-/// </remarks>
+// Rust: `struct Unescape`, o "desescapador" de `E'...'`.
+// Os `Option<char>` dos métodos viram `int?` com o scalar value Unicode, porque
+// `\U0010FFFF` produz um `char` Rust fora do BMP (convencoes.md §13).
+// Privado do módulo `tokenizer` no Rust → `internal`.
 internal sealed class Unescape
 {
     private readonly State _chars;

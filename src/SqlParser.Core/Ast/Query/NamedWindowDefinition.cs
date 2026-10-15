@@ -21,8 +21,8 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>A named window definition: <c>&lt;name&gt; AS &lt;window specification&gt;</c></summary>
-/// <param name="Name">Rust: campo <c>.0</c> (o <c>&lt;name&gt;</c>; convencoes.md §13, caso 35).</param>
-/// <param name="WindowExpr">Rust: campo <c>.1</c> (a <c>&lt;window specification&gt;</c>).</param>
+// Name: Rust: campo `.0` (o `<name>`; convencoes.md §13, caso 35).
+// WindowExpr: Rust: campo `.1` (a `<window specification>`).
 public sealed partial record NamedWindowDefinition(Ident Name, NamedWindowExpr WindowExpr) : IDisplay
 {
     public void Fmt(Formatter f)

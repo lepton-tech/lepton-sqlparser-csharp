@@ -586,18 +586,10 @@ public sealed partial class Parser
         if (ParseKeywords(Keyword.ALWAYS, Keyword.AS, Keyword.IDENTITY))
         {
             var sequenceOptions = Sequence<SequenceOptions>.Empty;
-            // `if self.expect_token(&Token::LParen).is_ok()`: try/catch local (convencoes.md §8).
-            bool lparenOk;
-            try
-            {
-                ExpectToken(new Token.LParen());
-                lparenOk = true;
-            }
-            catch (ParserException)
-            {
-                lparenOk = false;
-            }
-            if (lparenOk)
+            // Rust: `if self.expect_token(&Token::LParen).is_ok()`. Equivalente exato sem exceção (caso 81):
+            // `expect_token(..).is_ok()` é `consume_token(..)`, que só avança quando o token casa; o erro
+            // descartado não tem efeito colateral. Idem nos dois ramos seguintes.
+            if (ConsumeToken(new Token.LParen()))
             {
                 sequenceOptions = ParseCreateSequenceOptions();
                 ExpectToken(new Token.RParen());
@@ -616,17 +608,8 @@ public sealed partial class Parser
             Keyword.IDENTITY))
         {
             var sequenceOptions = Sequence<SequenceOptions>.Empty;
-            bool lparenOk;
-            try
-            {
-                ExpectToken(new Token.LParen());
-                lparenOk = true;
-            }
-            catch (ParserException)
-            {
-                lparenOk = false;
-            }
-            if (lparenOk)
+            // Rust: `if self.expect_token(&Token::LParen).is_ok()` (caso 81).
+            if (ConsumeToken(new Token.LParen()))
             {
                 sequenceOptions = ParseCreateSequenceOptions();
                 ExpectToken(new Token.RParen());
@@ -640,17 +623,8 @@ public sealed partial class Parser
         }
         else if (ParseKeywords(Keyword.ALWAYS, Keyword.AS))
         {
-            bool lparenOk;
-            try
-            {
-                ExpectToken(new Token.LParen());
-                lparenOk = true;
-            }
-            catch (ParserException)
-            {
-                lparenOk = false;
-            }
-            if (lparenOk)
+            // Rust: `if self.expect_token(&Token::LParen).is_ok()` (caso 81).
+            if (ConsumeToken(new Token.LParen()))
             {
                 Expr expr = WithState(ParserState.Normal, p => p.ParseExpr());
                 ExpectToken(new Token.RParen());

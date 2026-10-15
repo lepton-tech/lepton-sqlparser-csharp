@@ -30,7 +30,7 @@ namespace SqlParser.Core.Ast;
 public sealed partial record MacroArg(Ident Name, Expr? DefaultExpr) : IDisplay
 {
     /// <summary>Returns an argument with name.</summary>
-    /// <remarks>Rust: <c>fn new(name: &amp;str) -&gt; Self</c> (convencoes.md §13, caso 7).</remarks>
+    // Rust: `fn new(name: &str) -> Self` (convencoes.md §13, caso 7).
     public MacroArg(string name)
         : this(Ident.From(name), null)
     {

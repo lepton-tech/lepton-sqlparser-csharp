@@ -28,8 +28,8 @@ namespace SqlParser.Core.Ast;
 /// as Value::Placeholder. For example: MFA_METHOD=SMS will be represented as
 /// <c>Value::Placeholder("SMS".to_string)</c>.
 /// </para>
-/// <para>Sem <c>Display</c> no Rust (o texto é montado por <c>KeyValueOption</c>).</para>
 /// </remarks>
+// Sem `Display` no Rust (o texto é montado por `KeyValueOption`).
 public abstract partial record KeyValueOptionKind
 {
     /// <summary>A single value.</summary>

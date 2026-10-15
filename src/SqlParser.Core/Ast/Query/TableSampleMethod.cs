@@ -24,10 +24,8 @@ namespace SqlParser.Core.Ast;
 /// The table sample method names
 /// Sampling method used by <c>TABLESAMPLE</c>.
 /// </summary>
-/// <remarks>
-/// Enum sem dados com <c>Display</c> → records (convencoes.md §13, caso 37). A variante <c>System</c>
-/// esconde o namespace <c>System</c> dentro deste record: não use nomes qualificados <c>System.X</c> aqui.
-/// </remarks>
+// Enum sem dados com `Display` → records (convencoes.md §13, caso 37). A variante `System`
+// esconde o namespace `System` dentro deste record: não use nomes qualificados `System.X` aqui.
 public abstract partial record TableSampleMethod : IDisplay
 {
     /// <summary><c>ROW</c> sampling method.</summary>

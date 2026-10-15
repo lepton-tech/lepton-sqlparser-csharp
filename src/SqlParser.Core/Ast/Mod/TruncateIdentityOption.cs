@@ -24,7 +24,7 @@ namespace SqlParser.Core.Ast;
 /// PostgreSQL identity option for TRUNCATE table
 /// [ RESTART IDENTITY | CONTINUE IDENTITY ]
 /// </summary>
-/// <remarks>Enum sem dados e sem nenhum <c>impl</c> no Rust: <c>enum</c> C# (convencoes.md §6, regra 1).</remarks>
+// Enum sem dados e sem nenhum `impl` no Rust: `enum` C# (convencoes.md §6, regra 1).
 public enum TruncateIdentityOption
 {
     /// <summary>Restart identity values (RESTART IDENTITY).</summary>

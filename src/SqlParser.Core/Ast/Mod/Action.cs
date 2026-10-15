@@ -23,10 +23,8 @@ using static SqlParser.Core.Ast.AstModule;
 namespace SqlParser.Core.Ast;
 
 /// <summary>A privilege on a database object (table, sequence, etc.).</summary>
-/// <remarks>
-/// Fora de <c>SqlParser.Core.Ast</c>, o nome <c>Action</c> é ambíguo com <c>System.Action</c> (using global
-/// implícito): use <c>Ast.Action</c> nesses arquivos.
-/// </remarks>
+// Fora de `SqlParser.Core.Ast`, o nome `Action` é ambíguo com `System.Action` (using global
+// implícito): use `Ast.Action` nesses arquivos.
 public abstract partial record Action : IDisplay
 {
     /// <summary>Add a search optimization.</summary>
@@ -146,8 +144,8 @@ public abstract partial record Action : IDisplay
     /// <summary>Role-related permission with target role name.</summary>
     /// <param name="RoleValue">
     /// The target role name.
-    /// Rust: campo <c>role</c>; sufixo <c>Value</c> por CS0542 (convencoes.md §13, caso 41; nomes.md).
     /// </param>
+    // RoleValue: Rust: campo `role`; sufixo `Value` por CS0542 (convencoes.md §13, caso 41; nomes.md).
     public sealed record Role(ObjectName RoleValue) : Action;
 
     /// <summary>Select permission with optional column list.</summary>

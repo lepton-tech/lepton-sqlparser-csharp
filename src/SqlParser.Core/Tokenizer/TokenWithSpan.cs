@@ -62,12 +62,12 @@ public sealed partial record TokenWithSpan(Token Token, Span Span) : IDisplay
     /// <summary>Return an EOF token with no location</summary>
     public static TokenWithSpan NewEof() => Wrap(new Token.EOF());
 
-    /// <summary>Rust: <c>impl PartialEq&lt;Token&gt; for TokenWithSpan</c> (compara só o token).</summary>
+    // Rust: `impl PartialEq<Token> for TokenWithSpan` (compara só o token).
     public bool Equals(Token? other) => other is not null && Token == other;
 
     /// <inheritdoc/>
     public void Fmt(Formatter f) => Token.Fmt(f);
 
-    /// <summary>Rust: <c>impl fmt::Display for TokenWithSpan</c>.</summary>
+    // Rust: `impl fmt::Display for TokenWithSpan`.
     public override string ToString() => Formatter.Format(this);
 }

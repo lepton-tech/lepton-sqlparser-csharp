@@ -31,8 +31,8 @@ namespace SqlParser.Core.Ast;
 public abstract partial record SequenceOptions : IDisplay
 {
     /// <summary><c>INCREMENT [BY] &lt;expr&gt;</c> option; second value indicates presence of <c>BY</c> keyword.</summary>
-    /// <param name="Increment">Rust: campo <c>.0</c> (nome registrado em nomes.md).</param>
-    /// <param name="By">Rust: campo <c>.1</c> (nome registrado em nomes.md).</param>
+    // Increment: Rust: campo `.0` (nome registrado em nomes.md).
+    // By: Rust: campo `.1` (nome registrado em nomes.md).
     public sealed record IncrementBy(Expr Increment, bool By) : SequenceOptions;
 
     /// <summary><c>MINVALUE &lt;expr&gt;</c> or <c>NO MINVALUE</c>.</summary>
@@ -42,8 +42,8 @@ public abstract partial record SequenceOptions : IDisplay
     public sealed record MaxValue(Expr? Value) : SequenceOptions;
 
     /// <summary><c>START [WITH] &lt;expr&gt;</c>; second value indicates presence of <c>WITH</c>.</summary>
-    /// <param name="Start">Rust: campo <c>.0</c> (nome registrado em nomes.md).</param>
-    /// <param name="With">Rust: campo <c>.1</c> (nome registrado em nomes.md).</param>
+    // Start: Rust: campo `.0` (nome registrado em nomes.md).
+    // With: Rust: campo `.1` (nome registrado em nomes.md).
     public sealed record StartWith(Expr Start, bool With) : SequenceOptions;
 
     /// <summary><c>CACHE &lt;expr&gt;</c> option.</summary>

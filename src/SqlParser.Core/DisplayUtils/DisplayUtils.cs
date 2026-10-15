@@ -27,8 +27,8 @@ namespace SqlParser.Core;
 /// The module provides formatters that implement the <c>Display</c> trait with support
 /// for both regular (<c>{}</c>) and pretty (<c>{:#}</c>) formatting modes. Pretty printing
 /// adds proper indentation and line breaks to make SQL statements more readable.
-/// <para>Funções e constantes livres do módulo <c>display_utils</c> (convencoes.md §13, caso 29).</para>
 /// </remarks>
+// Funções e constantes livres do módulo `display_utils` (convencoes.md §13, caso 29).
 internal static class DisplayUtils
 {
     // Nome mantido em MAIÚSCULAS: é a constante privada `INDENT` do Rust, usada só neste módulo.

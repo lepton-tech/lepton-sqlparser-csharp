@@ -25,7 +25,7 @@ namespace SqlParser.Core.Ast;
 /// ALTER USER [ IF EXISTS ] [ &lt;name&gt; ] ADD DELEGATED AUTHORIZATION OF ROLE &lt;role_name&gt; TO SECURITY INTEGRATION &lt;integration_name&gt;
 /// </code>
 /// </summary>
-/// <remarks>Sem <c>impl Display</c> no Rust: quem formata é <see cref="AlterUser"/>.</remarks>
 /// <param name="Role">Role name to delegate.</param>
 /// <param name="Integration">Security integration receiving the delegation.</param>
+// Sem `impl Display` no Rust: quem formata é AlterUser.
 public sealed partial record AlterUserAddRoleDelegation(Ident Role, Ident Integration);

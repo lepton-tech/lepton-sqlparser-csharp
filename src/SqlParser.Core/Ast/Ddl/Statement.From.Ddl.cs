@@ -26,12 +26,12 @@ namespace SqlParser.Core.Ast;
 // porque as variantes aninhadas de `Statement` escondem os tipos de topo homônimos (caso 38).
 public abstract partial record Statement
 {
-    /// <summary>Rust: <c>impl From&lt;CreatePolicy&gt; for crate::ast::Statement</c>.</summary>
+    // Rust: `impl From<CreatePolicy> for crate::ast::Statement`.
     public static Statement From(Ast.CreatePolicy v) => new CreatePolicy(v);
 
-    /// <summary>Rust: <c>impl From&lt;DropPolicy&gt; for crate::ast::Statement</c>.</summary>
+    // Rust: `impl From<DropPolicy> for crate::ast::Statement`.
     public static Statement From(Ast.DropPolicy v) => new DropPolicy(v);
 
-    /// <summary>Rust: <c>impl From&lt;AlterPolicy&gt; for crate::ast::Statement</c>.</summary>
+    // Rust: `impl From<AlterPolicy> for crate::ast::Statement`.
     public static Statement From(Ast.AlterPolicy v) => new AlterPolicy(v);
 }

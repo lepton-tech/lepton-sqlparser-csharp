@@ -20,8 +20,8 @@
 
 namespace SqlParser.Core.Ast;
 
-/// <summary>Rust: <c>pub struct EscapeEscapedStringLiteral&lt;'a&gt;(&amp;'a str)</c>, criado por <c>Value.EscapeEscapedString</c>.</summary>
-/// <remarks>O campo <c>.0</c> do Rust é privado: campo <c>_value</c> e construtor <c>internal</c> (convencoes.md §13, casos 20, 25 e 35).</remarks>
+// Rust: `pub struct EscapeEscapedStringLiteral<'a>(&'a str)`, criado por `Value.EscapeEscapedString`.
+// O campo `.0` do Rust é privado: campo `_value` e construtor `internal` (convencoes.md §13, casos 20, 25 e 35).
 public sealed class EscapeEscapedStringLiteral : IDisplay
 {
     private readonly string _value;

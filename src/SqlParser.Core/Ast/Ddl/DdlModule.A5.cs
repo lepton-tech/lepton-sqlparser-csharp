@@ -20,12 +20,11 @@
 
 namespace SqlParser.Core.Ast;
 
-/// <summary>
-/// Funções livres do módulo <c>ddl</c> (<c>src/ast/ddl.rs</c>). O módulo não tem um tipo homônimo,
-/// então as funções ficam em <c>DdlModule</c> (convencoes.md §13, caso 29). Use
-/// <c>using static SqlParser.Core.Ast.DdlModule;</c> para chamá-las sem prefixo, como no Rust.
-/// </summary>
-/// <remarks>Este arquivo porta as funções livres de <c>ddl.rs</c> até a linha 2909.</remarks>
+/// <summary>Free functions of the <c>ddl</c> module (<c>src/ast/ddl.rs</c>).</summary>
+// Funções livres do módulo `ddl` (`src/ast/ddl.rs`). O módulo não tem um tipo homônimo,
+// então as funções ficam em `DdlModule` (convencoes.md §13, caso 29). Use
+// `using static SqlParser.Core.Ast.DdlModule;` para chamá-las sem prefixo, como no Rust.
+// Este arquivo porta as funções livres de `ddl.rs` até a linha 2909.
 public static partial class DdlModule
 {
     // Rust: #[must_use]
@@ -38,7 +37,7 @@ public static partial class DdlModule
     {
         public ConstraintName(Ident? value) => Value = value;
 
-        /// <summary>Rust: campo <c>.0</c>.</summary>
+        // Rust: campo `.0`.
         public Ident? Value { get; }
 
         public void Fmt(Formatter f)
@@ -75,13 +74,13 @@ public static partial class DdlModule
             Option = option;
         }
 
-        /// <summary>Rust: campo <c>.0</c>.</summary>
+        // Rust: campo `.0`.
         public string Prefix { get; }
 
-        /// <summary>Rust: campo <c>.1</c>.</summary>
+        // Rust: campo `.1`.
         public string Postfix { get; }
 
-        /// <summary>Rust: campo <c>.2</c>.</summary>
+        // Rust: campo `.2`.
         public T? Option { get; }
 
         public void Fmt(Formatter f)

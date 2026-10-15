@@ -31,7 +31,7 @@ public sealed partial record HiveFormat(
     HiveIOFormat? Storage,
     string? Location)
 {
-    /// <summary>Rust: <c>#[derive(Default)]</c> (convencoes.md §13, caso 42).</summary>
+    // Rust: `#[derive(Default)]` (convencoes.md §13, caso 42).
     public static HiveFormat Default() =>
         new HiveFormat(RowFormat: null, SerdeProperties: null, Storage: null, Location: null);
 }

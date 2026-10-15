@@ -21,7 +21,7 @@
 namespace SqlParser.Core;
 
 /// <summary>A value that inserts a space when displayed with {}, but a newline when displayed with {:#}.</summary>
-/// <remarks>Struct unitário do Rust: use <see cref="Instance"/> (convencoes.md §13, caso 33).</remarks>
+// Struct unitário do Rust: use Instance (convencoes.md §13, caso 33).
 internal sealed class SpaceOrNewline : IDisplay
 {
     public static readonly SpaceOrNewline Instance = new();

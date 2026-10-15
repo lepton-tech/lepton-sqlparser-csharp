@@ -43,7 +43,7 @@ public sealed partial record WindowFrame(WindowFrameUnits Units, WindowFrameBoun
     /// Returns default value for window frame
     /// <para>See <see href="https://www.sqlite.org/windowfunctions.html#frame_specifications">this page</see> for more details.</para>
     /// </summary>
-    /// <remarks>Rust: <c>impl Default for WindowFrame</c> (convencoes.md §13, caso 42).</remarks>
+    // Rust: `impl Default for WindowFrame` (convencoes.md §13, caso 42).
     public static WindowFrame Default() =>
         new WindowFrame(
             Units: new WindowFrameUnits.Range(),

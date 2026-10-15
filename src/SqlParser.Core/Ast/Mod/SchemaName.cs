@@ -31,8 +31,8 @@ public abstract partial record SchemaName : IDisplay
     public sealed record UnnamedAuthorization(Ident Value) : SchemaName;
 
     /// <summary>Both schema name and authorization identifier specified: <c>&lt;schema name&gt;  AUTHORIZATION &lt;schema authorization identifier&gt;</c>.</summary>
-    /// <param name="Name">Rust: campo <c>.0</c> (o nome do schema). Nome registrado em nomes.md.</param>
-    /// <param name="Authorization">Rust: campo <c>.1</c> (o identificador de autorização). Nome registrado em nomes.md.</param>
+    // Name: Rust: campo `.0` (o nome do schema). Nome registrado em nomes.md.
+    // Authorization: Rust: campo `.1` (o identificador de autorização). Nome registrado em nomes.md.
     public sealed record NamedAuthorization(ObjectName Name, Ident Authorization) : SchemaName;
 
     public void Fmt(Formatter f)

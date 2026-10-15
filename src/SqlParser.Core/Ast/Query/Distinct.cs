@@ -36,11 +36,9 @@ public abstract partial record Distinct : IDisplay
 
     /// <summary>
     /// <c>DISTINCT</c> (remove duplicate rows)
-    /// <para>
-    /// Rust: variante <c>Distinct::Distinct</c>. Renomeada com o sufixo <c>Value</c> por CS0542 (um tipo
-    /// aninhado não pode ter o nome do tipo que o contém), por analogia ao caso 41 (A7.md, "Nomes").
-    /// </para>
     /// </summary>
+    // Rust: variante `Distinct::Distinct`. Renomeada com o sufixo `Value` por CS0542 (um tipo
+    // aninhado não pode ter o nome do tipo que o contém), por analogia ao caso 41 (A7.md, "Nomes").
     public sealed record DistinctValue : Distinct;
 
     /// <summary><c>DISTINCT ON (...)</c> (Postgres extension)</summary>

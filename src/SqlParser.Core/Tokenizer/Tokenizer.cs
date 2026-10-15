@@ -32,10 +32,8 @@ using SqlParser.Core.Dialects;
 namespace SqlParser.Core;
 
 /// <summary>SQL Tokenizer</summary>
-/// <remarks>
-/// As funções livres do módulo <c>tokenizer</c> do Rust (<c>keyword_lookup</c>, <c>peeking_take_while</c>,
-/// <c>unescape_single_quoted_string</c>...) são membros estáticos desta classe (convencoes.md §13 #5).
-/// </remarks>
+// As funções livres do módulo `tokenizer` do Rust (`keyword_lookup`, `peeking_take_while`,
+// `unescape_single_quoted_string`...) são membros estáticos desta classe (convencoes.md §13 #5).
 public class Tokenizer
 {
     /// <summary>Case-insensitive keyword lookup using binary search over <c>ALL_KEYWORDS</c>.</summary>
@@ -154,7 +152,8 @@ public class Tokenizer
     }
 
     /// <summary>Tokenize the statement and produce a vector of tokens</summary>
-    /// <exception cref="TokenizerException">Rust: <c>Err(TokenizerError)</c>.</exception>
+    /// <exception cref="TokenizerException">The input could not be tokenized.</exception>
+    // Rust: devolve `Err(TokenizerError)` (convencoes.md §8).
     public List<Token> Tokenize()
     {
         var twl = TokenizeWithLocation();
@@ -167,7 +166,8 @@ public class Tokenizer
     }
 
     /// <summary>Tokenize the statement and produce a vector of tokens with location information</summary>
-    /// <exception cref="TokenizerException">Rust: <c>Err(TokenizerError)</c>.</exception>
+    /// <exception cref="TokenizerException">The input could not be tokenized.</exception>
+    // Rust: devolve `Err(TokenizerError)` (convencoes.md §8).
     public List<TokenWithSpan> TokenizeWithLocation()
     {
         var tokens = new List<TokenWithSpan>();
@@ -179,7 +179,8 @@ public class Tokenizer
     /// Tokenize the statement and append tokens with location information into the provided buffer.
     /// If an error is thrown, the buffer will contain all tokens that were successfully parsed before the error.
     /// </summary>
-    /// <exception cref="TokenizerException">Rust: <c>Err(TokenizerError)</c>.</exception>
+    /// <exception cref="TokenizerException">The input could not be tokenized.</exception>
+    // Rust: devolve `Err(TokenizerError)` (convencoes.md §8).
     public void TokenizeWithLocationIntoBuf(List<TokenWithSpan> buf)
     {
         TokenizeWithLocationIntoBufWithMapper(buf, token => token);
@@ -189,7 +190,8 @@ public class Tokenizer
     /// Tokenize the statement and produce a vector of tokens, mapping each token
     /// with provided <c>mapper</c>
     /// </summary>
-    /// <exception cref="TokenizerException">Rust: <c>Err(TokenizerError)</c>.</exception>
+    /// <exception cref="TokenizerException">The input could not be tokenized.</exception>
+    // Rust: devolve `Err(TokenizerError)` (convencoes.md §8).
     public void TokenizeWithLocationIntoBufWithMapper(
         List<TokenWithSpan> buf,
         Func<TokenWithSpan, TokenWithSpan> mapper)

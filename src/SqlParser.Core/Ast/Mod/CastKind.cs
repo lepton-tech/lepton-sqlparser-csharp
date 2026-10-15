@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>The syntax used for in a cast expression.</summary>
-/// <remarks>Enum sem dados e sem nenhum <c>impl</c> no Rust: <c>enum</c> C# (convencoes.md §6, regra 1).</remarks>
+// Enum sem dados e sem nenhum `impl` no Rust: `enum` C# (convencoes.md §6, regra 1).
 public enum CastKind
 {
     /// <summary>The standard SQL cast syntax, e.g. <c>CAST(&lt;expr&gt; as &lt;datatype&gt;)</c></summary>

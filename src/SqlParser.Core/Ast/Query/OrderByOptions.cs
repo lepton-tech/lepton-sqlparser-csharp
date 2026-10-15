@@ -25,7 +25,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="NullsFirst">Optional <c>NULLS FIRST</c> (<c>Some(true)</c>) or <c>NULLS LAST</c> (<c>Some(false)</c>).</param>
 public sealed partial record OrderByOptions(OrderBySort? Sort, bool? NullsFirst) : IDisplay
 {
-    /// <summary>Rust: <c>#[derive(Default)]</c> (convencoes.md §13, caso 42).</summary>
+    // Rust: `#[derive(Default)]` (convencoes.md §13, caso 42).
     public static OrderByOptions Default() => new OrderByOptions(Sort: null, NullsFirst: null);
 
     public void Fmt(Formatter f)

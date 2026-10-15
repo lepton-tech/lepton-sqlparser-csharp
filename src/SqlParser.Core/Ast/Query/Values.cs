@@ -59,11 +59,9 @@ public sealed partial record Values(bool ExplicitRow, bool ValueKeyword, Sequenc
 
     public override string ToString() => Formatter.Format(this);
 
-    /// <summary>
-    /// Rust: o valor <c>format_args!(...)</c> (<c>core::fmt::Arguments</c>) usado como <c>Display</c>.
-    /// Como no Rust, cada lacuna é formatada com flags novos (sem <c>#</c>) no destino do formatador
-    /// recebido; as quebras de linha passam pelo <c>Indent</c> que o envolve (A7.md, "Decisões").
-    /// </summary>
+    // Rust: o valor `format_args!(...)` (`core::fmt::Arguments`) usado como `Display`.
+    // Como no Rust, cada lacuna é formatada com flags novos (sem `#`) no destino do formatador
+    // recebido; as quebras de linha passam pelo `Indent` que o envolve (A7.md, "Decisões").
     private sealed class FormatArgs : IDisplay
     {
         private readonly Action<Formatter> _write;

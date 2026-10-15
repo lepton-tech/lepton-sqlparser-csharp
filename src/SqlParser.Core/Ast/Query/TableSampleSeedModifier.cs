@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Modifier specifying how the sample seed is applied.</summary>
-/// <remarks>Enum sem dados com <c>Display</c> → records (convencoes.md §13, caso 37).</remarks>
+// Enum sem dados com `Display` → records (convencoes.md §13, caso 37).
 public abstract partial record TableSampleSeedModifier : IDisplay
 {
     /// <summary><c>REPEATABLE</c> modifier.</summary>

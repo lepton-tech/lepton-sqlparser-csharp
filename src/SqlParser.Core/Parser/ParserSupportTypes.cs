@@ -72,7 +72,7 @@ public abstract record WildcardExpr
 /// </summary>
 internal sealed record MatchedTrailingBracket(bool Value)
 {
-    /// <summary>Rust: <c>impl From&lt;bool&gt; for MatchedTrailingBracket</c>.</summary>
+    // Rust: `impl From<bool> for MatchedTrailingBracket`.
     public static MatchedTrailingBracket From(bool value) => new MatchedTrailingBracket(value);
 }
 
@@ -80,13 +80,12 @@ internal sealed record MatchedTrailingBracket(bool Value)
 /// <param name="TrailingCommas">Allow trailing commas in lists (e.g. <c>a, b,</c>).</param>
 /// <param name="Unescape">Controls how literal values are unescaped. See <c>Tokenizer::with_unescape</c> for more details.</param>
 /// <param name="RequireSemicolonStmtDelimiter">Controls if the parser expects a semi-colon token between statements. Default is <c>true</c>.</param>
-/// <remarks>
-/// Struct do Rust com campos públicos e builders <c>with_x(mut self, ..) -> Self</c> que consomem o valor:
-/// aqui um record imutável cujos <c>WithX</c> devolvem uma cópia (o mesmo efeito observável).
-/// </remarks>
+// Struct do Rust com campos públicos e builders `with_x(mut self, ..) -> Self` que consomem o valor:
+// aqui um record imutável cujos `WithX` devolvem uma cópia (o mesmo efeito observável).
 public sealed record ParserOptions(bool TrailingCommas, bool Unescape, bool RequireSemicolonStmtDelimiter)
 {
-    /// <summary>Create a new <see cref="ParserOptions"/> (Rust: <c>ParserOptions::new()</c> / <c>Default</c>).</summary>
+    /// <summary>Create a new <see cref="ParserOptions"/></summary>
+    // Rust: `ParserOptions::new()` / `Default`.
     public ParserOptions()
         : this(TrailingCommas: false, Unescape: true, RequireSemicolonStmtDelimiter: true)
     {
@@ -138,7 +137,7 @@ internal abstract record ExprPrefixError
 
     public sealed record Err : ExprPrefixError;
 
-    /// <summary>Rust: <c>impl From&lt;&amp;ParserError&gt; for ExprPrefixError</c>.</summary>
+    // Rust: `impl From<&ParserError> for ExprPrefixError`.
     public static ExprPrefixError From(ParserError e) =>
         e switch
         {

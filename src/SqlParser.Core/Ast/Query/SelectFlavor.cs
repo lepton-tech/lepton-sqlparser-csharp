@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>What did this select look like?</summary>
-/// <remarks>Enum sem dados e sem nenhum <c>impl</c> → <c>enum</c> C# (convencoes.md §6, regra 1).</remarks>
+// Enum sem dados e sem nenhum `impl` → `enum` C# (convencoes.md §6, regra 1).
 public enum SelectFlavor
 {
     /// <summary><c>SELECT *</c></summary>

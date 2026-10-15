@@ -27,7 +27,7 @@ namespace SqlParser.Core.Ast;
 [VisitWith("visit_order_by_expr")]
 public sealed partial record OrderByExpr(Expr Expr, OrderByOptions Options, WithFill? WithFill) : IDisplay
 {
-    /// <summary>Rust: <c>impl From&lt;Ident&gt; for OrderByExpr</c>.</summary>
+    // Rust: `impl From<Ident> for OrderByExpr`.
     public static OrderByExpr From(Ident ident) =>
         new OrderByExpr(new Expr.Identifier(ident), OrderByOptions.Default(), null);
 

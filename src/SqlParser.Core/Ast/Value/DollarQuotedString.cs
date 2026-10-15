@@ -49,6 +49,6 @@ public sealed partial record DollarQuotedString(string Value, string? Tag) : IDi
         }
     }
 
-    /// <summary>Rust: <c>impl fmt::Display for DollarQuotedString</c>.</summary>
+    // Rust: `impl fmt::Display for DollarQuotedString`.
     public override string ToString() => Formatter.Format(this);
 }

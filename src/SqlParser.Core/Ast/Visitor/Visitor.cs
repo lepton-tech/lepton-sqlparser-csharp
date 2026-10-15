@@ -24,7 +24,7 @@ namespace SqlParser.Core.Ast;
 /// A visitor that can be used to walk an AST tree.
 /// </summary>
 /// <typeparam name="TBreak">
-/// Type returned when the recursion returns early (Rust: <c>type Break</c>; <c>()</c> → <see cref="ValueTuple"/>).
+/// Type returned when the recursion returns early.
 /// </typeparam>
 /// <remarks>
 /// <para>
@@ -39,11 +39,6 @@ namespace SqlParser.Core.Ast;
 /// <item><see cref="Visitor.VisitExpressions{V, E}"/></item>
 /// <item><see cref="Visitor.VisitStatements{V, E}"/></item>
 /// </list>
-/// <para>
-/// Rust: <c>pub trait Visitor { type Break; .. }</c> → classe abstrata com ganchos <c>virtual</c> que devolvem
-/// <c>Continue</c> (convencoes.md §7: trait com implementações padrão). O tipo associado <c>Break</c> vira o
-/// parâmetro genérico <typeparamref name="TBreak"/>.
-/// </para>
 /// </remarks>
 /// <example>
 /// <code>
@@ -84,6 +79,9 @@ namespace SqlParser.Core.Ast;
 /// //   "PRE: RELATION: bar",
 /// </code>
 /// </example>
+// Rust: `pub trait Visitor { type Break; .. }` → classe abstrata com ganchos `virtual` que devolvem
+// `Continue` (convencoes.md §7: trait com implementações padrão). O tipo associado `Break` vira o
+// parâmetro genérico TBreak (`()` → ValueTuple).
 public abstract class Visitor<TBreak>
 {
     /// <summary>Invoked for any queries that appear in the AST before visiting children</summary>

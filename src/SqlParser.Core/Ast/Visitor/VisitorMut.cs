@@ -24,7 +24,7 @@ namespace SqlParser.Core.Ast;
 /// A visitor that can be used to mutate an AST tree.
 /// </summary>
 /// <typeparam name="TBreak">
-/// Type returned when the recursion returns early (Rust: <c>type Break</c>; <c>()</c> → <see cref="ValueTuple"/>).
+/// Type returned when the recursion returns early.
 /// </typeparam>
 /// <remarks>
 /// <para>
@@ -39,12 +39,6 @@ namespace SqlParser.Core.Ast;
 /// <item><see cref="Visitor.VisitExpressionsMut{V, E}"/></item>
 /// <item><see cref="Visitor.VisitStatementsMut{V, E}"/></item>
 /// </list>
-/// <para>
-/// O <c>&amp;mut T</c> dos ganchos vira <c>ref T</c>: como a AST é imutável, o gancho altera um nó trocando-o
-/// (<c>expr = expr with { .. }</c> ou um nó novo), e a visita reconstrói os pais com <c>with</c>
-/// (ver <see cref="IVisitMut{TSelf}"/>). Os filhos visitados depois do gancho <c>pre_</c> são os do nó novo,
-/// como no Rust.
-/// </para>
 /// </remarks>
 /// <example>
 /// <code>
@@ -71,6 +65,11 @@ namespace SqlParser.Core.Ast;
 /// // statements[0].ToString() == "SELECT replaced FROM foo WHERE replaced IN (SELECT replaced FROM bar)"
 /// </code>
 /// </example>
+// O `&mut T` dos ganchos vira `ref T`: como a AST é imutável, o gancho altera um nó trocando-o
+// (`expr = expr with { .. }` ou um nó novo), e a visita reconstrói os pais com `with`
+// (ver IVisitMut<TSelf>). Os filhos visitados depois do gancho `pre_` são os do nó novo,
+// como no Rust.
+// TBreak: Rust `type Break` (`()` → ValueTuple).
 public abstract class VisitorMut<TBreak>
 {
     /// <summary>Invoked for any queries that appear in the AST before visiting children</summary>

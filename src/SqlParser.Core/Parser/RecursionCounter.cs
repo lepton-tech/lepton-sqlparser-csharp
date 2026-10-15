@@ -26,17 +26,20 @@ namespace SqlParser.Core;
 /// be returned.
 /// </summary>
 /// <remarks>
-/// O <c>Rc&lt;Cell&lt;usize&gt;&gt;</c> do Rust vira um campo mutável numa classe (convencoes.md §5).
+/// <para>
+/// Note: Uses an <c>alloc::rc::Rc</c> and <c>core::cell::Cell</c> in order to satisfy the Rust
+/// borrow checker so the automatic <see cref="DepthGuard"/> decrement a
+/// reference to the counter.
+/// </para>
 /// <para>
 /// Note: when "recursive-protection" feature is enabled, this crate uses additional stack overflow protection
 /// for some of its recursive methods. See <c>recursive::recursive</c> for more information.
 /// </para>
-/// <para>
-/// Como no Rust, o erro <see cref="ParserError.RecursionLimitExceeded"/> só ocorre quando o contador chega a 0.
-/// A proteção de pilha fica nas funções que o Rust marca com <c>#[recursive::recursive]</c>, via
-/// <see cref="StackGuard"/> (DIV-005).
-/// </para>
 /// </remarks>
+// O `Rc<Cell<usize>>` do Rust vira um campo mutável numa classe (convencoes.md §5).
+// Como no Rust, o erro ParserError.RecursionLimitExceeded só ocorre quando o contador chega a 0.
+// A proteção de pilha fica nas funções que o Rust marca com `#[recursive::recursive]`, via
+// StackGuard (DIV-005).
 internal sealed class RecursionCounter
 {
     private int _remainingDepth;
@@ -49,7 +52,7 @@ internal sealed class RecursionCounter
     /// Returns <c>Err</c> if the remaining depth falls to 0.
     /// Returns a <see cref="DepthGuard"/> which will adds 1 to the remaining depth upon drop;
     /// </summary>
-    /// <remarks>Uso: <c>using var _guard = _recursionCounter.TryDecrease();</c> (equivale ao <c>Drop</c> do Rust).</remarks>
+    // Uso: `using var _guard = _recursionCounter.TryDecrease();` (equivale ao `Drop` do Rust).
     public DepthGuard TryDecrease()
     {
         var oldValue = _remainingDepth;
@@ -70,7 +73,7 @@ internal sealed class RecursionCounter
 
         internal DepthGuard(RecursionCounter counter) => _counter = counter;
 
-        /// <summary>Rust: <c>impl Drop for DepthGuard</c>.</summary>
+        // Rust: `impl Drop for DepthGuard`.
         public void Dispose()
         {
             if (_counter is not null)

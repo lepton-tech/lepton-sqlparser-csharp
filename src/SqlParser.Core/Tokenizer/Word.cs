@@ -55,7 +55,7 @@ public sealed partial record Word(string Value, char? QuoteStyle, Keyword Keywor
         }
     }
 
-    /// <summary>Rust: <c>impl fmt::Display for Word</c>.</summary>
+    // Rust: `impl fmt::Display for Word`.
     public override string ToString() => Formatter.Format(this);
 
     // Rust: `fn matching_end_quote` é privado do módulo `tokenizer` → internal (convencoes.md §13).

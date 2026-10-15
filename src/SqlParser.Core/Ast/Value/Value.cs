@@ -21,18 +21,14 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Primitive SQL values such as number and string</summary>
-/// <remarks>
-/// As funções livres do módulo <c>value</c> (<c>escape_quoted_string</c> etc.) são membros estáticos
-/// deste tipo homônimo (convencoes.md §13, casos 5 e 29). <c>#[derive(PartialOrd, Ord)]</c> não é
-/// traduzido (caso 23).
-/// </remarks>
+// As funções livres do módulo `value` (`escape_quoted_string` etc.) são membros estáticos
+// deste tipo homônimo (convencoes.md §13, casos 5 e 29). `#[derive(PartialOrd, Ord)]` não é
+// traduzido (caso 23).
 public abstract partial record Value : IDisplay
 {
     /// <summary>Numeric literal</summary>
-    /// <remarks>
-    /// Variante sem a feature <c>bigdecimal</c> (a padrão): <c>Number(String, bool)</c>. Os nomes dos
-    /// campos seguem <c>Token::Number</c> (nomes.md): <c>Long</c> é o sufixo <c>L</c>.
-    /// </remarks>
+    // Variante sem a feature `bigdecimal` (a padrão): `Number(String, bool)`. Os nomes dos
+    // campos seguem `Token::Number` (nomes.md): `Long` é o sufixo `L`.
     public sealed record Number(string Value, bool Long) : Value;
 
     /// <summary>'string value'</summary>
@@ -139,7 +135,7 @@ public abstract partial record Value : IDisplay
     /// <summary><c>?</c> or <c>$</c> Prepared statement arg placeholder</summary>
     public sealed record Placeholder(string Value) : Value;
 
-    /// <summary>Rust: <c>impl From&lt;ValueWithSpan&gt; for Value</c>.</summary>
+    // Rust: `impl From<ValueWithSpan> for Value`.
     public static Value From(ValueWithSpan value) => value.Value;
 
     /// <summary>If the underlying literal is a string, regardless of quote style, returns the associated string value</summary>
@@ -260,10 +256,8 @@ public abstract partial record Value : IDisplay
     /// Return a helper which formats <c>string</c> for inclusion inside a quoted
     /// literal that uses <c>quote</c> as the delimiter.
     /// </summary>
-    /// <remarks>
-    /// O <c>quote: char</c> do Rust pode estar fora do BMP (o teste usa <c>'🦀'</c>), então vira <c>int</c>
-    /// com o scalar value (convencoes.md §13, caso 18). Um <c>char</c> C# converte implicitamente.
-    /// </remarks>
+    // O `quote: char` do Rust pode estar fora do BMP (o teste usa `'🦀'`), então vira `int`
+    // com o scalar value (convencoes.md §13, caso 18). Um `char` C# converte implicitamente.
     public static EscapeQuotedString EscapeQuotedString(string @string, int quote) =>
         new EscapeQuotedString(@string, quote);
 

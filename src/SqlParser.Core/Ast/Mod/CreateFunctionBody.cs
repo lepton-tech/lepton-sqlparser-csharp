@@ -28,8 +28,8 @@ namespace SqlParser.Core.Ast;
 /// <see href="https://cloud.google.com/bigquery/docs/reference/standard-sql/data-definition-language#syntax_11">BigQuery</see>
 /// <see href="https://www.postgresql.org/docs/15/sql-createfunction.html">PostgreSQL</see>
 /// <see href="https://learn.microsoft.com/en-us/sql/t-sql/statements/create-function-transact-sql">MsSql</see>
-/// <para>Sem <c>impl Display</c> no Rust: quem formata é o <c>Display</c> de <c>CreateFunction</c>.</para>
 /// </remarks>
+// Sem `impl Display` no Rust: quem formata é o `Display` de `CreateFunction`.
 public abstract partial record CreateFunctionBody
 {
     /// <summary>

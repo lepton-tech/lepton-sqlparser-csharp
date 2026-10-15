@@ -24,8 +24,8 @@ namespace SqlParser.Core.Ast;
 /// <remarks>
 /// See PostgreSQL <c>USING</c> operator:
 /// <see href="https://www.postgresql.org/docs/current/sql-select.html"/>
-/// <para>Sem <c>Display</c> no Rust (o texto é gerado por <c>OrderByOptions</c>): o tipo não implementa <c>IDisplay</c>.</para>
 /// </remarks>
+// Sem `Display` no Rust (o texto é gerado por `OrderByOptions`): o tipo não implementa `IDisplay`.
 public abstract partial record OrderBySort
 {
     /// <summary><c>ASC</c></summary>

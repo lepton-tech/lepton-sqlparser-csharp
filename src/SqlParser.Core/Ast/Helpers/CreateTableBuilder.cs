@@ -46,14 +46,12 @@ namespace SqlParser.Core.Ast;
 ///    "CREATE TABLE IF NOT EXISTS table_name (c1 INT)"
 /// )
 /// </code>
-/// <para>
-/// Port: <c>sealed record</c> com propriedades mutáveis. O record dá a igualdade, o hash e a cópia
-/// (<c>builder with { }</c> = <c>builder.clone()</c>) do <c>#[derive(PartialEq, Eq, Hash, Clone)]</c>; os
-/// métodos <c>fn x(mut self, ..) -> Self</c> alteram a instância e devolvem <c>this</c> (convencoes.md §13,
-/// caso 24). Métodos com o nome de um campo recebem o prefixo <c>Set</c> (CS0102); o campo <c>clone</c>
-/// vira <c>CloneValue</c> (CS8859).
-/// </para>
 /// </remarks>
+// Port: `sealed record` com propriedades mutáveis. O record dá a igualdade, o hash e a cópia
+// (`builder with { }` = `builder.clone()`) do `#[derive(PartialEq, Eq, Hash, Clone)]`; os
+// métodos `fn x(mut self, ..) -> Self` alteram a instância e devolvem `this` (convencoes.md §13,
+// caso 24). Métodos com o nome de um campo recebem o prefixo `Set` (CS0102); o campo `clone`
+// vira `CloneValue` (CS8859).
 public sealed partial record CreateTableBuilder
 {
     /// <summary>Create a new <c>CreateTableBuilder</c> for the given table name.</summary>
@@ -189,7 +187,7 @@ public sealed partial record CreateTableBuilder
     public CreateTableLikeKind? Like { get; set; }
 
     /// <summary>Optional <c>CLONE</c> source object name.</summary>
-    /// <remarks>Rust: campo <c>clone</c>; renomeado porque records não aceitam membro chamado <c>Clone</c> (CS8859).</remarks>
+    // Rust: campo `clone`; renomeado porque records não aceitam membro chamado `Clone` (CS8859).
     public ObjectName? CloneValue { get; set; }
 
     /// <summary>Optional table version.</summary>
@@ -834,8 +832,9 @@ public sealed partial record CreateTableBuilder
             Fallback: Fallback,
             WithData: WithData);
 
-    /// <summary>Rust: <c>impl TryFrom&lt;Statement&gt; for CreateTableBuilder</c>.</summary>
-    /// <exception cref="ParserException">A instrução não é <c>Statement::CreateTable</c>.</exception>
+    /// <exception cref="ParserException">The statement is not a <c>Statement::CreateTable</c>.</exception>
+    // Rust: `impl TryFrom<Statement> for CreateTableBuilder`. O `Err(ParserError)` devolvido quando a
+    // instrução não é `Statement::CreateTable` vira ParserException (convencoes.md §8).
     public static CreateTableBuilder TryFrom(Statement stmt)
     {
         // As the builder can be transformed back to a statement, it shouldn't be a problem to take the
@@ -850,7 +849,7 @@ public sealed partial record CreateTableBuilder
         }
     }
 
-    /// <summary>Rust: <c>impl From&lt;CreateTable&gt; for CreateTableBuilder</c>.</summary>
+    // Rust: `impl From<CreateTable> for CreateTableBuilder`.
     public static CreateTableBuilder From(CreateTable table) =>
         new CreateTableBuilder(table.Name)
         {

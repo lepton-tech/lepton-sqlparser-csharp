@@ -21,7 +21,7 @@
 namespace SqlParser.Core;
 
 /// <summary>
-/// Acesso público às listas de keywords geradas a partir de <c>keywords.rs</c>.
+/// Public access to the keyword lists generated from <c>keywords.rs</c>.
 /// </summary>
 public static partial class Keywords
 {
@@ -36,43 +36,52 @@ public static partial class Keywords
     private static IReadOnlyList<Keyword>? _reservedForTableFactor;
     private static IReadOnlyList<Keyword>? _reservedForIdentifier;
 
-    /// <summary>All SQL keywords as strings, sorted ordinally (Rust: <c>ALL_KEYWORDS</c>).</summary>
+    /// <summary>Array of all SQL keywords as string constants.</summary>
+    // Rust: `ALL_KEYWORDS`. Em ordem ordinal, como exige a busca binária de Lookup.
     public static IReadOnlyList<string> AllKeywords => _allKeywords ??= Array.AsReadOnly(AllKeywordsArray);
 
-    /// <summary>All <see cref="Keyword"/> values in declaration order (Rust: <c>ALL_KEYWORDS_INDEX</c>).</summary>
+    /// <summary>Array of all <c>Keyword</c> enum values in declaration order.</summary>
+    // Rust: `ALL_KEYWORDS_INDEX`.
     public static IReadOnlyList<Keyword> AllKeywordsIndex => _allKeywordsIndex ??= Array.AsReadOnly(AllKeywordsIndexArray);
 
     /// <summary>
     /// These keywords can't be used as a table alias, so that <c>FROM table_name alias</c>
-    /// can be parsed unambiguously without looking ahead (Rust: <c>RESERVED_FOR_TABLE_ALIAS</c>).
+    /// can be parsed unambiguously without looking ahead.
     /// </summary>
+    // Rust: `RESERVED_FOR_TABLE_ALIAS`.
     public static IReadOnlyList<Keyword> ReservedForTableAlias =>
         _reservedForTableAlias ??= Array.AsReadOnly(ReservedForTableAliasArray);
 
     /// <summary>
     /// Can't be used as a column alias, so that <c>SELECT &lt;expr&gt; alias</c>
-    /// can be parsed unambiguously without looking ahead (Rust: <c>RESERVED_FOR_COLUMN_ALIAS</c>).
+    /// can be parsed unambiguously without looking ahead.
     /// </summary>
+    // Rust: `RESERVED_FOR_COLUMN_ALIAS`.
     public static IReadOnlyList<Keyword> ReservedForColumnAlias =>
         _reservedForColumnAlias ??= Array.AsReadOnly(ReservedForColumnAliasArray);
 
-    /// <summary>Global list of reserved keywords allowed after FROM (Rust: <c>RESERVED_FOR_TABLE_FACTOR</c>).</summary>
+    /// <summary>
+    /// Global list of reserved keywords allowed after FROM.
+    /// Parser should call Dialect::get_reserved_keyword_after_from
+    /// to allow for each dialect to customize the list.
+    /// </summary>
+    // Rust: `RESERVED_FOR_TABLE_FACTOR`.
     public static IReadOnlyList<Keyword> ReservedForTableFactor =>
         _reservedForTableFactor ??= Array.AsReadOnly(ReservedForTableFactorArray);
 
     /// <summary>
     /// Global list of reserved keywords that cannot be parsed as identifiers
-    /// without special handling like quoting (Rust: <c>RESERVED_FOR_IDENTIFIER</c>).
+    /// without special handling like quoting. Parser should call <c>Dialect::is_reserved_for_identifier</c>
+    /// to allow for each dialect to customize the list.
     /// </summary>
+    // Rust: `RESERVED_FOR_IDENTIFIER`.
     public static IReadOnlyList<Keyword> ReservedForIdentifier =>
         _reservedForIdentifier ??= Array.AsReadOnly(ReservedForIdentifierArray);
 
-    /// <summary>
-    /// Procura a keyword correspondente a uma palavra já convertida para maiúsculas.
-    /// Equivale a <c>ALL_KEYWORDS.binary_search(..)</c> + <c>ALL_KEYWORDS_INDEX[i]</c> no tokenizer do Rust
-    /// (comparação ordinal, como a ordenação por bytes do Rust).
-    /// </summary>
-    /// <returns>A keyword, ou <see cref="Keyword.NoKeyword"/> se a palavra não for keyword.</returns>
+    /// <summary>Looks up the keyword matching a word that is already in uppercase.</summary>
+    /// <returns>The keyword, or <see cref="Keyword.NoKeyword"/> if the word is not a keyword.</returns>
+    // Equivale a `ALL_KEYWORDS.binary_search(..)` + `ALL_KEYWORDS_INDEX[i]` no tokenizer do Rust
+    // (comparação ordinal, como a ordenação por bytes do Rust).
     public static Keyword Lookup(string upperCaseWord)
     {
         var index = Array.BinarySearch(AllKeywordsArray, upperCaseWord, StringComparer.Ordinal);
@@ -80,8 +89,9 @@ public static partial class Keywords
     }
 
     /// <summary>
-    /// Texto SQL da keyword (Rust: <c>impl Display for Keyword</c>). Difere de <c>ToString()</c>
-    /// em casos como <see cref="Keyword.END_EXEC"/>, cujo texto é <c>END-EXEC</c>.
+    /// The SQL text of the keyword. It differs from <c>ToString()</c> in cases such as
+    /// <see cref="Keyword.END_EXEC"/>, whose text is <c>END-EXEC</c>.
     /// </summary>
+    // Rust: `impl Display for Keyword` (convencoes.md §13, caso 3).
     public static string ToSql(this Keyword keyword) => KeywordTexts[(int)keyword];
 }

@@ -97,7 +97,8 @@ internal sealed class Emitter
         Line("/// <inheritdoc/>");
         if (trivial)
         {
-            Line("/// <remarks>Nenhum campo alcança um gancho do <see cref=\"global::SqlParser.Core.Ast.Visitor{TBreak}\"/>: a visita do derive Rust não tem efeito.</remarks>");
+            // Nota do port em // e não em /// (convencoes.md §12): não aparece no IntelliSense.
+            Line("// Nenhum campo alcança um gancho do Visitor<TBreak>: a visita do derive Rust não tem efeito.");
             Line($"public {Flow} Visit<TBreak>(global::SqlParser.Core.Ast.Visitor<TBreak> visitor) => {Flow}.Continue;");
         }
         else

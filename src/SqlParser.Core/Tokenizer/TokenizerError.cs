@@ -33,6 +33,6 @@ public sealed record TokenizerError(string Message, Location Location) : IDispla
         f.Write(Location); // "{}" de Location: string vazia se line == 0
     }
 
-    /// <summary>Rust: <c>impl fmt::Display for TokenizerError</c>.</summary>
+    // Rust: `impl fmt::Display for TokenizerError`.
     public override string ToString() => Formatter.Format(this);
 }

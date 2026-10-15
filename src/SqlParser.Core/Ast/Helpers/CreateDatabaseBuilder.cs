@@ -32,12 +32,10 @@ namespace SqlParser.Core.Ast;
 /// // Convert to a statement
 /// // builder.Build().ToString() == "CREATE DATABASE IF NOT EXISTS database_name"
 /// </code>
-/// <para>
-/// Mesmo padrão de <see cref="CreateTableBuilder"/>: <c>sealed record</c> com propriedades mutáveis
-/// (igualdade, hash e cópia <c>with { }</c> = <c>clone()</c>); métodos com o nome de um campo recebem o
-/// prefixo <c>Set</c> (CS0102); o campo <c>clone</c> vira <c>CloneValue</c> (CS8859).
-/// </para>
 /// </remarks>
+// Mesmo padrão de CreateTableBuilder: `sealed record` com propriedades mutáveis
+// (igualdade, hash e cópia `with { }` = `clone()`); métodos com o nome de um campo recebem o
+// prefixo `Set` (CS0102); o campo `clone` vira `CloneValue` (CS8859).
 public sealed partial record CreateDatabaseBuilder
 {
     /// <summary>
@@ -89,7 +87,7 @@ public sealed partial record CreateDatabaseBuilder
     public bool Transient { get; set; }
 
     /// <summary>Optional <c>CLONE</c> source object name.</summary>
-    /// <remarks>Rust: <c>clone</c> (CS8859).</remarks>
+    // Rust: `clone` (CS8859).
     public ObjectName? CloneValue { get; set; }
 
     /// <summary>Optional data retention time in days.</summary>
@@ -312,8 +310,9 @@ public sealed partial record CreateDatabaseBuilder
             WithTags: WithTags,
             WithContacts: WithContacts);
 
-    /// <summary>Rust: <c>impl TryFrom&lt;Statement&gt; for CreateDatabaseBuilder</c>.</summary>
-    /// <exception cref="ParserException">A instrução não é <c>Statement::CreateDatabase</c>.</exception>
+    /// <exception cref="ParserException">The statement is not a <c>Statement::CreateDatabase</c>.</exception>
+    // Rust: `impl TryFrom<Statement> for CreateDatabaseBuilder`. O `Err(ParserError)` devolvido quando a
+    // instrução não é `Statement::CreateDatabase` vira ParserException (convencoes.md §8).
     public static CreateDatabaseBuilder TryFrom(Statement stmt)
     {
         switch (stmt)

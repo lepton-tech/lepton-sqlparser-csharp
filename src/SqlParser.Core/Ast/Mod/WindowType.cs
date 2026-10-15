@@ -33,11 +33,11 @@ namespace SqlParser.Core.Ast;
 public abstract partial record WindowType : IDisplay
 {
     /// <summary>An inline window specification.</summary>
-    /// <param name="Value">Rust: campo <c>.0</c> (tipo qualificado: a variante tem o nome do tipo, convencoes.md §13, caso 38).</param>
+    // Value: Rust: campo `.0` (tipo qualificado: a variante tem o nome do tipo, convencoes.md §13, caso 38).
     public sealed record WindowSpec(Ast.WindowSpec Value) : WindowType;
 
     /// <summary>A reference to a previously defined named window.</summary>
-    /// <param name="Value">Rust: campo <c>.0</c>.</param>
+    // Value: Rust: campo `.0`.
     public sealed record NamedWindow(Ident Value) : WindowType;
 
     public void Fmt(Formatter f)

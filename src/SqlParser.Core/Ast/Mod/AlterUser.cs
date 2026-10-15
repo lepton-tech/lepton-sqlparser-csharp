@@ -32,7 +32,6 @@ namespace SqlParser.Core.Ast;
 /// <code>
 /// ALTER USER &lt;role_specification&gt; [ WITH ] option [ ... ]
 /// </code>
-/// <para>No Rust, o <c>impl Display for AlterUser</c> vem depois de <c>UserPolicyKind</c>; aqui fica no próprio tipo.</para>
 /// </remarks>
 /// <param name="IfExists">Whether to only alter the user if it exists.</param>
 /// <param name="Name">The name of the user to alter.</param>
@@ -56,6 +55,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="SetProps">Key/value properties to set on the user.</param>
 /// <param name="UnsetProps">Properties to unset on the user.</param>
 /// <param name="Password">The following options are PostgreSQL-specific: <see href="https://www.postgresql.org/docs/current/sql-alteruser.html"/></param>
+// No Rust, o `impl Display for AlterUser` vem depois de `UserPolicyKind`; aqui fica no próprio tipo.
 public sealed partial record AlterUser(
     bool IfExists,
     Ident Name,

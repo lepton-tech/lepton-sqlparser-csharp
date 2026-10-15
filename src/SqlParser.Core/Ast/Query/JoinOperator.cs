@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>The operator used for joining two tables, e.g. <c>INNER</c>, <c>LEFT</c>, <c>CROSS</c>, <c>ASOF</c>, etc.</summary>
-/// <remarks>Sem <c>Display</c> no Rust (o texto é gerado por <c>Join</c>): o tipo não implementa <c>IDisplay</c>.</remarks>
+// Sem `Display` no Rust (o texto é gerado por `Join`): o tipo não implementa `IDisplay`.
 public abstract partial record JoinOperator
 {
     /// <summary>Generic <c>JOIN</c> with an optional constraint.</summary>

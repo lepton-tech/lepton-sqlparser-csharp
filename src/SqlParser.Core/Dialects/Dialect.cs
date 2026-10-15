@@ -486,10 +486,8 @@ public abstract partial class Dialect
     public virtual bool SupportsTripleQuotedString => false;
 
     /// <summary>Dialect-specific prefix parser override</summary>
-    /// <remarks>
-    /// Rust: <c>Option&lt;Result&lt;Expr, ParserError&gt;&gt;</c> → <c>null</c> para "use o comportamento padrão";
-    /// erro → <see cref="ParserException"/> (convencoes.md §13, caso 53).
-    /// </remarks>
+    // Rust: `Option<Result<Expr, ParserError>>` → `null` para "use o comportamento padrão";
+    // erro → ParserException (convencoes.md §13, caso 53).
     public virtual Expr? ParsePrefix(Parser parser)
     {
         // return None to fall back to the default behavior
@@ -903,12 +901,10 @@ public abstract partial class Dialect
     /// <remarks>
     /// This method is called to parse the next column option.
     /// If <c>None</c> is returned, falls back to the default behavior.
-    /// <para>
-    /// Rust: <c>Result&lt;Option&lt;Result&lt;Option&lt;ColumnOption&gt;, ParserError&gt;&gt;, ParserError&gt;</c>.
-    /// Os dois <c>Result</c> viram exceção; o <c>Option</c> externo vira <see cref="Option{T}"/> (casos 53 e 55):
-    /// <c>Option.None</c> = "use o comportamento padrão"; <c>Option.Some(null)</c> = "tratado, sem opção".
-    /// </para>
     /// </remarks>
+    // Rust: `Result<Option<Result<Option<ColumnOption>, ParserError>>, ParserError>`.
+    // Os dois `Result` viram exceção; o `Option` externo vira Option<T> (casos 53 e 55):
+    // `Option.None` = "use o comportamento padrão"; `Option.Some(null)` = "tratado, sem opção".
     public virtual Option<ColumnOption?> ParseColumnOption(Parser parser)
     {
         // return None to fall back to the default behavior
@@ -1870,6 +1866,10 @@ public abstract partial class Dialect
     /// </summary>
     public static Dialect? DialectFromStr(string dialectName)
     {
+        // PORT-DEVIATION DIV-001: `to_lowercase()` (mapeamento completo) → `ToLowerInvariant()` (mapeamento
+        // simples, tabela do runtime). Os nomes são ASCII, e fora do ASCII só o sinal de Kelvin (U+212A, que
+        // vira `k`) minusculiza para ASCII. O .NET 8/10 faz o mesmo que o Rust; o .NET Framework 4.8 mantém o
+        // U+212A, e um nome com ele no lugar do `K` dá `null` (ex.: "SNOWFLAKE").
         switch (dialectName.ToLowerInvariant())
         {
             case "generic":

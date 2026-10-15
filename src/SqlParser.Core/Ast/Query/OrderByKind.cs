@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>The kind of <c>ORDER BY</c> clause: either <c>ALL</c> with modifiers or a list of expressions.</summary>
-/// <remarks>Sem <c>Display</c> no Rust (o texto é gerado por <c>OrderBy</c>): o tipo não implementa <c>IDisplay</c>.</remarks>
+// Sem `Display` no Rust (o texto é gerado por `OrderBy`): o tipo não implementa `IDisplay`.
 public abstract partial record OrderByKind
 {
     /// <summary>

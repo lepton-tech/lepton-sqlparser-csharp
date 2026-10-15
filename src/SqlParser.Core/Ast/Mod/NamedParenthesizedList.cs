@@ -28,8 +28,8 @@ namespace SqlParser.Core.Ast;
 /// ENGINE = SummingMergeTree([columns])
 /// </code>
 /// </summary>
-/// <remarks>Sem <c>impl Display</c> no Rust.</remarks>
 /// <param name="Key">The option key (identifier) for this named list.</param>
 /// <param name="Name">Optional secondary name associated with the key.</param>
 /// <param name="Values">The list of identifier values for the key.</param>
+// Sem `impl Display` no Rust.
 public sealed partial record NamedParenthesizedList(Ident Key, Ident? Name, Sequence<Ident> Values);

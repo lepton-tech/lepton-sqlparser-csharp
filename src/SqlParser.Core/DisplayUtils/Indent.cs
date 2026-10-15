@@ -21,16 +21,14 @@
 namespace SqlParser.Core;
 
 /// <summary>A wrapper around a value that adds an indent to the value when displayed with {:#}.</summary>
-/// <remarks>
-/// No Rust, o mesmo tipo implementa <c>Display</c> (quando <c>T: Display</c>) e <c>Write</c> (quando
-/// <c>T: Write</c>). Aqui ele implementa <see cref="IDisplay"/> e <see cref="IFmtWrite"/>; o uso como
-/// destino exige que <c>T</c> seja um <see cref="IFmtWrite"/>.
-/// </remarks>
+// No Rust, o mesmo tipo implementa `Display` (quando `T: Display`) e `Write` (quando
+// `T: Write`). Aqui ele implementa IDisplay e IFmtWrite; o uso como
+// destino exige que `T` seja um IFmtWrite.
 internal sealed class Indent<T> : IDisplay, IFmtWrite
 {
     public Indent(T value) => Value = value;
 
-    /// <summary>Rust: campo <c>.0</c>.</summary>
+    // Rust: campo `.0`.
     public T Value { get; }
 
     public void Fmt(Formatter f)

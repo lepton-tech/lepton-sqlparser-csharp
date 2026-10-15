@@ -24,10 +24,8 @@ using static SqlParser.Core.Ast.AstModule;
 namespace SqlParser.Core.Ast;
 
 /// <summary>SQL data types</summary>
-/// <remarks>
-/// As funções livres privadas de <c>data_type.rs</c> (<c>format_type_with_optional_length</c> etc.) são
-/// membros estáticos privados deste tipo homônimo (convencoes.md §13, caso 5).
-/// </remarks>
+// As funções livres privadas de `data_type.rs` (`format_type_with_optional_length` etc.) são
+// membros estáticos privados deste tipo homônimo (convencoes.md §13, caso 5).
 public abstract partial record DataType : IDisplay
 {
     /// <summary>
@@ -424,7 +422,7 @@ public abstract partial record DataType : IDisplay
     /// Time with optional time precision and time zone information, see
     /// <see href="https://jakewheat.github.io/sql-overview/sql-2016-foundation-grammar.html#datetime-type">SQL Standard</see>.
     /// </summary>
-    /// <remarks>Rust: <c>Time(Option&lt;u64&gt;, TimezoneInfo)</c>; nomes dos campos em nomes.md.</remarks>
+    // Rust: `Time(Option<u64>, TimezoneInfo)`; nomes dos campos em nomes.md.
     public sealed record Time(ulong? Precision, TimezoneInfo TimezoneInfo) : DataType;
 
     /// <summary>Datetime with optional time precision, see <see href="https://dev.mysql.com/doc/refman/8.0/en/datetime.html">MySQL</see>.</summary>
@@ -434,14 +432,14 @@ public abstract partial record DataType : IDisplay
     /// Datetime with time precision and optional timezone, see
     /// <see href="https://clickhouse.com/docs/en/sql-reference/data-types/datetime64">ClickHouse</see>.
     /// </summary>
-    /// <remarks>Rust: <c>Datetime64(u64, Option&lt;String&gt;)</c>; nomes dos campos em nomes.md.</remarks>
+    // Rust: `Datetime64(u64, Option<String>)`; nomes dos campos em nomes.md.
     public sealed record Datetime64(ulong Precision, string? Timezone) : DataType;
 
     /// <summary>
     /// Timestamp with optional time precision and time zone information, see
     /// <see href="https://jakewheat.github.io/sql-overview/sql-2016-foundation-grammar.html#datetime-type">SQL Standard</see>.
     /// </summary>
-    /// <remarks>Rust: <c>Timestamp(Option&lt;u64&gt;, TimezoneInfo)</c>; nomes dos campos em nomes.md.</remarks>
+    // Rust: `Timestamp(Option<u64>, TimezoneInfo)`; nomes dos campos em nomes.md.
     public sealed record Timestamp(ulong? Precision, TimezoneInfo TimezoneInfo) : DataType;
 
     /// <summary>
@@ -511,7 +509,7 @@ public abstract partial record DataType : IDisplay
     public sealed record VarBit(ulong? Value) : DataType;
 
     /// <summary>Custom types.</summary>
-    /// <remarks>Rust: <c>Custom(ObjectName, Vec&lt;String&gt;)</c>; nomes dos campos em nomes.md.</remarks>
+    // Rust: `Custom(ObjectName, Vec<String>)`; nomes dos campos em nomes.md.
     public sealed record Custom(ObjectName Name, Sequence<string> Modifiers) : DataType;
 
     /// <summary>Arrays.</summary>
@@ -521,7 +519,7 @@ public abstract partial record DataType : IDisplay
     /// Map, see <see href="https://clickhouse.com/docs/en/sql-reference/data-types/map">ClickHouse</see>,
     /// <see href="https://hive.apache.org/docs/latest/language/languagemanual-types/">Hive</see>.
     /// </summary>
-    /// <remarks>Rust: <c>Map(Box&lt;DataType&gt;, Box&lt;DataType&gt;, MapBracketKind)</c>; nomes dos campos em nomes.md.</remarks>
+    // Rust: `Map(Box<DataType>, Box<DataType>, MapBracketKind)`; nomes dos campos em nomes.md.
     public sealed record Map(DataType KeyDataType, DataType ValueDataType, MapBracketKind Bracket) : DataType;
 
     /// <summary>Tuple, see <see href="https://clickhouse.com/docs/en/sql-reference/data-types/tuple">ClickHouse</see>.</summary>
@@ -533,7 +531,7 @@ public abstract partial record DataType : IDisplay
     public sealed record Nested(Sequence<ColumnDef> Value) : DataType;
 
     /// <summary>Enum type.</summary>
-    /// <remarks>Rust: <c>Enum(Vec&lt;EnumMember&gt;, Option&lt;u8&gt;)</c>; nomes dos campos em nomes.md.</remarks>
+    // Rust: `Enum(Vec<EnumMember>, Option<u8>)`; nomes dos campos em nomes.md.
     public sealed record Enum(Sequence<EnumMember> Values, byte? Bits) : DataType;
 
     /// <summary>Set type.</summary>
@@ -543,7 +541,7 @@ public abstract partial record DataType : IDisplay
     /// Struct type, see <see href="https://docs.cloudera.com/cdw-runtime/cloud/impala-sql-reference/topics/impala-struct.html">Hive</see>,
     /// <see href="https://cloud.google.com/bigquery/docs/reference/standard-sql/data-types#struct_type">BigQuery</see>.
     /// </summary>
-    /// <remarks>Rust: <c>Struct(Vec&lt;StructField&gt;, StructBracketKind)</c>; nomes dos campos em nomes.md.</remarks>
+    // Rust: `Struct(Vec<StructField>, StructBracketKind)`; nomes dos campos em nomes.md.
     public sealed record Struct(Sequence<StructField> Fields, StructBracketKind Bracket) : DataType;
 
     /// <summary>Union type, see <see href="https://duckdb.org/docs/sql/data_types/union.html">DuckDB</see>.</summary>

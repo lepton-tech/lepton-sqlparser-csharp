@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Function describe in DROP FUNCTION.</summary>
-/// <remarks>No Rust este enum não deriva <c>Visit</c>/<c>VisitMut</c> (só <c>serde</c>).</remarks>
+// No Rust este enum não deriva `Visit`/`VisitMut` (só `serde`).
 public abstract record DropFunctionOption : IDisplay
 {
     /// <summary><c>RESTRICT</c> option for DROP FUNCTION.</summary>

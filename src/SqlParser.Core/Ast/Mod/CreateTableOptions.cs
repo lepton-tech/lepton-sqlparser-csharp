@@ -27,26 +27,26 @@ namespace SqlParser.Core.Ast;
 public abstract partial record CreateTableOptions : IDisplay
 {
     /// <summary>No options specified.</summary>
-    /// <remarks>Rust: <c>#[default]</c>; ver <see cref="Default"/>.</remarks>
+    // Rust: `#[default]`; ver Default.
     public sealed record None : CreateTableOptions;
 
     /// <summary>Options specified using the <c>WITH</c> keyword, e.g. <c>WITH (k = v)</c>.</summary>
-    /// <param name="Value">Rust: campo <c>.0</c>.</param>
+    // Value: Rust: campo `.0`.
     public sealed record With(Sequence<SqlOption> Value) : CreateTableOptions;
 
     /// <summary>Options specified using the <c>OPTIONS(...)</c> clause.</summary>
-    /// <param name="Value">Rust: campo <c>.0</c>.</param>
+    // Value: Rust: campo `.0`.
     public sealed record Options(Sequence<SqlOption> Value) : CreateTableOptions;
 
     /// <summary>Plain space-separated options.</summary>
-    /// <param name="Value">Rust: campo <c>.0</c>.</param>
+    // Value: Rust: campo `.0`.
     public sealed record Plain(Sequence<SqlOption> Value) : CreateTableOptions;
 
     /// <summary>Table properties (e.g., TBLPROPERTIES / storage properties).</summary>
-    /// <param name="Value">Rust: campo <c>.0</c>.</param>
+    // Value: Rust: campo `.0`.
     public sealed record TableProperties(Sequence<SqlOption> Value) : CreateTableOptions;
 
-    /// <summary>Rust: <c>#[derive(Default)]</c> com <c>#[default] None</c> (convencoes.md §13, caso 42).</summary>
+    // Rust: `#[derive(Default)]` com `#[default] None` (convencoes.md §13, caso 42).
     public static CreateTableOptions Default() => new None();
 
     public void Fmt(Formatter f)

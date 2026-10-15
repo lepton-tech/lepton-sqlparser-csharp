@@ -28,11 +28,9 @@ namespace SqlParser.Core.Ast;
 /// statements of <c>MySQL</c> <see href="https://dev.mysql.com/doc/refman/8.0/en/create-table.html">(1)</see>.
 /// </para>
 /// </summary>
-/// <remarks>
-/// O <see cref="Formatter"/> não tem alinhamento (<c>f.align()</c>). A lacuna <c>{}</c> corresponde a
-/// <see cref="Fmt(Formatter)"/> (<c>f.align()</c> é <c>None</c>); a lacuna <c>{:>}</c>
-/// (<c>write!(f, "UNIQUE{:>}", x)</c>) corresponde a <see cref="FmtAlignRight(Formatter)"/>.
-/// </remarks>
+// O Formatter não tem alinhamento (`f.align()`). A lacuna `{}` corresponde a
+// Fmt(Formatter) (`f.align()` é `None`); a lacuna `{:>}`
+// (`write!(f, "UNIQUE{:>}", x)`) corresponde a FmtAlignRight(Formatter).
 // Enum sem dados com métodos e Display: records (convencoes.md §13, caso 37).
 public abstract partial record KeyOrIndexDisplay : IDisplay
 {
@@ -48,13 +46,11 @@ public abstract partial record KeyOrIndexDisplay : IDisplay
     /// <summary>Check if this is the <c>None</c> variant.</summary>
     public bool IsNone() => this is None;
 
-    /// <summary>Rust: <c>impl fmt::Display for KeyOrIndexDisplay</c>, formatado com <c>{}</c>.</summary>
+    // Rust: `impl fmt::Display for KeyOrIndexDisplay`, formatado com `{}`.
     public void Fmt(Formatter f) => FmtAligned(f, alignRight: false);
 
-    /// <summary>
-    /// Rust: a lacuna <c>{:>}</c> de <c>write!</c> (formatador novo, com <c>f.align()</c> igual a
-    /// <c>Some(fmt::Alignment::Right)</c>).
-    /// </summary>
+    // Rust: a lacuna `{:>}` de `write!` (formatador novo, com `f.align()` igual a
+    // `Some(fmt::Alignment::Right)`).
     internal void FmtAlignRight(Formatter f) => FmtAligned(new Formatter(f), alignRight: true);
 
     // Corpo de `fn fmt`: `alignRight` substitui `matches!(f.align(), Some(fmt::Alignment::Right))`.

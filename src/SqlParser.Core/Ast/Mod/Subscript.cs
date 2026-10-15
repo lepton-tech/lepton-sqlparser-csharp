@@ -26,8 +26,8 @@ public abstract partial record Subscript : IDisplay
     /// <summary>Accesses the element of the array at the given index.</summary>
     /// <param name="IndexValue">
     /// The index expression used to access the array element.
-    /// (Rust: campo <c>index</c>; renomeado porque teria o nome da variante, CS0542; convencoes.md §13, caso 41.)
     /// </param>
+    // IndexValue: Rust: campo `index`; renomeado porque teria o nome da variante (CS0542; convencoes.md §13, caso 41).
     public sealed record Index(Expr IndexValue) : Subscript;
 
     /// <summary>

@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Unit used with a <c>TABLESAMPLE</c> quantity (rows or percent).</summary>
-/// <remarks>Enum sem dados com <c>Display</c> → records (convencoes.md §13, caso 37).</remarks>
+// Enum sem dados com `Display` → records (convencoes.md §13, caso 37).
 public abstract partial record TableSampleUnit : IDisplay
 {
     /// <summary><c>ROWS</c> unit.</summary>

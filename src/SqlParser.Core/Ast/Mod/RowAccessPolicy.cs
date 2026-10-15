@@ -26,10 +26,10 @@ namespace SqlParser.Core.Ast;
 /// <remarks>
 /// <see href="https://docs.snowflake.com/en/sql-reference/sql/create-table"/>
 /// <see href="https://docs.snowflake.com/en/user-guide/security-row-intro"/>
-/// <para>Rust: <c>fn new(policy, on) -&gt; Self</c> é o próprio construtor primário (convencoes.md §13, caso 7).</para>
 /// </remarks>
 /// <param name="Policy">The fully-qualified policy object name.</param>
 /// <param name="On">Identifiers for the columns or objects the policy applies to.</param>
+// Rust: `fn new(policy, on) -> Self` é o próprio construtor primário (convencoes.md §13, caso 7).
 public sealed partial record RowAccessPolicy(ObjectName Policy, Sequence<Ident> On) : IDisplay
 {
     public void Fmt(Formatter f)

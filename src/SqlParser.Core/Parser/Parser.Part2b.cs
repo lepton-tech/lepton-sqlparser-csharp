@@ -1700,6 +1700,12 @@ public sealed partial class Parser
                 {
                     // ALL_KEYWORDS.binary_search(&w.value.to_uppercase().as_str()).is_err()
                     // (convencoes.md §13, caso 2: Keywords.Lookup devolve NoKeyword se a palavra não é keyword).
+                    // PORT-DEVIATION DIV-001: `to_uppercase()` → `ToUpperInvariant()` (mapeamento simples). O
+                    // Rust vê keyword em palavras que só viram ASCII pelo mapeamento completo ou por mapeamentos
+                    // que o .NET não aplica: U+00DF (`SS`), ligaduras como U+FB01 (`FI`), U+0131 (`I`) em todos
+                    // os alvos, e U+017F (`S`) só no .NET Framework 4.8. Ex.: `"pa<U+00DF>word"` vira PASSWORD
+                    // e encerra o DECLARE no Rust; aqui inicia outra declaração. No Snowflake, só com
+                    // identificadores entre aspas (os sem aspas são ASCII).
                     case Token.Word { Value: var w }
                         when Keywords.Lookup(w.Value.ToUpperInvariant()) == Keyword.NoKeyword:
                         // Not a keyword - start of a new declaration.

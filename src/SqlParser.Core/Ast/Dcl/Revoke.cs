@@ -26,7 +26,6 @@ namespace SqlParser.Core.Ast;
 /// REVOKE privileges ON objects FROM grantees
 /// See <see href="https://www.postgresql.org/docs/current/sql-revoke.html">PostgreSQL</see>
 /// </summary>
-/// <remarks><c>impl From&lt;Revoke&gt; for Statement</c> → <c>Statement.From(Revoke)</c> (<c>Dcl/Statement.Dcl.cs</c>).</remarks>
 /// <param name="GrantOptionFor">
 /// Whether <c>GRANT OPTION FOR</c> is present, withdrawing the right to grant
 /// the privileges rather than the privileges themselves.
@@ -39,6 +38,7 @@ namespace SqlParser.Core.Ast;
 /// <para><see href="https://cloud.google.com/bigquery/docs/reference/standard-sql/dcl-statements">BigQuery</see></para>
 /// </param>
 /// <param name="Cascade">Optional <c>CASCADE</c>/<c>RESTRICT</c> behavior.</param>
+// `impl From<Revoke> for Statement` → `Statement.From(Revoke)` (`Dcl/Statement.Dcl.cs`).
 public sealed partial record Revoke(
     bool GrantOptionFor,
     Privileges Privileges,

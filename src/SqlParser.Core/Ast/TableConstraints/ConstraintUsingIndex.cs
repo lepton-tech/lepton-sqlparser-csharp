@@ -27,11 +27,11 @@ namespace SqlParser.Core.Ast;
 /// <c>[ CONSTRAINT constraint_name ] { UNIQUE | PRIMARY KEY } USING INDEX index_name
 ///   [ DEFERRABLE | NOT DEFERRABLE ] [ INITIALLY DEFERRED | INITIALLY IMMEDIATE ]</c>
 /// <para>See <see href="https://www.postgresql.org/docs/current/sql-altertable.html"/></para>
-/// <para>Sem <c>Display</c> no Rust: o texto vem de <see cref="FmtWithKeyword"/>, chamado por <c>TableConstraint</c>.</para>
 /// </remarks>
 /// <param name="Name">Optional constraint name.</param>
 /// <param name="IndexName">The name of the existing unique index to promote.</param>
 /// <param name="Characteristics">Optional characteristics like <c>DEFERRABLE</c>.</param>
+// Sem `Display` no Rust: o texto vem de FmtWithKeyword, chamado por `TableConstraint`.
 public sealed partial record ConstraintUsingIndex(Ident? Name, Ident IndexName, ConstraintCharacteristics? Characteristics) : ISpanned
 {
     /// <summary>Format as <c>[CONSTRAINT name] &lt;keyword&gt; USING INDEX index_name [characteristics]</c>.</summary>

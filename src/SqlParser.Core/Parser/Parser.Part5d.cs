@@ -828,7 +828,7 @@ public sealed partial class Parser
     }
 
     /// <summary>Consume the parser and return its underlying token buffer</summary>
-    /// <remarks>O <c>Vec&lt;TokenWithSpan&gt;</c> vira o próprio <c>List&lt;TokenWithSpan&gt;</c> interno (o Rust consome o parser).</remarks>
+    // O `Vec<TokenWithSpan>` vira o próprio `List<TokenWithSpan>` interno (o Rust consome o parser).
     public List<TokenWithSpan> IntoTokens() => _tokens;
 
     /// <summary>Returns true if the next keyword indicates a sub query, i.e. SELECT or WITH</summary>
@@ -1112,7 +1112,7 @@ public sealed partial class Parser
                     parser.ExpectToken(new Token.RParen());
                     if (valuesError is not null)
                     {
-                        throw valuesError;
+                        throw StackGuard.Rethrow(valuesError);
                     }
                     return values;
                 });

@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>See <see cref="AlterTypeAddValue"/></summary>
-/// <remarks>Sem <c>impl Display</c> no Rust: o texto é escrito por <see cref="AlterTypeOperation"/>.</remarks>
+// Sem `impl Display` no Rust: o texto é escrito por AlterTypeOperation.
 public abstract partial record AlterTypeAddValuePosition
 {
     /// <summary>Place the new value before the given neighbor value.</summary>

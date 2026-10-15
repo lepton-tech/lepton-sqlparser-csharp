@@ -27,7 +27,7 @@ namespace SqlParser.Core.Ast;
 /// <item>RESET ALL</item>
 /// </list>
 /// </summary>
-/// <remarks>Sem <c>Display</c> no Rust (o texto é montado por <c>AlterRoleOperation</c>).</remarks>
+// Sem `Display` no Rust (o texto é montado por `AlterRoleOperation`).
 public abstract partial record ResetConfig
 {
     /// <summary>Reset all configuration parameters.</summary>

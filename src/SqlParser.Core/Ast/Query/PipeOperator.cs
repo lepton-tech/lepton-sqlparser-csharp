@@ -33,10 +33,8 @@ namespace SqlParser.Core.Ast;
 /// </code>
 /// See <see href="https://cloud.google.com/bigquery/docs/reference/standard-sql/pipe-syntax#pipe_syntax"/>
 /// </summary>
-/// <remarks>
-/// As variantes <c>TableSample</c> e <c>Join</c> escondem os tipos de topo homônimos dentro deste
-/// record; por isso eles aparecem qualificados como <c>Ast.X</c> (convencoes.md §6 e §13, caso 38).
-/// </remarks>
+// As variantes `TableSample` e `Join` escondem os tipos de topo homônimos dentro deste
+// record; por isso eles aparecem qualificados como `Ast.X` (convencoes.md §6 e §13, caso 38).
 public abstract partial record PipeOperator : IDisplay
 {
     /// <summary>

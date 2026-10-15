@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Type of index hint (e.g., <c>USE</c>, <c>IGNORE</c>, <c>FORCE</c>).</summary>
-/// <remarks>Enum sem dados com <c>Display</c> → records (convencoes.md §13, caso 37).</remarks>
+// Enum sem dados com `Display` → records (convencoes.md §13, caso 37).
 public abstract partial record TableIndexHintType : IDisplay
 {
     /// <summary><c>USE</c> hint.</summary>

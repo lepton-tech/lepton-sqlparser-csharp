@@ -25,8 +25,8 @@ namespace SqlParser.Core.Ast;
 /// In Snowflake dialect, the <c>EXTRACT</c> expression can support either the <c>from</c> syntax
 /// or the comma syntax.
 /// <para>See <see href="https://docs.snowflake.com/en/sql-reference/functions/extract"/></para>
-/// <para>Enum sem dados e sem nenhum <c>impl</c> no Rust: <c>enum</c> C# (convencoes.md §6, regra 1).</para>
 /// </remarks>
+// Enum sem dados e sem nenhum `impl` no Rust: `enum` C# (convencoes.md §6, regra 1).
 public enum ExtractSyntax
 {
     /// <summary><c>EXTRACT( &lt;date_or_time_part&gt; FROM &lt;date_or_time_expr&gt; )</c></summary>

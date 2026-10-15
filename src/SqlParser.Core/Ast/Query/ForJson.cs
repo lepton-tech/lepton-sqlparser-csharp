@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Modes for <c>FOR JSON</c> clause.</summary>
-/// <remarks>Enum sem dados com <c>Display</c> → records (convencoes.md §13, caso 37).</remarks>
+// Enum sem dados com `Display` → records (convencoes.md §13, caso 37).
 public abstract partial record ForJson : IDisplay
 {
     /// <summary><c>AUTO</c> mode.</summary>

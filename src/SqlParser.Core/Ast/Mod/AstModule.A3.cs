@@ -27,10 +27,8 @@ public static partial class AstModule
     /// <c>FunctionArgOperator::Space</c> has no token of its own, so the name and the
     /// value are separated by a single space instead.
     /// </summary>
-    /// <remarks>
-    /// Rust: <c>fn fmt_named_function_arg</c> (privada do módulo → <c>internal</c>, convencoes.md §13, caso 20).
-    /// O parâmetro <c>name: &amp;impl fmt::Display</c> vira <see cref="IDisplay"/>.
-    /// </remarks>
+    // Rust: `fn fmt_named_function_arg` (privada do módulo → `internal`, convencoes.md §13, caso 20).
+    // O parâmetro `name: &impl fmt::Display` vira IDisplay.
     internal static void FmtNamedFunctionArg(
         Formatter f,
         IDisplay name,

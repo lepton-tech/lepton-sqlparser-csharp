@@ -180,16 +180,16 @@ public abstract partial record ColumnOption : IDisplay
     /// </summary>
     public sealed record Invisible : ColumnOption;
 
-    /// <summary>Rust: <c>impl From&lt;UniqueConstraint&gt; for ColumnOption</c>.</summary>
+    // Rust: `impl From<UniqueConstraint> for ColumnOption`.
     public static ColumnOption From(UniqueConstraint c) => new Unique(c);
 
-    /// <summary>Rust: <c>impl From&lt;PrimaryKeyConstraint&gt; for ColumnOption</c>.</summary>
+    // Rust: `impl From<PrimaryKeyConstraint> for ColumnOption`.
     public static ColumnOption From(PrimaryKeyConstraint c) => new PrimaryKey(c);
 
-    /// <summary>Rust: <c>impl From&lt;CheckConstraint&gt; for ColumnOption</c>.</summary>
+    // Rust: `impl From<CheckConstraint> for ColumnOption`.
     public static ColumnOption From(CheckConstraint c) => new Check(c);
 
-    /// <summary>Rust: <c>impl From&lt;ForeignKeyConstraint&gt; for ColumnOption</c>.</summary>
+    // Rust: `impl From<ForeignKeyConstraint> for ColumnOption`.
     public static ColumnOption From(ForeignKeyConstraint fk) => new ForeignKey(fk);
 
     public void Fmt(Formatter f)

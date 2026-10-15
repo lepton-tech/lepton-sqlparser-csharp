@@ -38,18 +38,18 @@ public sealed class OneOrManyWithParensIntoIter<T> : IEnumerable<T>, IDoubleEnde
         _inner = inner;
     }
 
-    /// <summary>Rust: <c>#[derive(Clone)]</c>: cópia independente (avançar uma não afeta a outra).</summary>
+    // Rust: `#[derive(Clone)]`: cópia independente (avançar uma não afeta a outra).
     public OneOrManyWithParensIntoIter<T> Clone() => new OneOrManyWithParensIntoIter<T>(_inner.CloneValue());
 
     // impl<T> core::iter::FusedIterator for OneOrManyWithParensIntoIter<T>: marcador sem métodos. Depois
     // do fim, Next() e NextBack() continuam devolvendo None, porque os iteradores internos também o fazem.
 
-    /// <summary>Rust: <c>impl ExactSizeIterator for OneOrManyWithParensIntoIter&lt;T&gt;</c> (<c>len()</c>, derivado de <c>size_hint</c>).</summary>
+    // Rust: `impl ExactSizeIterator for OneOrManyWithParensIntoIter<T>` (`len()`, derivado de `size_hint`).
     public int Len() => SizeHint().Lower;
 
     // impl<T> core::iter::Iterator for OneOrManyWithParensIntoIter<T> { type Item = T; ... }
 
-    /// <summary>Rust: <c>Iterator::next</c>.</summary>
+    // Rust: `Iterator::next`.
     public Option<T> Next() =>
         _inner switch
         {
@@ -58,7 +58,7 @@ public sealed class OneOrManyWithParensIntoIter<T> : IEnumerable<T>, IDoubleEnde
             _ => throw new InvalidOperationException($"Variante de OneOrManyWithParensIntoIterInner não tratada: {_inner.GetType().Name}"),
         };
 
-    /// <summary>Rust: <c>Iterator::size_hint</c>.</summary>
+    // Rust: `Iterator::size_hint`.
     public (int Lower, int? Upper) SizeHint() =>
         _inner switch
         {
@@ -67,7 +67,7 @@ public sealed class OneOrManyWithParensIntoIter<T> : IEnumerable<T>, IDoubleEnde
             _ => throw new InvalidOperationException($"Variante de OneOrManyWithParensIntoIterInner não tratada: {_inner.GetType().Name}"),
         };
 
-    /// <summary>Rust: <c>Iterator::count(self)</c> (consome o iterador).</summary>
+    // Rust: `Iterator::count(self)` (consome o iterador).
     public int Count() =>
         _inner switch
         {
@@ -76,7 +76,7 @@ public sealed class OneOrManyWithParensIntoIter<T> : IEnumerable<T>, IDoubleEnde
             _ => throw new InvalidOperationException($"Variante de OneOrManyWithParensIntoIterInner não tratada: {_inner.GetType().Name}"),
         };
 
-    /// <summary>Rust: <c>Iterator::fold(self, init, f)</c> (consome o iterador).</summary>
+    // Rust: `Iterator::fold(self, init, f)` (consome o iterador).
     public B Fold<B>(B init, Func<B, T, B> f) =>
         _inner switch
         {
@@ -85,7 +85,7 @@ public sealed class OneOrManyWithParensIntoIter<T> : IEnumerable<T>, IDoubleEnde
             _ => throw new InvalidOperationException($"Variante de OneOrManyWithParensIntoIterInner não tratada: {_inner.GetType().Name}"),
         };
 
-    /// <summary>Rust: <c>impl DoubleEndedIterator for OneOrManyWithParensIntoIter&lt;T&gt;</c> (<c>next_back</c>).</summary>
+    // Rust: `impl DoubleEndedIterator for OneOrManyWithParensIntoIter<T>` (`next_back`).
     public Option<T> NextBack() =>
         _inner switch
         {
@@ -94,10 +94,8 @@ public sealed class OneOrManyWithParensIntoIter<T> : IEnumerable<T>, IDoubleEnde
             _ => throw new InvalidOperationException($"Variante de OneOrManyWithParensIntoIterInner não tratada: {_inner.GetType().Name}"),
         };
 
-    /// <summary>
-    /// Rust: <c>DoubleEndedIterator::rev(self)</c> (método padrão do trait): os elementos restantes, de trás
-    /// para a frente, obtidos com <see cref="NextBack"/> (consome o iterador ao enumerar).
-    /// </summary>
+    // Rust: `DoubleEndedIterator::rev(self)` (método padrão do trait): os elementos restantes, de trás
+    // para a frente, obtidos com NextBack (consome o iterador ao enumerar).
     public IEnumerable<T> Rev()
     {
         while (NextBack() is { IsSome: true } item)
@@ -106,10 +104,8 @@ public sealed class OneOrManyWithParensIntoIter<T> : IEnumerable<T>, IDoubleEnde
         }
     }
 
-    /// <summary>
-    /// Rust: <c>impl&lt;I: Iterator&gt; IntoIterator for I</c>: enumera os elementos restantes com
-    /// <see cref="Next"/> (consome o iterador).
-    /// </summary>
+    // Rust: `impl<I: Iterator> IntoIterator for I`: enumera os elementos restantes com
+    // Next (consome o iterador).
     public IEnumerator<T> GetEnumerator()
     {
         while (Next() is { IsSome: true } item)

@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Definition forms supported by <c>CREATE COLLATION</c>.</summary>
-/// <remarks>Sem <c>impl Display</c> no Rust: o texto é escrito por <see cref="CreateCollation"/>.</remarks>
+// Sem `impl Display` no Rust: o texto é escrito por CreateCollation.
 public abstract partial record CreateCollationDefinition
 {
     /// <summary>

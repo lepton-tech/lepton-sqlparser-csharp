@@ -23,5 +23,5 @@ namespace SqlParser.Core.Ast;
 /// <summary>An <c>ALTER TYPE</c> statement (<c>Statement::AlterType</c>)</summary>
 /// <param name="Name">Name of the type being altered (may be schema-qualified).</param>
 /// <param name="Operation">The specific alteration operation to perform.</param>
-/// <remarks>Sem <c>impl Display</c> no Rust: o SQL é escrito pelo <c>Display</c> de <c>Statement::AlterType</c>.</remarks>
+// Sem `impl Display` no Rust: o SQL é escrito pelo `Display` de `Statement::AlterType`.
 public sealed partial record AlterType(ObjectName Name, AlterTypeOperation Operation);

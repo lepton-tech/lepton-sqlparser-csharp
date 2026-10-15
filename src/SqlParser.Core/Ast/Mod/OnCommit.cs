@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Action to take <c>ON COMMIT</c> for temporary tables.</summary>
-/// <remarks>Enum sem dados e sem <c>impl</c> no Rust: <c>enum</c> C# (convencoes.md §6, regra 1).</remarks>
+// Enum sem dados e sem `impl` no Rust: `enum` C# (convencoes.md §6, regra 1).
 public enum OnCommit
 {
     /// <summary>Delete rows on commit.</summary>

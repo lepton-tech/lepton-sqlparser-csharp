@@ -83,11 +83,9 @@ public abstract partial record UserDefinedTypeSqlDefinitionOption : IDisplay
     public sealed record Like(ObjectName Value) : UserDefinedTypeSqlDefinitionOption;
 
     /// <summary>Type category for implicit casting rules (single char): <c>CATEGORY = category</c></summary>
-    /// <remarks>
-    /// Rust: <c>Category(char)</c>. O <c>char</c> do Rust é um scalar value, que pode estar fora do BMP; aqui
-    /// é uma <c>string</c> com exatamente um scalar value (1 ou 2 unidades UTF-16), como em <c>Token.Char</c>
-    /// (nomes.md).
-    /// </remarks>
+    // Rust: `Category(char)`. O `char` do Rust é um scalar value, que pode estar fora do BMP; aqui
+    // é uma `string` com exatamente um scalar value (1 ou 2 unidades UTF-16), como em `Token.Char`
+    // (nomes.md).
     public sealed record Category(string Value) : UserDefinedTypeSqlDefinitionOption;
 
     /// <summary>Whether this type is preferred within its category: <c>PREFERRED = preferred</c></summary>

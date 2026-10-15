@@ -44,10 +44,8 @@ namespace SqlParser.Core.Ast;
 /// <param name="User">Users listed in <c>USER</c> clause.</param>
 /// <param name="Admin">Admin users listed in <c>ADMIN</c> clause.</param>
 /// <param name="AuthorizationOwner">Optional authorization owner.</param>
-/// <remarks>
-/// O campo Rust <c>create_role</c> tem o nome do tipo que o contém (CS0542): sufixo <c>Value</c>
-/// (convencoes.md §13, caso 41) → <c>CreateRoleValue</c>.
-/// </remarks>
+// O campo Rust `create_role` tem o nome do tipo que o contém (CS0542): sufixo `Value`
+// (convencoes.md §13, caso 41) → `CreateRoleValue`.
 public sealed partial record CreateRole(
     Sequence<ObjectName> Names,
     bool IfNotExists,

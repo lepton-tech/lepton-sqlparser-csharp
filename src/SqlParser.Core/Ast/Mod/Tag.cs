@@ -23,10 +23,10 @@ namespace SqlParser.Core.Ast;
 /// <summary>Snowflake <c>WITH TAG ( tag_name = '&lt;tag_value&gt;', ...)</c></summary>
 /// <remarks>
 /// <see href="https://docs.snowflake.com/en/sql-reference/sql/create-table"/>
-/// <para>Rust: <c>fn new(key, value) -&gt; Self</c> é o próprio construtor primário (convencoes.md §13, caso 7).</para>
 /// </remarks>
 /// <param name="Key">The tag key (can be qualified).</param>
 /// <param name="Value">The tag value as a string.</param>
+// Rust: `fn new(key, value) -> Self` é o próprio construtor primário (convencoes.md §13, caso 7).
 public sealed partial record Tag(ObjectName Key, string Value) : IDisplay
 {
     public void Fmt(Formatter f)

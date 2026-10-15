@@ -50,14 +50,14 @@ public abstract partial record Expr : IDisplay
     /// <summary>Identifier e.g. table name or column name</summary>
     public sealed record Identifier(Ident Value) : Expr
     {
-        /// <summary>Rust: campo <c>.0</c>.</summary>
+        // Rust: campo `.0`.
         public new Ident Value { get; init; } = Value;
     }
 
     /// <summary>Multi-part identifier, e.g. <c>table_alias.column</c> or <c>schema.table.col</c></summary>
     public sealed record CompoundIdentifier(Sequence<Ident> Value) : Expr
     {
-        /// <summary>Rust: campo <c>.0</c>.</summary>
+        // Rust: campo `.0`.
         public new Sequence<Ident> Value { get; init; } = Value;
     }
 
@@ -114,67 +114,67 @@ public abstract partial record Expr : IDisplay
     /// <summary><c>IS FALSE</c> operator</summary>
     public sealed record IsFalse(Expr Value) : Expr
     {
-        /// <summary>Rust: campo <c>.0</c>.</summary>
+        // Rust: campo `.0`.
         public new Expr Value { get; init; } = Value;
     }
 
     /// <summary><c>IS NOT FALSE</c> operator</summary>
     public sealed record IsNotFalse(Expr Value) : Expr
     {
-        /// <summary>Rust: campo <c>.0</c>.</summary>
+        // Rust: campo `.0`.
         public new Expr Value { get; init; } = Value;
     }
 
     /// <summary><c>IS TRUE</c> operator</summary>
     public sealed record IsTrue(Expr Value) : Expr
     {
-        /// <summary>Rust: campo <c>.0</c>.</summary>
+        // Rust: campo `.0`.
         public new Expr Value { get; init; } = Value;
     }
 
     /// <summary><c>IS NOT TRUE</c> operator</summary>
     public sealed record IsNotTrue(Expr Value) : Expr
     {
-        /// <summary>Rust: campo <c>.0</c>.</summary>
+        // Rust: campo `.0`.
         public new Expr Value { get; init; } = Value;
     }
 
     /// <summary><c>IS NULL</c> operator</summary>
     public sealed record IsNull(Expr Value) : Expr
     {
-        /// <summary>Rust: campo <c>.0</c>.</summary>
+        // Rust: campo `.0`.
         public new Expr Value { get; init; } = Value;
     }
 
     /// <summary><c>IS NOT NULL</c> operator</summary>
     public sealed record IsNotNull(Expr Value) : Expr
     {
-        /// <summary>Rust: campo <c>.0</c>.</summary>
+        // Rust: campo `.0`.
         public new Expr Value { get; init; } = Value;
     }
 
     /// <summary><c>IS UNKNOWN</c> operator</summary>
     public sealed record IsUnknown(Expr Value) : Expr
     {
-        /// <summary>Rust: campo <c>.0</c>.</summary>
+        // Rust: campo `.0`.
         public new Expr Value { get; init; } = Value;
     }
 
     /// <summary><c>IS NOT UNKNOWN</c> operator</summary>
     public sealed record IsNotUnknown(Expr Value) : Expr
     {
-        /// <summary>Rust: campo <c>.0</c>.</summary>
+        // Rust: campo `.0`.
         public new Expr Value { get; init; } = Value;
     }
 
     /// <summary><c>IS DISTINCT FROM</c> operator</summary>
-    /// <param name="Left">Rust: campo <c>.0</c> (operando à esquerda).</param>
-    /// <param name="Right">Rust: campo <c>.1</c> (operando à direita).</param>
+    // Left: Rust: campo `.0` (operando à esquerda).
+    // Right: Rust: campo `.1` (operando à direita).
     public sealed record IsDistinctFrom(Expr Left, Expr Right) : Expr;
 
     /// <summary><c>IS NOT DISTINCT FROM</c> operator</summary>
-    /// <param name="Left">Rust: campo <c>.0</c> (operando à esquerda).</param>
-    /// <param name="Right">Rust: campo <c>.1</c> (operando à direita).</param>
+    // Left: Rust: campo `.0` (operando à esquerda).
+    // Right: Rust: campo `.1` (operando à direita).
     public sealed record IsNotDistinctFrom(Expr Left, Expr Right) : Expr;
 
     /// <summary><c>&lt;expr&gt; IS [NOT] JSON [VALUE|SCALAR|ARRAY|OBJECT] [WITH|WITHOUT UNIQUE [KEYS]]</c></summary>
@@ -364,7 +364,8 @@ public abstract partial record Expr : IDisplay
     /// </code>
     /// </summary>
     /// <param name="Expr">Expression to search for.</param>
-    /// <param name="In">Expression to search in. (Rust: <c>r#in</c>.)</param>
+    /// <param name="In">Expression to search in.</param>
+    // In: Rust: `r#in`.
     public sealed record Position(Expr Expr, Expr In) : Expr;
 
     /// <summary>
@@ -422,12 +423,12 @@ public abstract partial record Expr : IDisplay
     /// <summary>Nested expression e.g. <c>(foo &gt; bar)</c> or <c>(1)</c></summary>
     public sealed record Nested(Expr Value) : Expr
     {
-        /// <summary>Rust: campo <c>.0</c>.</summary>
+        // Rust: campo `.0`.
         public new Expr Value { get; init; } = Value;
     }
 
     /// <summary>A literal value, such as string, number, date or NULL</summary>
-    /// <param name="Inner">Rust: campo <c>.0</c> (variante chamada <c>Value</c>: parâmetro <c>Inner</c>, convencoes.md §6).</param>
+    // Inner: Rust: campo `.0` (variante chamada `Value`: parâmetro `Inner`, convencoes.md §6).
     public sealed record Value(ValueWithSpan Inner) : Expr;
 
     /// <summary>
@@ -453,14 +454,14 @@ public abstract partial record Expr : IDisplay
     /// </summary>
     public sealed record TypedString(Ast.TypedString Value) : Expr
     {
-        /// <summary>Rust: campo <c>.0</c>.</summary>
+        // Rust: campo `.0`.
         public new Ast.TypedString Value { get; init; } = Value;
     }
 
     /// <summary>Scalar function call e.g. <c>LEFT(foo, 5)</c></summary>
     public sealed record Function(Ast.Function Value) : Expr
     {
-        /// <summary>Rust: campo <c>.0</c>.</summary>
+        // Rust: campo `.0`.
         public new Ast.Function Value { get; init; } = Value;
     }
 
@@ -502,35 +503,35 @@ public abstract partial record Expr : IDisplay
     /// </summary>
     public sealed record Subquery(Query Value) : Expr
     {
-        /// <summary>Rust: campo <c>.0</c>.</summary>
+        // Rust: campo `.0`.
         public new Query Value { get; init; } = Value;
     }
 
     /// <summary>The <c>GROUPING SETS</c> expr.</summary>
     public sealed record GroupingSets(Sequence<Sequence<Expr>> Value) : Expr
     {
-        /// <summary>Rust: campo <c>.0</c>.</summary>
+        // Rust: campo `.0`.
         public new Sequence<Sequence<Expr>> Value { get; init; } = Value;
     }
 
     /// <summary>The <c>CUBE</c> expr.</summary>
     public sealed record Cube(Sequence<Sequence<Expr>> Value) : Expr
     {
-        /// <summary>Rust: campo <c>.0</c>.</summary>
+        // Rust: campo `.0`.
         public new Sequence<Sequence<Expr>> Value { get; init; } = Value;
     }
 
     /// <summary>The <c>ROLLUP</c> expr.</summary>
     public sealed record Rollup(Sequence<Sequence<Expr>> Value) : Expr
     {
-        /// <summary>Rust: campo <c>.0</c>.</summary>
+        // Rust: campo `.0`.
         public new Sequence<Sequence<Expr>> Value { get; init; } = Value;
     }
 
     /// <summary>ROW / TUPLE a single value, such as <c>SELECT (1, 2)</c></summary>
     public sealed record Tuple(Sequence<Expr> Value) : Expr
     {
-        /// <summary>Rust: campo <c>.0</c>.</summary>
+        // Rust: campo `.0`.
         public new Sequence<Expr> Value { get; init; } = Value;
     }
 
@@ -569,7 +570,7 @@ public abstract partial record Expr : IDisplay
     /// </summary>
     public sealed record Dictionary(Sequence<DictionaryField> Value) : Expr
     {
-        /// <summary>Rust: campo <c>.0</c>.</summary>
+        // Rust: campo `.0`.
         public new Sequence<DictionaryField> Value { get; init; } = Value;
     }
 
@@ -583,21 +584,21 @@ public abstract partial record Expr : IDisplay
     /// </summary>
     public sealed record Map(Ast.Map Value) : Expr
     {
-        /// <summary>Rust: campo <c>.0</c>.</summary>
+        // Rust: campo `.0`.
         public new Ast.Map Value { get; init; } = Value;
     }
 
     /// <summary>An array expression e.g. <c>ARRAY[1, 2]</c></summary>
     public sealed record Array(Ast.Array Value) : Expr
     {
-        /// <summary>Rust: campo <c>.0</c>.</summary>
+        // Rust: campo `.0`.
         public new Ast.Array Value { get; init; } = Value;
     }
 
     /// <summary>An interval expression e.g. <c>INTERVAL '1' YEAR</c></summary>
     public sealed record Interval(Ast.Interval Value) : Expr
     {
-        /// <summary>Rust: campo <c>.0</c>.</summary>
+        // Rust: campo `.0`.
         public new Ast.Interval Value { get; init; } = Value;
     }
 
@@ -620,7 +621,7 @@ public abstract partial record Expr : IDisplay
     /// <summary>An unqualified <c>*</c> wildcard token (e.g. <c>*</c>).</summary>
     public sealed record Wildcard(AttachedToken Value) : Expr
     {
-        /// <summary>Rust: campo <c>.0</c>.</summary>
+        // Rust: campo `.0`.
         public new AttachedToken Value { get; init; } = Value;
     }
 
@@ -628,8 +629,8 @@ public abstract partial record Expr : IDisplay
     /// Qualified wildcard, e.g. <c>alias.*</c> or <c>schema.table.*</c>.
     /// (Same caveats apply to <c>QualifiedWildcard</c> as to <c>Wildcard</c>.)
     /// </summary>
-    /// <param name="Prefix">Rust: campo <c>.0</c> (o prefixo antes de <c>.*</c>).</param>
-    /// <param name="Token">Rust: campo <c>.1</c> (o token <c>*</c>).</param>
+    // Prefix: Rust: campo `.0` (o prefixo antes de `.*`).
+    // Token: Rust: campo `.1` (o token `*`).
     public sealed record QualifiedWildcard(ObjectName Prefix, AttachedToken Token) : Expr;
 
     /// <summary>
@@ -646,14 +647,14 @@ public abstract partial record Expr : IDisplay
     /// </summary>
     public sealed record OuterJoin(Expr Value) : Expr
     {
-        /// <summary>Rust: campo <c>.0</c>.</summary>
+        // Rust: campo `.0`.
         public new Expr Value { get; init; } = Value;
     }
 
     /// <summary>A reference to the prior level in a CONNECT BY clause.</summary>
     public sealed record Prior(Expr Value) : Expr
     {
-        /// <summary>Rust: campo <c>.0</c>.</summary>
+        // Rust: campo `.0`.
         public new Expr Value { get; init; } = Value;
     }
 
@@ -669,14 +670,14 @@ public abstract partial record Expr : IDisplay
     /// </summary>
     public sealed record Lambda(LambdaFunction Value) : Expr
     {
-        /// <summary>Rust: campo <c>.0</c>.</summary>
+        // Rust: campo `.0`.
         public new LambdaFunction Value { get; init; } = Value;
     }
 
     /// <summary>Checks membership of a value in a JSON array</summary>
     public sealed record MemberOf(Ast.MemberOf Value) : Expr
     {
-        /// <summary>Rust: campo <c>.0</c>.</summary>
+        // Rust: campo `.0`.
         public new Ast.MemberOf Value { get; init; } = Value;
     }
 

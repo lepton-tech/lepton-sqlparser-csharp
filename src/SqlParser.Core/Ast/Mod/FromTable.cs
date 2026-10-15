@@ -32,14 +32,14 @@ namespace SqlParser.Core.Ast;
 public abstract partial record FromTable : IDisplay
 {
     /// <summary>An explicit <c>FROM</c> keyword was specified.</summary>
-    /// <param name="Value">Rust: campo <c>.0</c>.</param>
+    // Value: Rust: campo `.0`.
     public sealed record WithFromKeyword(Sequence<TableWithJoins> Value) : FromTable;
 
     /// <summary>
     /// BigQuery: <c>FROM</c> keyword was omitted.
     /// <see href="https://cloud.google.com/bigquery/docs/reference/standard-sql/dml-syntax#delete_statement"/>
     /// </summary>
-    /// <param name="Value">Rust: campo <c>.0</c>.</param>
+    // Value: Rust: campo `.0`.
     public sealed record WithoutKeyword(Sequence<TableWithJoins> Value) : FromTable;
 
     public void Fmt(Formatter f)

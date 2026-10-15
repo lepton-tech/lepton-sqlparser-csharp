@@ -49,11 +49,9 @@ namespace SqlParser.Core.Ast;
 /// </para>
 /// </param>
 /// <param name="PipeOperators">Pipe operator</param>
-/// <remarks>
-/// O módulo Rust <c>query</c> tem um tipo homônimo (<c>Query</c>): funções livres do módulo seriam
-/// membros estáticos deste record (convencoes.md §13, caso 5). Em v0.63.0, <c>query.rs</c> não tem
-/// funções livres.
-/// </remarks>
+// O módulo Rust `query` tem um tipo homônimo (`Query`): funções livres do módulo seriam
+// membros estáticos deste record (convencoes.md §13, caso 5). Em v0.63.0, `query.rs` não tem
+// funções livres.
 [VisitWith("visit_query")]
 public sealed partial record Query(
     With? With,

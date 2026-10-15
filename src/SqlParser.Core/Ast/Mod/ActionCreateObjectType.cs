@@ -57,7 +57,7 @@ public abstract partial record ActionCreateObjectType : IDisplay
     public sealed record NetworkPolicy : ActionCreateObjectType;
 
     /// <summary>An organization listing.</summary>
-    /// <remarks>Grafia <c>Organiation</c> mantida igual à do Rust.</remarks>
+    // Grafia `Organiation` mantida igual à do Rust.
     public sealed record OrganiationListing : ActionCreateObjectType;
 
     /// <summary>A replication group object.</summary>

@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>The delimiter used between key-value options.</summary>
-/// <remarks>Enum sem dados e sem <c>impl</c>: <c>enum</c> C# (convencoes.md §6, regra 1).</remarks>
+// Enum sem dados e sem `impl`: `enum` C# (convencoes.md §6, regra 1).
 public enum KeyValueOptionsDelimiter
 {
     /// <summary>Options are separated by spaces.</summary>

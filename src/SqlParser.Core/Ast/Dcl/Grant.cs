@@ -23,7 +23,6 @@ using static SqlParser.Core.Ast.AstModule;
 namespace SqlParser.Core.Ast;
 
 /// <summary>GRANT privileges ON objects TO grantees</summary>
-/// <remarks><c>impl From&lt;Grant&gt; for Statement</c> → <c>Statement.From(Grant)</c> (<c>Dcl/Statement.Dcl.cs</c>).</remarks>
 /// <param name="Privileges">Privileges being granted.</param>
 /// <param name="Objects">Optional objects the privileges apply to.</param>
 /// <param name="Grantees">List of grantees receiving the privileges.</param>
@@ -37,6 +36,7 @@ namespace SqlParser.Core.Ast;
 /// Optional <c>CURRENT GRANTS</c> modifier.
 /// <para><see href="https://docs.snowflake.com/en/sql-reference/sql/grant-privilege">Snowflake</see></para>
 /// </param>
+// `impl From<Grant> for Statement` → `Statement.From(Grant)` (`Dcl/Statement.Dcl.cs`).
 public sealed partial record Grant(
     Privileges Privileges,
     GrantObjects? Objects,

@@ -25,7 +25,7 @@ namespace SqlParser.Core.Ast;
 /// ALTER USER [ IF EXISTS ] [ &lt;name&gt; ] MODIFY MFA METHOD &lt;mfa_method&gt; SET COMMENT = '&lt;string&gt;'
 /// </code>
 /// </summary>
-/// <remarks>Sem <c>impl Display</c> no Rust: quem formata é <see cref="AlterUser"/>.</remarks>
 /// <param name="Method">The MFA method being modified.</param>
 /// <param name="Comment">The new comment for the MFA method.</param>
+// Sem `impl Display` no Rust: quem formata é AlterUser.
 public sealed partial record AlterUserModifyMfaMethod(MfaMethodKind Method, string Comment);

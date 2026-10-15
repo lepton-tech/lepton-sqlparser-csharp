@@ -21,6 +21,6 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>The VALUES clause in a multi-table INSERT INTO clause.</summary>
-/// <remarks>Sem <c>Display</c> no Rust (o texto é montado por <c>MultiTableInsertIntoClause</c>).</remarks>
 /// <param name="Values">The values to insert (can be column references, DEFAULT, or NULL)</param>
+// Sem `Display` no Rust (o texto é montado por `MultiTableInsertIntoClause`).
 public sealed partial record MultiTableInsertValues(Sequence<MultiTableInsertValue> Values);

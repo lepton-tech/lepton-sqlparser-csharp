@@ -765,7 +765,7 @@ public abstract partial record Token : IDisplay
     }
 
     // Base de hierarquia de records: "sealed" impede o ToString() sintetizado por variante (convencoes.md §7).
-    /// <summary>Rust: <c>impl fmt::Display for Token</c>.</summary>
+    // Rust: `impl fmt::Display for Token`.
     public sealed override string ToString() => Formatter.Format(this);
 
     /// <summary>
@@ -790,6 +790,6 @@ public abstract partial record Token : IDisplay
     internal static Token MakeWordOwned(string word, char? quoteStyle) =>
         new Word(new SqlParser.Core.Word(word, quoteStyle, Tokenizer.KeywordLookup(word, quoteStyle)));
 
-    /// <summary>Rust: <c>impl PartialEq&lt;TokenWithSpan&gt; for Token</c> (compara só o token).</summary>
+    // Rust: `impl PartialEq<TokenWithSpan> for Token` (compara só o token).
     public bool Equals(TokenWithSpan? other) => other is not null && this == other.Token;
 }

@@ -53,7 +53,6 @@ namespace SqlParser.Core.Ast;
 /// <param name="Like"><c>LIKE</c> clause</param>
 /// <param name="CloneValue">
 /// <c>CLONE</c> clause
-/// <para>Rust: campo <c>clone</c>. Renomeado porque records não aceitam membro chamado <c>Clone</c> (CS8859).</para>
 /// </param>
 /// <param name="Version">Table version (for systems that support versioned tables)</param>
 /// <param name="Comment">
@@ -226,9 +225,8 @@ namespace SqlParser.Core.Ast;
 /// <c>WITH DATA</c> clause on a <c>CREATE TABLE ... AS</c> statement.
 /// <para><see href="https://docs.teradata.com/r/Enterprise_IntelliFlex_VMware/SQL-Data-Definition-Language-Syntax-and-Examples/Table-Statements/CREATE-TABLE-and-CREATE-TABLE-AS/Syntax-Elements/AS_clause/WITH-Clause-Phrase">Teradata</see></para>
 /// </param>
-/// <remarks>
-/// O builder (<c>CreateTableBuilder</c>, <c>ast/helpers/stmt_create_table.rs</c>) é portado em outro arquivo.
-/// </remarks>
+// CloneValue: Rust: campo `clone`. Renomeado porque records não aceitam membro chamado `Clone` (CS8859).
+// O builder (`CreateTableBuilder`, `ast/helpers/stmt_create_table.rs`) é portado em outro arquivo.
 public sealed partial record CreateTable(
     bool OrReplace,
     bool Temporary,

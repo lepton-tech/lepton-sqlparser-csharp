@@ -25,11 +25,11 @@ namespace SqlParser.Core.Ast;
 /// <summary>A hive LATERAL VIEW with potential column aliases</summary>
 /// <param name="LateralViewValue">
 /// LATERAL VIEW
-/// <para>Rust: campo <c>lateral_view</c>; sufixo <c>Value</c> por CS0542 (convencoes.md §13, caso 41).</para>
 /// </param>
 /// <param name="LateralViewName">LATERAL VIEW table name</param>
 /// <param name="LateralColAlias">LATERAL VIEW optional column aliases</param>
 /// <param name="Outer">LATERAL VIEW OUTER</param>
+// LateralViewValue: Rust: campo `lateral_view`; sufixo `Value` por CS0542 (convencoes.md §13, caso 41).
 public sealed partial record LateralView(
     Expr LateralViewValue,
     ObjectName LateralViewName,

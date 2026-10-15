@@ -24,10 +24,8 @@ namespace SqlParser.Core.Ast;
 public abstract partial record FunctionArgOperator : IDisplay
 {
     /// <summary>function(arg1 = value1)</summary>
-    /// <remarks>
-    /// Rust: variante <c>Equals</c>. Renomeada com o sufixo <c>Variant</c>: um tipo aninhado <c>Equals</c>
-    /// colidiria com o método <c>Equals</c> sintetizado pelo record (CS0102/CS0542; nomes.md).
-    /// </remarks>
+    // Rust: variante `Equals`. Renomeada com o sufixo `Variant`: um tipo aninhado `Equals`
+    // colidiria com o método `Equals` sintetizado pelo record (CS0102/CS0542; nomes.md).
     public sealed record EqualsVariant : FunctionArgOperator;
 
     /// <summary>function(arg1 =&gt; value1)</summary>

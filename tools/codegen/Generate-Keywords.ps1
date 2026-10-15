@@ -80,8 +80,9 @@ foreach ($h in $header) { [void]$sb.AppendLine($h) }
 [void]$sb.AppendLine('')
 [void]$sb.AppendLine('namespace SqlParser.Core;')
 [void]$sb.AppendLine('')
+# Doc comments (///) só com o texto do Rust; notas do port em // (convencoes.md §12).
 [void]$sb.AppendLine('/// <summary>An enumeration of SQL keywords recognized by the parser.</summary>')
-[void]$sb.AppendLine('/// <remarks>Rust: <c>keywords::Keyword</c>.</remarks>')
+[void]$sb.AppendLine('// Rust: `keywords::Keyword`.')
 [void]$sb.AppendLine('public enum Keyword')
 [void]$sb.AppendLine('{')
 [void]$sb.AppendLine('    /// <summary>Represents no keyword.</summary>')
@@ -92,16 +93,18 @@ foreach ($k in $keywords) {
 }
 [void]$sb.AppendLine('}')
 [void]$sb.AppendLine('')
-[void]$sb.AppendLine('/// <summary>Constantes e listas do módulo <c>keywords</c> do Rust.</summary>')
+[void]$sb.AppendLine('// Constantes e listas do módulo `keywords` do Rust.')
 [void]$sb.AppendLine('public static partial class Keywords')
 [void]$sb.AppendLine('{')
-[void]$sb.AppendLine('    /// <summary>Array of all SQL keywords as strings, sorted ordinally (Rust: <c>ALL_KEYWORDS</c>).</summary>')
+[void]$sb.AppendLine('    /// <summary>Array of all SQL keywords as string constants.</summary>')
+[void]$sb.AppendLine('    // Rust: `ALL_KEYWORDS`. Em ordem ordinal, como exige a busca binária de Lookup.')
 [void]$sb.AppendLine('    internal static readonly string[] AllKeywordsArray =')
 [void]$sb.AppendLine('    {')
 foreach ($k in $keywords) { [void]$sb.AppendLine("        `"$($k.Text)`",") }
 [void]$sb.AppendLine('    };')
 [void]$sb.AppendLine('')
-[void]$sb.AppendLine('    /// <summary>Array of all <see cref="Keyword"/> values in declaration order (Rust: <c>ALL_KEYWORDS_INDEX</c>).</summary>')
+[void]$sb.AppendLine('    /// <summary>Array of all <c>Keyword</c> enum values in declaration order.</summary>')
+[void]$sb.AppendLine('    // Rust: `ALL_KEYWORDS_INDEX`.')
 [void]$sb.AppendLine('    internal static readonly Keyword[] AllKeywordsIndexArray =')
 [void]$sb.AppendLine('    {')
 foreach ($k in $keywords) { [void]$sb.AppendLine("        Keyword.$($k.Id),") }
@@ -110,14 +113,14 @@ foreach ($name in $lists) {
     $items = Get-KeywordList $name
     $pascal = ConvertTo-PascalCase $name
     [void]$sb.AppendLine('')
-    [void]$sb.AppendLine("    /// <summary>Rust: <c>$name</c>.</summary>")
+    [void]$sb.AppendLine("    // Rust: ``$name``.")
     [void]$sb.AppendLine("    internal static readonly Keyword[] ${pascal}Array =")
     [void]$sb.AppendLine('    {')
     foreach ($it in $items) { [void]$sb.AppendLine("        Keyword.$it,") }
     [void]$sb.AppendLine('    };')
 }
 [void]$sb.AppendLine('')
-[void]$sb.AppendLine('    /// <summary>Texto SQL de cada keyword, indexado por <c>(int)Keyword</c> (Rust: <c>impl Display for Keyword</c>).</summary>')
+[void]$sb.AppendLine('    // Texto SQL de cada keyword, indexado por `(int)Keyword` (Rust: `impl Display for Keyword`).')
 [void]$sb.AppendLine('    internal static readonly string[] KeywordTexts =')
 [void]$sb.AppendLine('    {')
 [void]$sb.AppendLine('        "NoKeyword",')

@@ -41,6 +41,6 @@ public sealed partial record QuoteDelimitedString(char StartQuote, string Value,
         f.WriteStr("'");
     }
 
-    /// <summary>Rust: <c>impl fmt::Display for QuoteDelimitedString</c>.</summary>
+    // Rust: `impl fmt::Display for QuoteDelimitedString`.
     public override string ToString() => Formatter.Format(this);
 }

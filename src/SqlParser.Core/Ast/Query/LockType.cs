@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>The lock type used in <c>FOR &lt;lock&gt;</c> clauses (e.g. <c>FOR SHARE</c>, <c>FOR UPDATE</c>).</summary>
-/// <remarks>Enum sem dados com <c>Display</c> → records (convencoes.md §13, caso 37).</remarks>
+// Enum sem dados com `Display` → records (convencoes.md §13, caso 37).
 public abstract partial record LockType : IDisplay
 {
     /// <summary><c>SHARE</c> lock (shared lock).</summary>

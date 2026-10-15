@@ -21,14 +21,14 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Helper return type when parsing configuration for a <c>CREATE TABLE</c> statement.</summary>
-/// <remarks>Rust: <c>pub(crate) struct</c> com <c>#[derive(Default)]</c> → <c>internal</c> + <see cref="Default"/> (caso 42).</remarks>
+// Rust: `pub(crate) struct` com `#[derive(Default)]` → `internal` + Default (caso 42).
 internal sealed record CreateTableConfiguration(
     Expr? PartitionBy,
     WrappedCollection<Sequence<Expr>>? ClusterBy,
     Sequence<ObjectName>? Inherits,
     CreateTableOptions TableOptions)
 {
-    /// <summary>Rust: <c>CreateTableConfiguration::default()</c>.</summary>
+    // Rust: `CreateTableConfiguration::default()`.
     public static CreateTableConfiguration Default() =>
         new CreateTableConfiguration(
             PartitionBy: null,

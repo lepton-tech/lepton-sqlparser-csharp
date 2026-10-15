@@ -20,11 +20,10 @@
 
 namespace SqlParser.Core.Ast;
 
-/// <summary>
-/// Funções livres do módulo <c>ast</c> (<c>src/ast/mod.rs</c>). O módulo não tem um tipo homônimo,
-/// então as funções ficam em <c>AstModule</c> (convencoes.md §13, caso 29). Use
-/// <c>using static SqlParser.Core.Ast.AstModule;</c> para chamá-las sem prefixo, como no Rust.
-/// </summary>
+/// <summary>Free functions of the <c>ast</c> module (<c>src/ast/mod.rs</c>).</summary>
+// Funções livres do módulo `ast` (`src/ast/mod.rs`). O módulo não tem um tipo homônimo,
+// então as funções ficam em `AstModule` (convencoes.md §13, caso 29). Use
+// `using static SqlParser.Core.Ast.AstModule;` para chamá-las sem prefixo, como no Rust.
 public static partial class AstModule
 {
     // Rust: pub(crate) fn display_separated<'a, T>(slice: &'a [T], sep: &'static str) -> DisplaySeparated<'a, T>

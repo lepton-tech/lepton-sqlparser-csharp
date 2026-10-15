@@ -62,10 +62,10 @@ public abstract partial record TableVersion : IDisplay
     /// </summary>
     /// <param name="ChangesValue">
     /// The <c>CHANGES(INFORMATION =&gt; ...)</c> function-call expression.
-    /// <para>Rust: campo <c>changes</c>; sufixo <c>Value</c> por CS0542 (convencoes.md §13, caso 41).</para>
     /// </param>
     /// <param name="At">The <c>AT(TIMESTAMP =&gt; ...)</c> function-call expression.</param>
     /// <param name="End">The optional <c>END(TIMESTAMP =&gt; ...)</c> function-call expression.</param>
+    // ChangesValue: Rust: campo `changes`; sufixo `Value` por CS0542 (convencoes.md §13, caso 41).
     public sealed record Changes(Expr ChangesValue, Expr At, Expr? End) : TableVersion;
 
     public void Fmt(Formatter f)

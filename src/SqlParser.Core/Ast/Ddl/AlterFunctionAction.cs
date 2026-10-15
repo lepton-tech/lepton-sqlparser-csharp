@@ -36,8 +36,8 @@ public abstract partial record AlterFunctionAction : IDisplay
     /// <param name="External">Whether the optional <c>EXTERNAL</c> keyword was present.</param>
     /// <param name="SecurityValue">
     /// Security mode.
-    /// <para>Rust: campo <c>security</c>. Sufixo <c>Value</c> por CS0542 (convencoes.md §13, caso 41).</para>
     /// </param>
+    // SecurityValue: Rust: campo `security`. Sufixo `Value` por CS0542 (convencoes.md §13, caso 41).
     public sealed record Security(bool External, FunctionSecurity SecurityValue) : AlterFunctionAction;
 
     /// <summary><c>PARALLEL { UNSAFE | RESTRICTED | SAFE }</c></summary>

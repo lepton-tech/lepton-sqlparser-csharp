@@ -56,11 +56,11 @@ namespace SqlParser.Core.Ast;
 public abstract partial record OneOrManyWithParens<T> : IDisplay, IReadOnlyList<T>
 {
     /// <summary>A single <c>T</c>, unparenthesized.</summary>
-    /// <param name="Value">Rust: campo <c>.0</c>.</param>
+    // Value: Rust: campo `.0`.
     public sealed record One(T Value) : OneOrManyWithParens<T>;
 
     /// <summary>One or more <c>T</c>s, parenthesized.</summary>
-    /// <param name="Value">Rust: campo <c>.0</c>.</param>
+    // Value: Rust: campo `.0`.
     public sealed record Many(Sequence<T> Value) : OneOrManyWithParens<T>;
 
     // Rust: impl<T> Deref for OneOrManyWithParens<T> { type Target = [T]; fn deref(&self) -> &[T] }
@@ -73,18 +73,18 @@ public abstract partial record OneOrManyWithParens<T> : IDisplay, IReadOnlyList<
             _ => throw new InvalidOperationException($"Variante de OneOrManyWithParens não tratada: {GetType().Name}"),
         };
 
-    /// <summary>Rust: <c>len()</c> do slice obtido por <c>Deref</c>.</summary>
+    // Rust: `len()` do slice obtido por `Deref`.
     public int Count => AsSlice().Count;
 
-    /// <summary>Rust: <c>self[index]</c> sobre o slice obtido por <c>Deref</c>.</summary>
+    // Rust: `self[index]` sobre o slice obtido por `Deref`.
     public T this[int index] => AsSlice()[index];
 
-    /// <summary>Rust: <c>impl IntoIterator for &amp;OneOrManyWithParens&lt;T&gt;</c> (<c>self.iter()</c>).</summary>
+    // Rust: `impl IntoIterator for &OneOrManyWithParens<T>` (`self.iter()`).
     public IEnumerator<T> GetEnumerator() => AsSlice().GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-    /// <summary>Rust: <c>impl IntoIterator for OneOrManyWithParens&lt;T&gt;</c> (<c>into_iter(self)</c>, por valor).</summary>
+    // Rust: `impl IntoIterator for OneOrManyWithParens<T>` (`into_iter(self)`, por valor).
     public OneOrManyWithParensIntoIter<T> IntoIter()
     {
         OneOrManyWithParensIntoIterInner<T> inner = this switch

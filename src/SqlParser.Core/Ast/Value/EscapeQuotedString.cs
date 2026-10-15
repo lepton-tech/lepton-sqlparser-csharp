@@ -20,12 +20,10 @@
 
 namespace SqlParser.Core.Ast;
 
-/// <summary>Rust: <c>pub struct EscapeQuotedString&lt;'a&gt;</c>, criado por <c>Value.EscapeQuotedString</c>.</summary>
-/// <remarks>
-/// Os campos do Rust são privados (<c>string: &amp;'a str</c>, <c>quote: char</c>): campos privados e
-/// construtor <c>internal</c> (convencoes.md §13, casos 20 e 25). O <c>quote</c> é o scalar value (<c>int</c>),
-/// porque o <c>char</c> do Rust pode estar fora do BMP (caso 18).
-/// </remarks>
+// Rust: `pub struct EscapeQuotedString<'a>`, criado por `Value.EscapeQuotedString`.
+// Os campos do Rust são privados (`string: &'a str`, `quote: char`): campos privados e
+// construtor `internal` (convencoes.md §13, casos 20 e 25). O `quote` é o scalar value (`int`),
+// porque o `char` do Rust pode estar fora do BMP (caso 18).
 public sealed class EscapeQuotedString : IDisplay
 {
     private readonly string _string;

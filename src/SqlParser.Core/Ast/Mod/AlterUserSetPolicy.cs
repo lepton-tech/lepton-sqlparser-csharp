@@ -25,7 +25,7 @@ namespace SqlParser.Core.Ast;
 /// ALTER USER [ IF EXISTS ] [ &lt;name&gt; ] SET { AUTHENTICATION | PASSWORD | SESSION } POLICY &lt;policy_name&gt;
 /// </code>
 /// </summary>
-/// <remarks>Sem <c>impl Display</c> no Rust: quem formata é <see cref="AlterUser"/>.</remarks>
 /// <param name="PolicyKind">The kind of user policy being set (authentication/password/session).</param>
 /// <param name="Policy">The identifier of the policy to apply.</param>
+// Sem `impl Display` no Rust: quem formata é AlterUser.
 public sealed partial record AlterUserSetPolicy(UserPolicyKind PolicyKind, Ident Policy);

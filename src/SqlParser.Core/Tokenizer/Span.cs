@@ -23,7 +23,7 @@ namespace SqlParser.Core;
 /// <summary>
 /// A span represents a linear portion of the input string (start, end)
 /// </summary>
-/// <remarks>See <c>Spanned</c> (crate::ast::Spanned) for more information.</remarks>
+/// <remarks>See <see cref="Ast.ISpanned">Spanned</see> for more information.</remarks>
 // #[derive(Copy, Eq, Hash, Ord)] → readonly record struct + IComparable (convencoes.md §13 #6).
 public readonly partial record struct Span(Location Start, Location End) : IComparable<Span>
 {
@@ -33,12 +33,10 @@ public readonly partial record struct Span(Location Start, Location End) : IComp
     /// <summary>End <c>Location</c> (inclusive).</summary>
     public Location End { get; init; } = End;
 
-    /// <summary>Rust: <c>impl fmt::Debug for Span</c> (<c>Span(Location(l,c)..Location(l,c))</c>).</summary>
+    // Rust: `impl fmt::Debug for Span` (`Span(Location(l,c)..Location(l,c))`).
     public string ToDebugString() => $"Span({Start.ToDebugString()}..{End.ToDebugString()})";
 
-    /// <summary>
-    /// <c>Span</c> não tem <c>Display</c> no Rust: o texto é o do <c>Debug</c> (convencoes.md §13).
-    /// </summary>
+    // `Span` não tem `Display` no Rust: o texto é o do `Debug` (convencoes.md §13).
     public override string ToString() => ToDebugString();
 
     // An empty span (0, 0) -> (0, 0)
@@ -51,7 +49,7 @@ public readonly partial record struct Span(Location Start, Location End) : IComp
     /// <summary>
     /// Returns an empty span <c>(0, 0) -&gt; (0, 0)</c>
     /// Empty spans represent no knowledge of source location
-    /// See <c>Spanned</c> (crate::ast::Spanned) for more information.
+    /// See <see cref="Ast.ISpanned">Spanned</see> for more information.
     /// </summary>
     public static Span Empty() => new Span(new Location(0, 0), new Location(0, 0));
 
@@ -128,7 +126,7 @@ public readonly partial record struct Span(Location Start, Location End) : IComp
         return acc ?? Empty();
     }
 
-    /// <summary>Ordem do <c>#[derive(Ord)]</c>: <c>start</c>, depois <c>end</c>.</summary>
+    // Ordem do `#[derive(Ord)]`: `start`, depois `end`.
     public int CompareTo(Span other)
     {
         var c = Start.CompareTo(other.Start);

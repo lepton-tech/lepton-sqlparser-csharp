@@ -51,7 +51,7 @@ public sealed partial record WildcardAdditionalOptions(
     RenameSelectItem? OptRename,
     Ident? OptAlias) : IDisplay
 {
-    /// <summary>Rust: <c>impl Default for WildcardAdditionalOptions</c> (convencoes.md §7 e §13, caso 42).</summary>
+    // Rust: `impl Default for WildcardAdditionalOptions` (convencoes.md §7 e §13, caso 42).
     public static WildcardAdditionalOptions Default() =>
         new WildcardAdditionalOptions(
             WildcardToken: AttachedToken.From(TokenWithSpan.Wrap(new Token.Mul())),

@@ -188,9 +188,9 @@ public class MsSqlDialect : Dialect
         {
             // Check if this is a BEGIN...END block rather than BEGIN TRANSACTION
             // Rust: `parser.maybe_parse(|p| { .. Ok(()) }).unwrap_or(None).is_some()`. A closure devolve
-            // `()`; aqui devolve `true` como valor de unidade. `.unwrap_or(None)` descarta o `Err`
-            // (limite de recursão) do `maybe_parse` (decisão 3 da B1).
-            bool? maybeBlock;
+            // `()`, que como argumento genérico vira `ValueTuple` (caso 85). `.unwrap_or(None)` descarta
+            // o `Err` (limite de recursão) do `maybe_parse` (decisão 3 da B1).
+            ValueTuple? maybeBlock;
             try
             {
                 maybeBlock = parser.MaybeParseValue(p =>
@@ -202,11 +202,11 @@ public class MsSqlDialect : Dialect
                             Keyword.TRAN) is not null
                         || p.PeekTokenRef().Token is Token.SemiColon or Token.EOF)
                     {
-                        return p.ExpectedRef<bool>("statement", p.PeekTokenRef());
+                        return p.ExpectedRef<ValueTuple>("statement", p.PeekTokenRef());
                     }
                     else
                     {
-                        return true;
+                        return default(ValueTuple);
                     }
                 });
             }

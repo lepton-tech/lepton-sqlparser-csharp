@@ -54,10 +54,10 @@ public readonly partial record struct Location(long Line, long Column) : IDispla
         f.WriteStr(FormattableString.Invariant($" at Line: {Line}, Column: {Column}"));
     }
 
-    /// <summary>Rust: <c>impl fmt::Display for Location</c>.</summary>
+    // Rust: `impl fmt::Display for Location`.
     public override string ToString() => Formatter.Format(this);
 
-    /// <summary>Rust: <c>impl fmt::Debug for Location</c> (<c>Location(line,column)</c>).</summary>
+    // Rust: `impl fmt::Debug for Location` (`Location(line,column)`).
     public string ToDebugString() => FormattableString.Invariant($"Location({Line},{Column})");
 
     /// <summary>Return an "empty" / unknown location</summary>
@@ -75,10 +75,10 @@ public readonly partial record struct Location(long Line, long Column) : IDispla
     /// <summary>Combine self and <c>end</c> into a new <see cref="Span"/></summary>
     public Span SpanTo(Location end) => new Span(this, end);
 
-    /// <summary>Rust: <c>impl From&lt;(u64, u64)&gt; for Location</c>.</summary>
+    // Rust: `impl From<(u64, u64)> for Location`.
     public static Location From((long Line, long Column) value) => new Location(value.Line, value.Column);
 
-    /// <summary>Ordem do <c>#[derive(Ord)]</c>: <c>line</c>, depois <c>column</c>.</summary>
+    // Ordem do `#[derive(Ord)]`: `line`, depois `column`.
     public int CompareTo(Location other)
     {
         var c = Line.CompareTo(other.Line);

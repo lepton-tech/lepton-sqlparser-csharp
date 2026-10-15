@@ -30,7 +30,7 @@ namespace SqlParser.Core.Ast;
 /// </para>
 /// Mode of BigQuery value tables, e.g. <c>AS STRUCT</c> or <c>AS VALUE</c>.
 /// </summary>
-/// <remarks>Enum sem dados com <c>Display</c> → records (convencoes.md §13, caso 37).</remarks>
+// Enum sem dados com `Display` → records (convencoes.md §13, caso 37).
 public abstract partial record ValueTableMode : IDisplay
 {
     /// <summary><c>AS STRUCT</c></summary>

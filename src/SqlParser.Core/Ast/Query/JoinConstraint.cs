@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Represents how two tables are constrained in a join: <c>ON</c>, <c>USING</c>, <c>NATURAL</c>, or none.</summary>
-/// <remarks>Sem <c>Display</c> no Rust: o tipo não implementa <c>IDisplay</c>.</remarks>
+// Sem `Display` no Rust: o tipo não implementa `IDisplay`.
 public abstract partial record JoinConstraint
 {
     /// <summary><c>ON &lt;expr&gt;</c> join condition.</summary>

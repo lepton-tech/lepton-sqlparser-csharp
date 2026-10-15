@@ -463,7 +463,7 @@ public class SnowflakeDialect : Dialect
         }
         if (result.Error is { } error)
         {
-            throw error;
+            throw StackGuard.Rethrow(error);
         }
         return Option<ColumnOption?>.Some(result.Value);
 
@@ -690,6 +690,10 @@ public class SnowflakeDialect : Dialect
         Ident ident,
         IReadOnlyList<ObjectNamePart> nameParts) =>
         ident.QuoteStyle is null
+            // PORT-DEVIATION DIV-001: `to_lowercase()` → `ToLowerInvariant()` (mapeamento simples). Sem efeito
+            // aqui, em todos os alvos: fora do ASCII, só U+212A (vira `k`) e U+0130 (vira `i` + U+0307 no Rust;
+            // fica como está no .NET) minusculizam para algo que começa por letra ASCII, e nos dois lados a
+            // comparação com "identifier" dá o mesmo resultado.
             && ident.Value.ToLowerInvariant() == "identifier"
             && !nameParts
                 .Any(p => p is ObjectNamePart.Function);

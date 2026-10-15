@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Quantity used in a <c>TOP</c> clause: either an expression or a constant.</summary>
-/// <remarks>Sem <c>Display</c> no Rust (o texto é gerado por <c>Top</c>): o tipo não implementa <c>IDisplay</c>.</remarks>
+// Sem `Display` no Rust (o texto é gerado por `Top`): o tipo não implementa `IDisplay`.
 public abstract partial record TopQuantity
 {
     /// <summary>A parenthesized expression (MSSQL syntax: <c>TOP (expr)</c>).</summary>

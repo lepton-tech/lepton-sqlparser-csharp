@@ -31,5 +31,5 @@ namespace SqlParser.Core.Ast;
 /// </param>
 /// <param name="PolicyName">The name of the policy to apply to the column.</param>
 /// <param name="UsingColumns">Optional list of column identifiers referenced by the policy.</param>
-/// <remarks>Sem <c>impl Display</c> no Rust: o texto é escrito por <see cref="ColumnPolicy"/>.</remarks>
+// Sem `impl Display` no Rust: o texto é escrito por ColumnPolicy.
 public sealed partial record ColumnPolicyProperty(bool With, ObjectName PolicyName, Sequence<Ident>? UsingColumns);

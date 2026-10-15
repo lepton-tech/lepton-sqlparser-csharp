@@ -41,7 +41,8 @@ public sealed partial class Parser
     /// Return the first non-whitespace token that has not yet been processed
     /// or Token::EOF
     /// </summary>
-    /// <remarks>See <see cref="PeekTokenRef"/> to avoid the copy (em C# os dois devolvem a mesma referência imutável).</remarks>
+    /// <remarks>See <see cref="PeekTokenRef"/> to avoid the copy.</remarks>
+    // Em C# os dois devolvem a mesma referência imutável.
     public TokenWithSpan PeekToken() => PeekNthToken(0);
 
     /// <summary>
@@ -54,10 +55,8 @@ public sealed partial class Parser
     /// Returns the <c>N</c> next non-whitespace tokens that have not yet been
     /// processed.
     /// </summary>
-    /// <remarks>
-    /// Rust: <c>peek_tokens::&lt;N&gt;()</c>, com <c>N</c> inferido pelo padrão de desestruturação.
-    /// Em C#, <c>N</c> vira parâmetro (convencoes.md §13, caso 28).
-    /// </remarks>
+    // Rust: `peek_tokens::<N>()`, com `N` inferido pelo padrão de desestruturação.
+    // Em C#, `N` vira parâmetro (convencoes.md §13, caso 28).
     public Token[] PeekTokens(int n) =>
         PeekTokensWithLocation(n).Select(withLoc => withLoc.Token).ToArray();
 
@@ -233,22 +232,22 @@ public sealed partial class Parser
     }
 
     /// <summary>Report <c>found</c> was encountered instead of <c>expected</c></summary>
-    /// <remarks>
-    /// Rust devolve <c>Err(..)</c>; aqui o método lança <see cref="ParserException"/> e nunca retorna.
-    /// O parâmetro de tipo permite usá-lo como expressão: <c>return Expected&lt;Expr&gt;("...", tok);</c>.
-    /// Em métodos <c>void</c>, use a sobrecarga sem tipo (convencoes.md §13, caso 45).
-    /// </remarks>
+    // Rust devolve `Err(..)`; aqui o método lança ParserException e nunca retorna.
+    // O parâmetro de tipo permite usá-lo como expressão: `return Expected<Expr>("...", tok);`.
+    // Em métodos `void`, use a sobrecarga sem tipo (convencoes.md §13, caso 45).
     public T Expected<T>(string expected, TokenWithSpan found) =>
         throw ParserErr($"Expected: {expected}, found: {found}", found.Span.Start);
 
-    /// <summary>Report <c>found</c> was encountered instead of <c>expected</c> (forma para métodos <c>void</c>).</summary>
+    /// <summary>Report <c>found</c> was encountered instead of <c>expected</c></summary>
+    // Forma para métodos `void` (convencoes.md §13, caso 45).
     public void Expected(string expected, TokenWithSpan found) => Expected<object>(expected, found);
 
     /// <summary>report <c>found</c> was encountered instead of <c>expected</c></summary>
     public T ExpectedRef<T>(string expected, TokenWithSpan found) =>
         throw ParserErr($"Expected: {expected}, found: {found}", found.Span.Start);
 
-    /// <summary>report <c>found</c> was encountered instead of <c>expected</c> (forma para métodos <c>void</c>).</summary>
+    /// <summary>report <c>found</c> was encountered instead of <c>expected</c></summary>
+    // Forma para métodos `void` (convencoes.md §13, caso 45).
     public void ExpectedRef(string expected, TokenWithSpan found) => ExpectedRef<object>(expected, found);
 
     /// <summary>Report that the token at <c>index</c> was found instead of <c>expected</c>.</summary>
@@ -258,10 +257,8 @@ public sealed partial class Parser
         throw ParserErr($"Expected: {expected}, found: {found}", found.Span.Start);
     }
 
-    /// <summary>
-    /// Rust: macro <c>parser_err!(MSG, loc)</c> = <c>Err(ParserError::ParserError(format!("{}{}", MSG, loc)))</c>.
-    /// Devolve a exceção para ser lançada: <c>throw ParserErr("msg", loc);</c> (convencoes.md §13, caso 45).
-    /// </summary>
+    // Rust: macro `parser_err!(MSG, loc)` = `Err(ParserError::ParserError(format!("{}{}", MSG, loc)))`.
+    // Devolve a exceção para ser lançada: `throw ParserErr("msg", loc);` (convencoes.md §13, caso 45).
     internal static ParserException ParserErr(string message, Location loc) =>
         new ParserException(new ParserError.ParserErrorValue(message + loc.ToString()));
 
@@ -503,11 +500,9 @@ public sealed partial class Parser
         return ExpectedRef<TokenWithSpan>(expected.ToString(), PeekTokenRef());
     }
 
-    /// <summary>
-    /// Rust: <c>fn parse&lt;T: FromStr&gt;(s: String, loc: Location)</c>. Os tipos usados pelo parser são
-    /// <c>String</c>, <c>u64</c>, <c>i64</c> e <c>u32</c>; a mensagem de erro reproduz a do Rust
-    /// (<c>core::any::type_name</c> + o <c>Display</c> de <c>ParseIntError</c>) — convencoes.md §13, caso 47.
-    /// </summary>
+    // Rust: `fn parse<T: FromStr>(s: String, loc: Location)`. Os tipos usados pelo parser são
+    // `String`, `u64`, `i64` e `u32`; a mensagem de erro reproduz a do Rust
+    // (`core::any::type_name` + o `Display` de `ParseIntError`) — convencoes.md §13, caso 47.
     internal static T Parse<T>(string s, Location loc)
     {
         if (typeof(T) == typeof(string))
@@ -765,8 +760,9 @@ public sealed partial class Parser
     }
 
     /// <summary>Parse a comma-separated list of 0+ items accepted by <c>F</c></summary>
-    /// <param name="f">função que interpreta um item</param>
+    /// <param name="f">the function that parses one item</param>
     /// <param name="endToken">expected end token for the closure (e.g. <c>Token::RParen</c>, <c>Token::RBrace</c> ...)</param>
+    // f: sem doc no Rust (o C# exige o <param> porque endToken está documentado, CS1573).
     public Sequence<T> ParseCommaSeparated0<T>(Func<Parser, T> f, Token endToken)
     {
         if (PeekTokenRef().Token.Equals(endToken))
@@ -831,10 +827,8 @@ public sealed partial class Parser
     /// Returns <c>ParserError::RecursionLimitExceeded</c> if <c>f</c> returns a <c>RecursionLimitExceeded</c>.
     /// Returns <c>Ok(None)</c> if <c>f</c> returns any other error.
     /// </summary>
-    /// <remarks>
-    /// Para <c>T</c> tipo-valor (ex.: <c>u64</c>), use <see cref="MaybeParseValue{T}"/>, que devolve
-    /// <c>Nullable&lt;T&gt;</c> (convencoes.md §13, caso 48).
-    /// </remarks>
+    // Para `T` tipo-valor (ex.: `u64`), use MaybeParseValue<T>, que devolve
+    // `Nullable<T>` (convencoes.md §13, caso 48).
     public T? MaybeParse<T>(Func<Parser, T> f)
         where T : class
     {
@@ -849,8 +843,9 @@ public sealed partial class Parser
     }
 
     /// <summary>
-    /// <see cref="MaybeParse{T}"/> para tipos-valor: <c>Option&lt;u64&gt;</c> etc. viram <c>Nullable&lt;T&gt;</c>.
+    /// Same as <see cref="MaybeParse{T}"/>, for value types.
     /// </summary>
+    // MaybeParse<T> para tipos-valor: `Option<u64>` etc. viram `Nullable<T>` (convencoes.md §13, caso 48).
     public T? MaybeParseValue<T>(Func<Parser, T> f)
         where T : struct
     {

@@ -23,5 +23,5 @@ namespace SqlParser.Core.Ast;
 /// <summary>Properties for the <c>IDENTITY</c> / <c>AUTOINCREMENT</c> column option.</summary>
 /// <param name="Parameters">Optional parameters specifying seed/increment for the identity column.</param>
 /// <param name="Order">Optional ordering specifier (<c>ORDER</c> / <c>NOORDER</c>).</param>
-/// <remarks>Sem <c>impl Display</c> no Rust: o texto é escrito por <see cref="IdentityPropertyKind"/>.</remarks>
+// Sem `impl Display` no Rust: o texto é escrito por IdentityPropertyKind.
 public sealed partial record IdentityProperty(IdentityPropertyFormatKind? Parameters, IdentityPropertyOrder? Order);

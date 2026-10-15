@@ -27,7 +27,7 @@ namespace SqlParser.Core.Ast;
 /// <item>SET <c>configuration_parameter</c> FROM CURRENT</item>
 /// </list>
 /// </summary>
-/// <remarks>Sem <c>Display</c> no Rust (o texto é montado por <c>AlterRoleOperation</c>).</remarks>
+// Sem `Display` no Rust (o texto é montado por `AlterRoleOperation`).
 public abstract partial record SetConfigValue
 {
     /// <summary>Use the default value.</summary>
@@ -37,6 +37,6 @@ public abstract partial record SetConfigValue
     public sealed record FromCurrent : SetConfigValue;
 
     /// <summary>Set to the provided expression value.</summary>
-    /// <remarks>Variante chamada <c>Value</c>: o parâmetro se chama <c>Inner</c> (convencoes.md §6; CS0542).</remarks>
+    // Variante chamada `Value`: o parâmetro se chama `Inner` (convencoes.md §6; CS0542).
     public sealed record Value(Expr Inner) : SetConfigValue;
 }

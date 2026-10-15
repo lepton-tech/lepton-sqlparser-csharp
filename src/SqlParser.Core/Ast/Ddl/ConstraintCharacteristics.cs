@@ -29,7 +29,7 @@ namespace SqlParser.Core.Ast;
 /// <param name="Enforced"><c>[ ENFORCED | NOT ENFORCED ]</c></param>
 public sealed partial record ConstraintCharacteristics(bool? Deferrable, DeferrableInitial? Initially, bool? Enforced) : IDisplay
 {
-    /// <summary>Rust: <c>#[derive(Default)]</c> (<c>ConstraintCharacteristics::default()</c>).</summary>
+    // Rust: `#[derive(Default)]` (`ConstraintCharacteristics::default()`).
     public static ConstraintCharacteristics Default() => new ConstraintCharacteristics(null, null, null);
 
     private string? DeferrableText() =>

@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>A member of an ENUM type.</summary>
-/// <remarks>Sem <c>Display</c> no Rust (o texto é montado pelo <c>Display</c> de <c>DataType::Enum</c>).</remarks>
+// Sem `Display` no Rust (o texto é montado pelo `Display` de `DataType::Enum`).
 public abstract partial record EnumMember
 {
     /// <summary>Just a name.</summary>
@@ -31,7 +31,7 @@ public abstract partial record EnumMember
     /// ClickHouse allows to specify an integer value for each enum value.
     /// <see href="https://clickhouse.com/docs/en/sql-reference/data-types/enum">ClickHouse</see>
     /// </summary>
-    /// <remarks>Rust: <c>NamedValue(String, Expr)</c>; nomes dos campos em nomes.md.</remarks>
+    // Rust: `NamedValue(String, Expr)`; nomes dos campos em nomes.md.
     public sealed record NamedValue(string Name, Expr Value) : EnumMember
     {
         // Esconde a variante herdada EnumMember.Name (CS8866 sem a declaração explícita).

@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Which clause the table index hint applies to.</summary>
-/// <remarks>Enum sem dados com <c>Display</c> → records (convencoes.md §13, caso 37).</remarks>
+// Enum sem dados com `Display` → records (convencoes.md §13, caso 37).
 public abstract partial record TableIndexHintForClause : IDisplay
 {
     /// <summary>Apply the hint to JOIN clauses.</summary>

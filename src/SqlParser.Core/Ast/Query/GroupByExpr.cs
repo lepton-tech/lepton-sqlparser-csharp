@@ -42,8 +42,8 @@ public abstract partial record GroupByExpr : IDisplay
     public sealed record All(Sequence<GroupByWithModifier> Value) : GroupByExpr;
 
     /// <summary><c>GROUP BY &lt;expressions&gt;</c> with optional modifiers.</summary>
-    /// <param name="Exprs">Rust: campo <c>.0</c> (nomes.md).</param>
-    /// <param name="Modifiers">Rust: campo <c>.1</c> (nomes.md).</param>
+    // Exprs: Rust: campo `.0` (nomes.md).
+    // Modifiers: Rust: campo `.1` (nomes.md).
     public sealed record Expressions(Sequence<Expr> Exprs, Sequence<GroupByWithModifier> Modifiers) : GroupByExpr;
 
     public void Fmt(Formatter f)

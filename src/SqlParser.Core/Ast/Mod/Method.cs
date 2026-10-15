@@ -26,8 +26,8 @@ namespace SqlParser.Core.Ast;
 /// <param name="Expr">The expression on which the method is invoked.</param>
 /// <param name="MethodChain">
 /// The sequence of chained method calls.
-/// (Rust: comentário <c>// always non-empty</c>.)
 /// </param>
+// MethodChain: Rust: comentário `// always non-empty`.
 public sealed partial record Method(Expr Expr, Sequence<Function> MethodChain) : IDisplay
 {
     public void Fmt(Formatter f)

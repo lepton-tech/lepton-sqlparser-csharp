@@ -28,5 +28,5 @@ namespace SqlParser.Core.Ast;
 /// <c>SELECT * FROM executable('generate_random.py', TabSeparated, 'id UInt32, random String', SETTINGS send_chunk_header = false, pool_size = 16)</c>
 /// <see href="https://clickhouse.com/docs/en/engines/table-functions/executable"><c>executable</c> table function</see>
 /// </param>
-/// <remarks>Sem <c>Display</c> no Rust: o tipo não implementa <c>IDisplay</c>.</remarks>
+// Sem `Display` no Rust: o tipo não implementa `IDisplay`.
 public sealed partial record TableFunctionArgs(Sequence<FunctionArg> Args, Sequence<Setting>? Settings);

@@ -294,18 +294,12 @@ public sealed partial class Parser
             // Err(e) => return Err(e) }` equivale a `?`.
             var alias = MaybeParseTableAlias();
 
-            // Rust: `match self.expect_keywords(..) { Ok(()) => true, Err(_) => false }`, sem restaurar a
-            // posição (decisão 1 da B3).
-            bool withOffset;
-            try
-            {
-                ExpectKeywords(Keyword.WITH, Keyword.OFFSET);
-                withOffset = true;
-            }
-            catch (ParserException)
-            {
-                withOffset = false;
-            }
+            // Rust: `match self.expect_keywords(&[WITH, OFFSET]) { Ok(()) => true, Err(_) => false }`, sem
+            // restaurar a posição (decisão 1 da B3). Equivalente exato sem exceção (caso 81): o
+            // `expect_keywords` consome cada keyword que casa e para na primeira que não casa, sem voltar a
+            // posição; o `&&` faz o mesmo (um `WITH` sem `OFFSET` fica consumido), e o erro descartado não
+            // tem efeito colateral.
+            var withOffset = ParseKeyword(Keyword.WITH) && ParseKeyword(Keyword.OFFSET);
 
             Ident? withOffsetAlias;
             if (withOffset)
@@ -814,23 +808,9 @@ public sealed partial class Parser
             while (true)
             {
                 // Rust: `self.parse_keyword(BY) && self.expect_keyword(VALUE).is_ok()` (decisão 1 da B3).
-                bool byValue;
-                if (ParseKeyword(Keyword.BY))
-                {
-                    try
-                    {
-                        ExpectKeyword(Keyword.VALUE);
-                        byValue = true;
-                    }
-                    catch (ParserException)
-                    {
-                        byValue = false;
-                    }
-                }
-                else
-                {
-                    byValue = false;
-                }
+                // `expect_keyword(VALUE).is_ok()` é exatamente `parse_keyword(VALUE)`: só consome quando
+                // casa, e o erro descartado não tem efeito colateral (caso 81).
+                var byValue = ParseKeyword(Keyword.BY) && ParseKeyword(Keyword.VALUE);
                 var expr = ParseExpr();
                 Ident? alias;
                 if (ParseKeyword(Keyword.AS))

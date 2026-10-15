@@ -33,7 +33,7 @@ public abstract partial record ExactNumberInfo : IDisplay
     public sealed record Precision(ulong Value) : ExactNumberInfo;
 
     /// <summary>Precision and scale information, e.g. <c>DECIMAL(10,2)</c>.</summary>
-    /// <remarks>Rust: <c>PrecisionAndScale(u64, i64)</c>; nomes dos campos em nomes.md.</remarks>
+    // Rust: `PrecisionAndScale(u64, i64)`; nomes dos campos em nomes.md.
     public sealed record PrecisionAndScale(ulong Precision, long Scale) : ExactNumberInfo
     {
         // Esconde a variante herdada ExactNumberInfo.Precision (CS8866 sem a declaração explícita).

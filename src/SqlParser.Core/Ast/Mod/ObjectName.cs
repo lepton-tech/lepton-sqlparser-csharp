@@ -23,14 +23,14 @@ using static SqlParser.Core.Ast.AstModule;
 namespace SqlParser.Core.Ast;
 
 /// <summary>A name of a table, view, custom type, etc., possibly multi-part, i.e. db.schema.obj</summary>
-/// <param name="Value">Rust: campo <c>.0</c> do tuple struct (convencoes.md §13, caso 35).</param>
+// Value: Rust: campo `.0` do tuple struct (convencoes.md §13, caso 35).
 public sealed partial record ObjectName(Sequence<ObjectNamePart> Value) : IDisplay
 {
-    /// <summary>Rust: <c>impl From&lt;Vec&lt;Ident&gt;&gt; for ObjectName</c>.</summary>
+    // Rust: `impl From<Vec<Ident>> for ObjectName`.
     public static ObjectName From(Sequence<Ident> idents) =>
         new ObjectName(idents.Select(ident => (ObjectNamePart)new ObjectNamePart.Identifier(ident)).ToSequence());
 
-    /// <summary>Rust: <c>impl From&lt;Ident&gt; for ObjectName</c>.</summary>
+    // Rust: `impl From<Ident> for ObjectName`.
     public static ObjectName From(Ident ident) =>
         new ObjectName(Sequence.Of<ObjectNamePart>(new ObjectNamePart.Identifier(ident)));
 

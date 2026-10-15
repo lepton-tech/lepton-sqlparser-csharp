@@ -54,16 +54,16 @@ namespace SqlParser.Core.Ast;
 [VisitWith("visit_value")]
 public sealed partial record ValueWithSpan(Value Value, Span Span) : IDisplay
 {
-    /// <summary>Rust: <c>impl PartialEq for ValueWithSpan</c> (compara só o valor, ignora o span).</summary>
+    // Rust: `impl PartialEq for ValueWithSpan` (compara só o valor, ignora o span).
     public bool Equals(ValueWithSpan? other) => other is not null && Value == other.Value;
 
     // `impl Ord`/`impl PartialOrd for ValueWithSpan` (delegam à ordem derivada de `Value`): não
     // portados, como os `#[derive(PartialOrd, Ord)]` (convencoes.md §13, caso 23).
 
-    /// <summary>Rust: <c>impl Hash for ValueWithSpan</c> (só o valor contribui para o hash).</summary>
+    // Rust: `impl Hash for ValueWithSpan` (só o valor contribui para o hash).
     public override int GetHashCode() => Value.GetHashCode();
 
-    /// <summary>Rust: <c>impl From&lt;Value&gt; for ValueWithSpan</c>.</summary>
+    // Rust: `impl From<Value> for ValueWithSpan`.
     public static ValueWithSpan From(Value value) => value.WithEmptySpan();
 
     // `impl From<ValueWithSpan> for Value` → `Value.From(ValueWithSpan)` (Value.cs).

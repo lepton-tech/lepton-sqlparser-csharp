@@ -27,7 +27,7 @@
 namespace SqlParser.Core;
 
 /// <summary>An enumeration of SQL keywords recognized by the parser.</summary>
-/// <remarks>Rust: <c>keywords::Keyword</c>.</remarks>
+// Rust: `keywords::Keyword`.
 public enum Keyword
 {
     /// <summary>Represents no keyword.</summary>
@@ -2238,10 +2238,11 @@ public enum Keyword
     ZSTD,
 }
 
-/// <summary>Constantes e listas do módulo <c>keywords</c> do Rust.</summary>
+// Constantes e listas do módulo `keywords` do Rust.
 public static partial class Keywords
 {
-    /// <summary>Array of all SQL keywords as strings, sorted ordinally (Rust: <c>ALL_KEYWORDS</c>).</summary>
+    /// <summary>Array of all SQL keywords as string constants.</summary>
+    // Rust: `ALL_KEYWORDS`. Em ordem ordinal, como exige a busca binária de Lookup.
     internal static readonly string[] AllKeywordsArray =
     {
         "ABORT",
@@ -3348,7 +3349,8 @@ public static partial class Keywords
         "ZSTD",
     };
 
-    /// <summary>Array of all <see cref="Keyword"/> values in declaration order (Rust: <c>ALL_KEYWORDS_INDEX</c>).</summary>
+    /// <summary>Array of all <c>Keyword</c> enum values in declaration order.</summary>
+    // Rust: `ALL_KEYWORDS_INDEX`.
     internal static readonly Keyword[] AllKeywordsIndexArray =
     {
         Keyword.ABORT,
@@ -4455,7 +4457,7 @@ public static partial class Keywords
         Keyword.ZSTD,
     };
 
-    /// <summary>Rust: <c>RESERVED_FOR_TABLE_ALIAS</c>.</summary>
+    // Rust: `RESERVED_FOR_TABLE_ALIAS`.
     internal static readonly Keyword[] ReservedForTableAliasArray =
     {
         Keyword.WITH,
@@ -4517,7 +4519,7 @@ public static partial class Keywords
         Keyword.OPEN,
     };
 
-    /// <summary>Rust: <c>RESERVED_FOR_COLUMN_ALIAS</c>.</summary>
+    // Rust: `RESERVED_FOR_COLUMN_ALIAS`.
     internal static readonly Keyword[] ReservedForColumnAliasArray =
     {
         Keyword.WITH,
@@ -4549,7 +4551,7 @@ public static partial class Keywords
         Keyword.END,
     };
 
-    /// <summary>Rust: <c>RESERVED_FOR_TABLE_FACTOR</c>.</summary>
+    // Rust: `RESERVED_FOR_TABLE_FACTOR`.
     internal static readonly Keyword[] ReservedForTableFactorArray =
     {
         Keyword.INTO,
@@ -4558,7 +4560,7 @@ public static partial class Keywords
         Keyword.WHERE,
     };
 
-    /// <summary>Rust: <c>RESERVED_FOR_IDENTIFIER</c>.</summary>
+    // Rust: `RESERVED_FOR_IDENTIFIER`.
     internal static readonly Keyword[] ReservedForIdentifierArray =
     {
         Keyword.EXISTS,
@@ -4567,7 +4569,7 @@ public static partial class Keywords
         Keyword.TRIM,
     };
 
-    /// <summary>Texto SQL de cada keyword, indexado por <c>(int)Keyword</c> (Rust: <c>impl Display for Keyword</c>).</summary>
+    // Texto SQL de cada keyword, indexado por `(int)Keyword` (Rust: `impl Display for Keyword`).
     internal static readonly string[] KeywordTexts =
     {
         "NoKeyword",

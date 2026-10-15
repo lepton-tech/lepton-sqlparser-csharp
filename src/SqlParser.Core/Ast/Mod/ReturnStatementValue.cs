@@ -21,7 +21,7 @@
 namespace SqlParser.Core.Ast;
 
 /// <summary>Variants of a <c>RETURN</c> statement</summary>
-/// <remarks>Sem <c>impl Display</c> no Rust: quem formata é <see cref="ReturnStatement"/>.</remarks>
+// Sem `impl Display` no Rust: quem formata é ReturnStatement.
 public abstract partial record ReturnStatementValue
 {
     /// <summary>Return an expression from a function or trigger.</summary>

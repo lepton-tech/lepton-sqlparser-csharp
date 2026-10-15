@@ -35,13 +35,6 @@ namespace SqlParser.Core.Ast;
 /// missing spans. See <see href="https://github.com/apache/datafusion-sqlparser-rs/issues/1548">this ticket</see>
 /// for additional information and status.
 /// </para>
-/// <para>
-/// Rust: <c>pub trait Spanned</c> → <c>ISpanned</c> (prefixo <c>I</c>, como <c>IDisplay</c>, caso 4).
-/// Cada tipo implementa <c>public Span Span()</c>; os tipos que já têm a propriedade <c>Span</c>
-/// (campo <c>span</c> no Rust: <c>TokenWithSpan</c>, <c>ValueWithSpan</c>, <c>CommentWithSpan</c>)
-/// implementam <c>ISpanned.Span()</c> de forma explícita, e quem chama <c>x.span()</c> sobre eles
-/// escreve <c>((ISpanned)x).Span()</c> (docs/port/onda-b/B7.md).
-/// </para>
 /// </remarks>
 /// <example>
 /// <code>
@@ -58,6 +51,11 @@ namespace SqlParser.Core.Ast;
 /// // span.End == new Location(2, 15)
 /// </code>
 /// </example>
+// Rust: `pub trait Spanned` → `ISpanned` (prefixo `I`, como `IDisplay`, caso 4).
+// Cada tipo implementa `public Span Span()`; os tipos que já têm a propriedade `Span`
+// (campo `span` no Rust: `TokenWithSpan`, `ValueWithSpan`, `CommentWithSpan`)
+// implementam `ISpanned.Span()` de forma explícita, e quem chama `x.span()` sobre eles
+// escreve `((ISpanned)x).Span()` (docs/port/onda-b/B7.md).
 public interface ISpanned
 {
     /// <summary>

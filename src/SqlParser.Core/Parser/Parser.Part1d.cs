@@ -137,7 +137,7 @@ public sealed partial class Parser
         ExpectToken(new Token.RParen());
         if (structBodyError is not null)
         {
-            throw structBodyError;
+            throw StackGuard.Rethrow(structBodyError);
         }
         return structBody;
     }
@@ -1010,7 +1010,7 @@ public sealed partial class Parser
     }
 
     /// <summary>Parse a multi-dimension array accessing like <c>[1:3][1][1]</c></summary>
-    /// <remarks><c>chain: &amp;mut Vec&lt;AccessExpr&gt;</c> vira <c>List&lt;AccessExpr&gt;</c> (docs/port/onda-b/B1.md).</remarks>
+    // `chain: &mut Vec<AccessExpr>` vira `List<AccessExpr>` (docs/port/onda-b/B1.md).
     public void ParseMultiDimSubscript(List<AccessExpr> chain)
     {
         while (ConsumeToken(new Token.LBracket()))

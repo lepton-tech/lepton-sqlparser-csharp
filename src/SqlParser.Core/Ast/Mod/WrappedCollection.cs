@@ -35,14 +35,12 @@ namespace SqlParser.Core.Ast;
 /// let items = WrappedCollection::NoWrapping(vec!["one", "two", "three"]);
 /// assert_eq!("one, two, three", items.to_string());
 /// </code>
-/// <para>
-/// No Rust, o <c>Display</c> existe só para <c>WrappedCollection&lt;Vec&lt;T&gt;&gt;</c>. C# não permite
-/// implementar uma interface para uma única instanciação do genérico; por isso o tipo inteiro implementa
-/// <see cref="IDisplay"/> e o <see cref="Fmt"/> exige, em tempo de execução, que <c>T</c> seja uma coleção
-/// (na AST, <c>Sequence&lt;U&gt;</c>). Com outro <c>T</c>, lança <see cref="InvalidOperationException"/>
-/// (no Rust seria erro de compilação).
-/// </para>
 /// </remarks>
+// No Rust, o `Display` existe só para `WrappedCollection<Vec<T>>`. C# não permite
+// implementar uma interface para uma única instanciação do genérico; por isso o tipo inteiro implementa
+// IDisplay e o Fmt exige, em tempo de execução, que `T` seja uma coleção
+// (na AST, `Sequence<U>`). Com outro `T`, lança InvalidOperationException
+// (no Rust seria erro de compilação).
 public abstract partial record WrappedCollection<T> : IDisplay
 {
     /// <summary>Print the collection without wrapping symbols, as <c>item, item, item</c></summary>

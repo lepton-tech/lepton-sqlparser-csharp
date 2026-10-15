@@ -47,8 +47,8 @@ public abstract partial record MatchRecognizePattern : IDisplay
     public sealed record Alternation(Sequence<MatchRecognizePattern> Value) : MatchRecognizePattern;
 
     /// <summary>e.g. pattern*</summary>
-    /// <param name="Pattern">Rust: campo <c>.0</c> (nomes.md).</param>
-    /// <param name="Quantifier">Rust: campo <c>.1</c> (nomes.md).</param>
+    // Pattern: Rust: campo `.0` (nomes.md).
+    // Quantifier: Rust: campo `.1` (nomes.md).
     public sealed record Repetition(MatchRecognizePattern Pattern, RepetitionQuantifier Quantifier) : MatchRecognizePattern;
 
     public void Fmt(Formatter f)

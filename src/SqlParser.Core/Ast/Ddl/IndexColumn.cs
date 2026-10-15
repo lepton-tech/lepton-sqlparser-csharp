@@ -25,10 +25,10 @@ namespace SqlParser.Core.Ast;
 /// <param name="OperatorClass">Optional operator class (index operator name).</param>
 public sealed partial record IndexColumn(OrderByExpr Column, ObjectName? OperatorClass) : IDisplay
 {
-    /// <summary>Rust: <c>impl From&lt;Ident&gt; for IndexColumn</c>.</summary>
+    // Rust: `impl From<Ident> for IndexColumn`.
     public static IndexColumn From(Ident c) => new IndexColumn(OrderByExpr.From(c), null);
 
-    /// <summary>Rust: <c>impl&lt;'a&gt; From&lt;&amp;'a str&gt; for IndexColumn</c>.</summary>
+    // Rust: `impl<'a> From<&'a str> for IndexColumn`.
     public static IndexColumn From(string c)
     {
         var ident = new Ident(c);

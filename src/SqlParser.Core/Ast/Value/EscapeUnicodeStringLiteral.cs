@@ -22,8 +22,8 @@ using System.Globalization;
 
 namespace SqlParser.Core.Ast;
 
-/// <summary>Rust: <c>pub struct EscapeUnicodeStringLiteral&lt;'a&gt;(&amp;'a str)</c>, criado por <c>Value.EscapeUnicodeString</c>.</summary>
-/// <remarks>O campo <c>.0</c> do Rust é privado: campo <c>_value</c> e construtor <c>internal</c> (convencoes.md §13, casos 20, 25 e 35).</remarks>
+// Rust: `pub struct EscapeUnicodeStringLiteral<'a>(&'a str)`, criado por `Value.EscapeUnicodeString`.
+// O campo `.0` do Rust é privado: campo `_value` e construtor `internal` (convencoes.md §13, casos 20, 25 e 35).
 public sealed class EscapeUnicodeStringLiteral : IDisplay
 {
     private readonly string _value;

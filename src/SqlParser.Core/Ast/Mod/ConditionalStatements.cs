@@ -38,7 +38,7 @@ public abstract partial record ConditionalStatements : IDisplay
     }
 
     /// <summary>Block enclosed by <c>BEGIN</c> and <c>END</c>.</summary>
-    /// <param name="Value">Rust: campo <c>.0</c>.</param>
+    // Value: Rust: campo `.0`.
     public sealed record BeginEnd(BeginEndStatements Value) : ConditionalStatements;
 
     /// <summary>Get the statements in this conditional statements block.</summary>

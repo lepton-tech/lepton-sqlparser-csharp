@@ -76,7 +76,7 @@ public sealed partial record SelectModifiers(
     bool SqlNoCache,
     bool SqlCalcFoundRows) : IDisplay
 {
-    /// <summary>Rust: <c>#[derive(Default)]</c> (todos os campos <c>false</c>; convencoes.md §13, caso 42).</summary>
+    // Rust: `#[derive(Default)]` (todos os campos `false`; convencoes.md §13, caso 42).
     public static SelectModifiers Default() =>
         new SelectModifiers(
             HighPriority: false,

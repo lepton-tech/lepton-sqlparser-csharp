@@ -73,6 +73,6 @@ public abstract partial record Whitespace : IDisplay
         }
     }
 
-    /// <summary>Rust: <c>impl fmt::Display for Whitespace</c>.</summary>
+    // Rust: `impl fmt::Display for Whitespace`.
     public sealed override string ToString() => Formatter.Format(this);
 }

@@ -638,10 +638,8 @@ public sealed partial class Parser
     /// or bracket notation.
     /// For example: <c>a.b.c</c>, <c>a.b[1]</c>.
     /// </summary>
-    /// <remarks>
-    /// <c>mut chain: Vec&lt;AccessExpr&gt;</c> (posse transferida e alterada) vira <c>List&lt;AccessExpr&gt;</c>
-    /// (docs/port/onda-b/B1.md).
-    /// </remarks>
+    // `mut chain: Vec<AccessExpr>` (posse transferida e alterada) vira `List<AccessExpr>`
+    // (docs/port/onda-b/B1.md).
     public Expr ParseCompoundExpr(Expr root, List<AccessExpr> chain)
     {
         TokenWithSpan? endingWildcard = null;

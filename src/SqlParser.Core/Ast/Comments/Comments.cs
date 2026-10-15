@@ -47,8 +47,8 @@ public sealed class Comments
     /// </summary>
     /// <remarks>
     /// The Spanned trait allows you to access location information for certain AST nodes.
-    /// <para>Faixas do Rust (<c>..x</c>, <c>a..b</c>...) → <see cref="RangeBounds"/> (convencoes.md §13, caso 57).</para>
     /// </remarks>
+    // Faixas do Rust (`..x`, `a..b`...) → RangeBounds (convencoes.md §13, caso 57).
     public IEnumerable<CommentWithSpan> Find(RangeBounds<Location> range)
     {
         var start = StartIndex(range.StartBound);
@@ -135,17 +135,15 @@ public sealed class Comments
         return (false, lo);
     }
 
-    /// <summary>
-    /// Rust: <c>impl From&lt;Comments&gt; for Vec&lt;CommentWithSpan&gt;</c>. O destino é um tipo da biblioteca
-    /// padrão, então a conversão vira método de instância (convencoes.md §13, caso 57).
-    /// </summary>
+    // Rust: `impl From<Comments> for Vec<CommentWithSpan>`. O destino é um tipo da biblioteca
+    // padrão, então a conversão vira método de instância (convencoes.md §13, caso 57).
     public List<CommentWithSpan> ToVec() => new(_value);
 }
 
 /// <summary>A source code comment with information of its entire span.</summary>
 /// <param name="Comment">The source code comment iself</param>
 /// <param name="Span">The span of the comment including its markers</param>
-/// <remarks><c>impl Deref for CommentWithSpan</c> (→ <c>Comment</c>) não é traduzido: use <see cref="Comment"/> (caso 34).</remarks>
+// `impl Deref for CommentWithSpan` (→ `Comment`) não é traduzido: use Comment (caso 34).
 public sealed partial record CommentWithSpan(Comment Comment, Span Span);
 
 /// <summary>A unified type of the different source code comment formats.</summary>
@@ -167,7 +165,7 @@ public abstract record Comment
     public sealed record MultiLine(string Value) : Comment;
 
     /// <summary>Retrieves the content of the comment as string slice.</summary>
-    /// <remarks><c>impl Deref for Comment</c> (→ <c>str</c>) não é traduzido: use este método (caso 34).</remarks>
+    // `impl Deref for Comment` (→ `str`) não é traduzido: use este método (caso 34).
     public string AsStr() =>
         this switch
         {

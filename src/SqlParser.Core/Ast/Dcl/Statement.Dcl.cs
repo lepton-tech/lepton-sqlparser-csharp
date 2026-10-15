@@ -24,9 +24,9 @@ namespace SqlParser.Core.Ast;
 // (Mod/Statement.cs), como os demais `impl From<X> for Statement` (convencoes.md §13, caso 7).
 public abstract partial record Statement
 {
-    /// <summary>Rust: <c>impl From&lt;Grant&gt; for Statement</c> (<c>src/ast/dcl.rs</c>).</summary>
+    // Rust: `impl From<Grant> for Statement` (`src/ast/dcl.rs`).
     public static Statement From(Ast.Grant v) => new Grant(v);
 
-    /// <summary>Rust: <c>impl From&lt;Revoke&gt; for Statement</c> (<c>src/ast/dcl.rs</c>).</summary>
+    // Rust: `impl From<Revoke> for Statement` (`src/ast/dcl.rs`).
     public static Statement From(Ast.Revoke v) => new Revoke(v);
 }

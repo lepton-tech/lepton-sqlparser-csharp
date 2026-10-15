@@ -45,8 +45,8 @@ public abstract partial record SelectItem : IDisplay
     /// An expression, followed by a wildcard expansion.
     /// e.g. <c>alias.*</c>, <c>STRUCT&lt;STRING&gt;('foo').*</c>
     /// </summary>
-    /// <param name="Kind">Rust: campo <c>.0</c> (nomes.md).</param>
-    /// <param name="AdditionalOptions">Rust: campo <c>.1</c> (nomes.md).</param>
+    // Kind: Rust: campo `.0` (nomes.md).
+    // AdditionalOptions: Rust: campo `.1` (nomes.md).
     public sealed record QualifiedWildcard(SelectItemQualifiedWildcardKind Kind, WildcardAdditionalOptions AdditionalOptions) : SelectItem;
 
     /// <summary>An unqualified <c>*</c></summary>
