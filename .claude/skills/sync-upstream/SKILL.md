@@ -72,6 +72,7 @@ Quando todos os PRs até a tag-alvo estiverem `portado` ou `não-aplicável`:
 3. Atualize `docs/port/progresso.md` (diário) e `docs/port/divergencias.md` (algo resolvido ou novo).
 4. Rode `pwsh tools/upstream/Get-Upstream.ps1` para confirmar que o clone de referência está no commit registrado.
 5. Confira o `char::UNICODE_VERSION` da toolchain estável do Rust (página `std::char::UNICODE_VERSION` da documentação). Se mudou desde a última geração (`RustCaseMapping.UnicodeVersion`), regenere as tabelas de maiúsculas/minúsculas com `pwsh tools/codegen/Generate-CaseMapping.ps1 -UnicodeVersion X.Y.Z -RustToolchain 1.NN.0` e rode os testes (`docs/port/onda-d/D6.md`; convencoes.md §13, caso 139).
+6. Versão do pacote ([ADR-0010](../../../docs/adr/0010-empacotamento.md)): ao chegar a uma tag nova do Rust (ex.: `v0.64.0`), passe `VersionPrefix` em `Directory.Build.props` para a linha nova (`0.64.x`); sem tag nova, avance o último número ou o `VersionSuffix`. Registre a versão no `CHANGELOG.md` e gere o pacote com `pwsh tools/pack/Pack.ps1` e `pwsh tools/pack/Test-Package.ps1`.
 
 ## Relatório "quão defasado estamos?"
 

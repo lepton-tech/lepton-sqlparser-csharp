@@ -5,6 +5,7 @@
 - **Baseline do upstream:** `v0.63.0` (`85b1a6f`). Ver `UPSTREAM.json`.
 - **Sincronização com o upstream:** Rodada 1 (`v0.63.0` → `dacdbc9`) **concluída**: os 63 PRs têm status final (41 `portado`, 22 `não-aplicável`); `portedThroughCommit` = `dacdbc9`. Não há tag nova: o baseline e os cabeçalhos continuam `v0.63.0` (`upstream-ledger.md`).
 - **Fase atual:** 2, AST e parser portados (ondas A e B); testes de integração portados (onda C, todos passando); visitor (C18) e onda D (correções, lista em "Pendências para a onda D") em andamento; API pública fases 1 (E1) e 2 (E2: visitors e análise) prontas. Plano em [`../analise-tecnica-e-plano.md`](../analise-tecnica-e-plano.md) §8.
+- **Pacote:** `LeptonTI.SqlParser` `0.63.1-preview.1`, gerado localmente por `tools/pack/Pack.ps1` em `artifacts/` e conferido por `tools/pack/Test-Package.ps1` ([ADR-0010](../adr/0010-empacotamento.md), [`CHANGELOG.md`](../../CHANGELOG.md)). Nada publicado.
 
 ## Estado por arquivo Rust
 
@@ -152,6 +153,18 @@ Levantadas nas notas das ondas B e C e nas revisões R1–R3 (consolidação de 
 ## Diário de sessões
 
 Registre ao fim de cada sessão: data, o que foi feito, decisões tomadas e próximo passo. Entradas mais recentes no topo.
+
+### 2026-10-15 (empacotamento: pacote local `LeptonTI.SqlParser` `0.63.1-preview.1`; worktree isolado, a integrar)
+- **Feito** (decisões no [ADR-0010](../adr/0010-empacotamento.md), "Notas de implementação"):
+  - **Pacote único:** `dotnet pack` de `src/SqlParser` gera `LeptonTI.SqlParser.<versão>.nupkg` com `SqlParser.dll` e `SqlParser.Core.dll` (mais os XMLs) em `lib/netstandard2.0`, e o `.snupkg` com os dois PDBs. O Core tem `IsPackable=false` e entra por `ProjectReference` com `PrivateAssets="all"` e dois alvos (`TargetsForTfmSpecificBuildOutput` e `TargetsForTfmSpecificDebugSymbolsInPackage`). Sem dependências de runtime (grupo `.NETStandard2.0` vazio). README do pacote (`src/SqlParser/PACKAGE-README.md`), `NOTICE`, `THIRD-PARTY-NOTICES.md` e `licenses/` dentro do pacote.
+  - **Versão central** em `Directory.Build.props` (`VersionPrefix` `0.63.1`, `VersionSuffix` `preview.1`); `AssemblyVersion`/`FileVersion` `0.63.1.0`; `InformationalVersion` `0.63.1-preview.1+sqlparser-rs.dacdbc9.<commit>`, com o commit do Rust lido do `UPSTREAM.json` (também em `AssemblyMetadata`). `Authors`/`Company` "Lepton TI". `Deterministic`, `ContinuousIntegrationBuild` em CI ou no `Pack.ps1`, `EmbedUntrackedSources`, PDBs portáteis.
+  - **CS1591:** a API pública passou a gerar a documentação XML sem supressão (0 avisos); o Core mantém só o CS1591 suprimido (cerca de 1.500 membros sem doc no Rust), com o motivo no `.csproj` e no ADR-0010.
+  - **Scripts:** `tools/pack/Pack.ps1` (restaura, compila em Release, roda os testes nos três alvos e só então empacota em `artifacts/`, ignorado pelo Git) e `tools/pack/Test-Package.ps1` (limpa o cache do NuGet e roda `tests/PackageSmoke/`: apps de console net48 e net8.0, em C# 7.3, fora da solução, com `nuget.config` próprio).
+  - **Documentação:** `README.md` da raiz reescrito como página de entrada (instalação, início rápido conferido contra o pacote, dialetos, divergências, versões, licença); `CHANGELOG.md` novo; ADR-0002 e ADR-0003 apontam para o ADR-0010; comandos novos no `CLAUDE.md`.
+- **Efeito colateral:** com `PrivateAssets="all"`, o Core não chega por transitividade a `tests/SqlParser.Tests`, que passou a referenciá-lo diretamente.
+- **Resultado:** build com 0 avisos; `SqlParser.Core.Tests` 1.701 aprovados e 10 ignorados, `SqlParser.Tests` 220, em net48, net8.0 e net10.0 (Debug e Release); `Pack.ps1` e `Test-Package.ps1` passando (net48 e net8.0).
+- **Pendente (responsável):** assinatura forte; SourceLink quando houver remoto (Bitbucket); escolha do feed.
+- **Próximo:** integrar no `main`; a cada versão nova, avançar `VersionPrefix`/`VersionSuffix` e registrar no `CHANGELOG.md`.
 
 ### 2026-10-15 (onda D: D6, mapeamento completo de maiúsculas/minúsculas; worktree isolado, a integrar)
 - **Feito** (notas em [`onda-d/D6.md`](onda-d/D6.md)): `RustString.ToUppercase/ToLowercase` (com o sigma final) e `RustChar.ToUppercase/ToLowercase` sobre `RustCaseMapping`, cujas tabelas (`Support/RustCaseMapping.g.cs`) são geradas por `tools/codegen/Generate-CaseMapping.ps1` a partir do UCD 17.0.0, o `char::UNICODE_VERSION` do Rust 1.99.0 (estável em 2026-10). Os 6 pontos `to_*case` do Core (`DialectFromStr`, `IsIdentifierGeneratingFunctionName`, `ParseSnowflakeDeclare`, `STORAGE` do MySQL, os dois de `ParseSelectItem`) e o `IdentMutator` portado de `visitor.rs` usam as funções novas; os `PORT-DEVIATION DIV-001` saíram.

@@ -9,6 +9,9 @@ TestResults/
 *.nupkg
 *.snupkg
 
+# Pacotes gerados por tools/pack/Pack.ps1 (feed local; ver docs/adr/0010-empacotamento.md)
+/artifacts/
+
 # Código-fonte de referência baixado por tools/upstream/Get-Upstream.ps1 (não versionar)
 /upstream/
 

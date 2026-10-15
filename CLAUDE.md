@@ -34,7 +34,11 @@ pwsh tools/codegen/Generate-Visitor.ps1                                        #
 pwsh tools/codegen/Generate-Visitor.ps1 -Check                                 # só confere se o visitor gerado está atualizado
 pwsh tools/codegen/Generate-CaseMapping.ps1                                    # regenera as tabelas de maiúsculas/minúsculas do Rust (Unicode do char::UNICODE_VERSION)
 pwsh tools/check/Find-SuspiciousChars.ps1                                      # escapes \uXXXX viraram caractere literal?
+pwsh tools/pack/Pack.ps1                                                       # Release + testes (3 alvos) + pacote LeptonTI.SqlParser em artifacts/
+pwsh tools/pack/Test-Package.ps1                                               # instala o pacote de artifacts/ em apps net48 e net8.0 (tests/PackageSmoke) e confere
 ```
+
+Versão do pacote: `VersionPrefix`/`VersionSuffix` em `Directory.Build.props`, alinhada ao Rust (`docs/adr/0010-empacotamento.md`); a cada versão, registre o que mudou em `CHANGELOG.md`.
 
 No shell Bash deste ambiente, use caminhos absolutos em vez de `cd`.
 
@@ -43,7 +47,7 @@ No shell Bash deste ambiente, use caminhos absolutos em vez de `cd`.
 | Documento | Para quê |
 |---|---|
 | `docs/analise-tecnica-e-plano.md` | Análise comparativa e plano em fases |
-| `docs/adr/` | Decisões de arquitetura (abordagem e Plano B, camadas, licença, upstream, testes, versão C#, visitor gerado) |
+| `docs/adr/` | Decisões de arquitetura (abordagem e Plano B, camadas, licença, upstream, testes, versão C#, visitor gerado, API pública, empacotamento) |
 | `docs/port/convencoes.md` | **Normativo:** como traduzir cada construto Rust |
 | `docs/port/nomes.md` | Glossário de nomes não mecânicos |
 | `docs/port/divergencias.md` | Incompatibilidades conhecidas (`DIV-NNN`) |

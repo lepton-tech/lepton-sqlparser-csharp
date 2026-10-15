@@ -1,0 +1,10 @@
+<Project>
+  <!--
+    Importado depois do projeto e depois de o SDK calcular a $(Version) (VersionPrefix/VersionSuffix ou -p:Version).
+    InformationalVersion = <versão do pacote>+sqlparser-rs.<commit do Rust portado>; o SDK acrescenta
+    ".<commit deste repositório>" (SourceRevisionId). Ver docs/adr/0010-empacotamento.md.
+  -->
+  <PropertyGroup>
+    <InformationalVersion Condition="'$(InformationalVersion)' == ''">$(Version)+sqlparser-rs.$(SqlParserRsShortCommit)</InformationalVersion>
+  </PropertyGroup>
+</Project>

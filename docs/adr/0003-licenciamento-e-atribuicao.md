@@ -1,6 +1,6 @@
 # ADR-0003: Licenciamento e atribuição
 
-- **Status:** Aceita, com a licença do projeto **pendente**
+- **Status:** Aceita. A licença do projeto, antes pendente, foi definida como Apache-2.0 no [ADR-0010](0010-empacotamento.md)
 - **Data:** 2026-10-14
 - *Não é parecer jurídico. Para distribuição comercial, valide com o jurídico.*
 

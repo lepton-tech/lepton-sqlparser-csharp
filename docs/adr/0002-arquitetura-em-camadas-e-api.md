@@ -42,4 +42,4 @@ SqlParser (API pública)  ──depende de──►  SqlParser.Core (port fiel)
 
 - O Core segue regras mecânicas sem exceções. Isso reduz decisões por sessão e, com elas, o risco de traduções inconsistentes.
 - Mudanças de API vindas do upstream (frequentes) chegam ao Core. A camada pública é onde se pode amortecê-las.
-- **Empacotamento** (um pacote com as duas DLLs ou dois pacotes NuGet): a definir na fase de empacotamento.
+- **Empacotamento** (um pacote com as duas DLLs ou dois pacotes NuGet): decidido no [ADR-0010](0010-empacotamento.md): um pacote só, `LeptonTI.SqlParser`, com as duas DLLs.

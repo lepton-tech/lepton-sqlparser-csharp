@@ -11,8 +11,13 @@
     <AssemblyName>SqlParser.Core</AssemblyName>
     <Description>Port fiel em C# (netstandard2.0) do parser SQL apache/datafusion-sqlparser-rs.</Description>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <!-- Documentação XML completa entra na fase de empacotamento; até lá não bloqueia o build. -->
+    <!-- CS1591 (membro público sem comentário XML) fica suprimido só no Core: a documentação do Core é a doc do
+         Rust, verbatim (convencoes.md §12), e itens sem doc no Rust não ganham texto inventado (cerca de 1.500
+         membros públicos ficam sem <summary>). Os demais avisos de XML doc continuam valendo. Ver ADR-0010. -->
     <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <!-- Não vira pacote próprio: a DLL, o XML e o PDB entram no pacote LeptonTI.SqlParser, junto com a API
+         (src/SqlParser/SqlParser.csproj; docs/adr/0010-empacotamento.md). -->
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>

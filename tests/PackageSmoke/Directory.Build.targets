@@ -1,0 +1,3 @@
+<Project>
+  <!-- Vazio de propósito: impede que o Directory.Build.targets da raiz seja importado (ver Directory.Build.props). -->
+</Project>

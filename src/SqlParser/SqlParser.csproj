@@ -5,6 +5,9 @@
     ponto de entrada (SqlQueryParser), geração de SQL (ToSql), visitors, utilitários de análise
     e customizações. Depende do SqlParser.Core; o Core nunca depende deste projeto.
     Ver docs/adr/0002-arquitetura-em-camadas-e-api.md.
+
+    Este projeto gera o pacote LeptonTI.SqlParser, que leva as DUAS DLLs (SqlParser.dll e SqlParser.Core.dll)
+    em lib/netstandard2.0. Ver docs/adr/0010-empacotamento.md.
   -->
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -12,7 +15,25 @@
     <AssemblyName>SqlParser</AssemblyName>
     <Description>API pública do parser SQL (camada sobre o SqlParser.Core).</Description>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+
+  <!-- Metadados do pacote (versão, autores e copyright em Directory.Build.props). -->
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <PackageId>LeptonTI.SqlParser</PackageId>
+    <Title>LeptonTI.SqlParser</Title>
+    <PackageDescription>Unofficial C# (netstandard2.0) port of sqlparser-rs, the extensible SQL lexer and parser of the Apache DataFusion project. Tokenizer, parser and AST for 16 SQL dialects (generic, ANSI, PostgreSQL, MySQL, MS SQL Server, SQLite, Snowflake, BigQuery, ClickHouse, DuckDB, Databricks, Hive, Redshift, Spark SQL, Oracle, Teradata), SQL generation with pretty printing, visitors, rewriting and syntactic analysis. Runs on .NET Framework 4.8 and .NET 8/10 without native dependencies. Contains SqlParser.Core.dll (faithful port, sqlparser-rs commit $(SqlParserRsShortCommit)) and SqlParser.dll (public API). Not affiliated with or endorsed by The Apache Software Foundation.</PackageDescription>
+    <PackageTags>sql;parser;sql-parser;sqlparser;sqlparser-rs;ast;lexer;tokenizer;postgresql;mysql;mssql;sqlite;snowflake;bigquery;clickhouse;duckdb;databricks;hive;redshift;spark;oracle;teradata;netstandard</PackageTags>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageReleaseNotes>Port of sqlparser-rs through commit $(SqlParserRsShortCommit) (after $(SqlParserRsBaselineTag)); public API phases 1 and 2. See CHANGELOG.md in the source repository.</PackageReleaseNotes>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <!-- O SqlParser.Core entra como arquivo do pacote (alvos abaixo), não como dependência. -->
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);_IncludeSqlParserCoreInPackage</TargetsForTfmSpecificBuildOutput>
+    <TargetsForTfmSpecificDebugSymbolsInPackage>$(TargetsForTfmSpecificDebugSymbolsInPackage);_IncludeSqlParserCoreSymbolsInPackage</TargetsForTfmSpecificDebugSymbolsInPackage>
+    <!-- No pack sem compilação (opção no-build), os alvos abaixo só leem a saída já compilada do Core. -->
+    <BuildProjectReferences Condition="'$(NoBuild)' == 'true'">false</BuildProjectReferences>
   </PropertyGroup>
 
   <ItemGroup>
@@ -23,11 +44,45 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SqlParser.Core\SqlParser.Core.csproj" />
+    <!-- PrivateAssets=all: o Core não vira dependência do pacote; a DLL vai dentro dele. -->
+    <ProjectReference Include="..\SqlParser.Core\SqlParser.Core.csproj" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
     <InternalsVisibleTo Include="SqlParser.Tests" />
   </ItemGroup>
+
+  <!-- Arquivos na raiz do pacote: README do pacote, avisos de atribuição e licenças (ADR-0003 e ADR-0010). -->
+  <ItemGroup>
+    <None Include="PACKAGE-README.md" Pack="true" PackagePath="README.md" />
+    <None Include="..\..\NOTICE" Pack="true" PackagePath="\" Visible="false" />
+    <None Include="..\..\THIRD-PARTY-NOTICES.md" Pack="true" PackagePath="\" Visible="false" />
+    <None Include="..\..\licenses\*.txt" Pack="true" PackagePath="licenses" Visible="false" />
+  </ItemGroup>
+
+  <!-- Arquivos do SqlParser.Core (projeto referenciado), lidos da saída já compilada. -->
+  <Target Name="_GetSqlParserCoreFiles" DependsOnTargets="ResolveReferences">
+    <ItemGroup>
+      <_SqlParserCoreAssembly Include="@(ReferenceCopyLocalPaths)"
+                              Condition="'%(ReferenceCopyLocalPaths.ReferenceSourceTarget)' == 'ProjectReference' and '%(ReferenceCopyLocalPaths.Extension)' == '.dll'" />
+    </ItemGroup>
+    <Error Condition="'@(_SqlParserCoreAssembly)' == ''" Text="SqlParser.Core.dll não foi encontrada entre as referências de projeto." />
+  </Target>
+
+  <!-- SqlParser.Core.dll e SqlParser.Core.xml em lib/netstandard2.0, ao lado de SqlParser.dll e SqlParser.xml. -->
+  <Target Name="_IncludeSqlParserCoreInPackage" DependsOnTargets="_GetSqlParserCoreFiles">
+    <ItemGroup>
+      <BuildOutputInPackage Include="@(_SqlParserCoreAssembly->'%(FullPath)')" />
+      <BuildOutputInPackage Include="@(_SqlParserCoreAssembly->'%(RootDir)%(Directory)%(Filename).xml')" />
+    </ItemGroup>
+  </Target>
+
+  <!-- SqlParser.Core.pdb no pacote de símbolos (.snupkg), ao lado de SqlParser.pdb. -->
+  <Target Name="_IncludeSqlParserCoreSymbolsInPackage" DependsOnTargets="_GetSqlParserCoreFiles">
+    <ItemGroup>
+      <TfmSpecificDebugSymbolsFile Include="@(_SqlParserCoreAssembly->'%(RootDir)%(Directory)%(Filename).pdb')"
+                                   TargetFramework="$(TargetFramework)" />
+    </ItemGroup>
+  </Target>
 
 </Project>
