@@ -22,6 +22,7 @@
 // reconhecida como a base (`is Base`): o teste que depende de um `TypeId` próprio fica com
 // `Skip = "DIV-002: .."` (docs/port/divergencias.md).
 
+using SqlParser.Core.Ast;
 using SqlParser.Core.Dialects;
 
 namespace SqlParser.Core.Tests;
@@ -165,5 +166,77 @@ public class SqlParserDeriveDialectTests
         // assert_eq!(.., None) → Assert.Null (o analisador xUnit2003 proíbe Assert.Equal com null).
         Assert.Null(
             new QuotelessPostgreSqlDialect().IdentifierQuoteStyle("x"));
+    }
+
+    // derive_dialect!(
+    //     LambdaPostgreSqlDialect,
+    //     PostgreSqlDialect,
+    //     overrides = { supports_lambda_keyword_syntax = true }
+    // );
+    private sealed class LambdaPostgreSqlDialect : PostgreSqlDialect
+    {
+        public override bool SupportsLambdaKeywordSyntax => true;
+    }
+
+    [Fact]
+    public void test_lambda_keyword_syntax_with_json_arrow_operator()
+    {
+        // A custom dialect can opt into the `LAMBDA` keyword spelling of lambda
+        // functions without giving up `->` as JSON member access. The two meet in
+        // a single expression below: a lambda whose body is a JSON access.
+        //
+        // PostgreSqlDialect is used only as a convenient base that already gives
+        // `->` its JSON meaning; nothing here is specific to PostgreSQL.
+        var dialect = new LambdaPostgreSqlDialect();
+
+        // Only the keyword spelling is enabled; the arrow spelling stays off.
+        Assert.True(dialect.SupportsLambdaKeywordSyntax);
+        Assert.False(dialect.SupportsLambdaFunctions);
+
+        var sql = "SELECT transform(xs, lambda x : (x -> 'a')::INT + 1)";
+        var ast = Parser.ParseSql(dialect, sql);
+        Assert.Equal(sql, ast[0].ToString());
+
+        // Round-tripping alone would not distinguish a JSON access from a nested
+        // lambda, since both print as `x -> 'a'`, so check the parsed shape.
+        if (ast[0] is not Statement.Query { Value: var query })
+        {
+            throw new InvalidOperationException($"unexpected statement {ast[0]}");
+        }
+        if (TestUtils.ExprFromProjection(TestUtils.Only(query.Body.AsSelect()!.Projection))
+            is not Expr.Function { Value: var func })
+        {
+            throw new InvalidOperationException("expected a function call");
+        }
+        if (func.Args is not FunctionArguments.List { Value: var args })
+        {
+            throw new InvalidOperationException("expected an argument list");
+        }
+        if (args.Args is not [_, FunctionArg.Unnamed { Value: FunctionArgExpr.Expr { Value: Expr.Lambda { Value: var lambda } } }])
+        {
+            throw new InvalidOperationException("expected the second argument to be a lambda");
+        }
+
+        // The lambda came from the `LAMBDA` keyword, not from `->`.
+        Assert.Equal(LambdaSyntax.LambdaKeyword, lambda.Syntax);
+
+        // And the `->` in its body is still JSON member access.
+        if (lambda.Body is not Expr.BinaryOp { Left: var left, Op: BinaryOperator.Plus })
+        {
+            throw new InvalidOperationException("expected the lambda body to be an addition");
+        }
+        if (left is not Expr.Cast { Expr: var expr })
+        {
+            throw new InvalidOperationException("expected the left operand to be a cast");
+        }
+        if (expr is not Expr.Nested { Value: var jsonAccess })
+        {
+            throw new InvalidOperationException("expected the cast operand to be parenthesized");
+        }
+        if (jsonAccess is not Expr.BinaryOp { Op: var op })
+        {
+            throw new InvalidOperationException("expected `->` to stay a binary operator");
+        }
+        Assert.Equal<BinaryOperator>(new BinaryOperator.Arrow(), op);
     }
 }

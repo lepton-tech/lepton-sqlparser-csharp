@@ -888,6 +888,77 @@ public class SqlParserSQLiteTests
         }
     }
 
+    [Fact]
+    public void parse_update_set_double_eq()
+    {
+        // SQLite treats `==` as `=` in all positions, including SET assignments.
+        Sqlite().OneStatementParsesTo("UPDATE t SET a == 1", "UPDATE t SET a = 1");
+        Sqlite().OneStatementParsesTo("UPDATE t SET a == 1, b == 2", "UPDATE t SET a = 1, b = 2");
+        // `=` still works
+        Sqlite().VerifiedStmt("UPDATE t SET a = 1");
+        // Other dialects reject `==` in SET
+        var res = new ParserError.ParserErrorValue("Expected: =, found: ==");
+        Assert.Equal<ParserError>(
+            Assert.Throws<ParserException>(() => TestUtils.AllDialectsExcept(d => d.SupportsDoubleEqAssignment)
+                .ParseSqlStatements("UPDATE t SET a == 1")).Error,
+            res);
+    }
+
+    [Fact]
+    public void test_non_bmp_identifiers()
+    {
+        // SQLite tokenizer treats every byte >= 0x80 as an identifier character,
+        // so any Unicode code point above U+007F is a valid identifier start/part.
+        // Caracteres literais, como no .rs: U+DFFFE (invisível), U+12000 e U+12001.
+        Sqlite().VerifiedStmt("SELECT 󟿾");
+        Sqlite().VerifiedStmt("SELECT 𒀀");
+        Sqlite().VerifiedStmt("SELECT 𒀀𒀁");
+        // U+DFFFE is not alphabetic, so GenericDialect rejects it as an identifier.
+        // assert!(sqlparser::parser::Parser::parse_sql(&GenericDialect {}, "SELECT ..").is_err())
+        Assert.Throws<ParserException>(() => Parser.ParseSql(new GenericDialect(), "SELECT 󟿾"));
+        // SQLite rejects U+007F as an unrecognized token.
+        // assert!(sqlite().parse_sql_statements("SELECT \u{007f}").is_err())
+        Assert.Throws<ParserException>(() => Sqlite().ParseSqlStatements("SELECT \u007f"));
+    }
+
+    [Fact]
+    public void parse_create_table_string_column_names()
+    {
+        Sqlite().VerifiedStmt("CREATE TABLE t ('a')");
+        Sqlite().VerifiedStmt("""CREATE TABLE '""' ('id' INT UNSIGNED NOT NULL)""");
+        Sqlite().VerifiedStmt(
+            """CREATE TABLE '""' ('id' INT UNSIGNED NOT NULL, 'name' TEXT NOT NULL, 'zip' INT UNSIGNED NULL)""");
+        // Generic dialect does not support this
+        // assert!(sqlparser::parser::Parser::parse_sql(&GenericDialect {}, "CREATE TABLE t ('a')").is_err())
+        Assert.Throws<ParserException>(() => Parser.ParseSql(new GenericDialect(), "CREATE TABLE t ('a')"));
+    }
+
+    [Fact]
+    public void test_cast_empty_type()
+    {
+        // SQLite allows CAST(expr AS) with an empty type name (typetoken can be empty)
+        // See https://www.sqlite.org/lang_expr.html
+        Sqlite().VerifiedStmt("SELECT CAST(a AS)");
+
+        // Rejected by dialects without the flag
+        // assert!(..parse_sql_statements(..).is_err())
+        Assert.Throws<ParserException>(() => new TestedDialects(new List<Dialect> { new GenericDialect() })
+            .ParseSqlStatements("SELECT CAST(a AS)"));
+    }
+
+    [Fact]
+    public void parse_n_prefix_not_national_string()
+    {
+        // In SQLite, `n'...'` is the identifier `n` followed by a string literal.
+        // The string becomes an implicit alias, so `t.n''` round-trips as `t.n AS ''`.
+        Sqlite().OneStatementParsesTo("SELECT t.n'' FROM t", "SELECT t.n AS '' FROM t");
+        Sqlite().OneStatementParsesTo("SELECT n'' FROM t", "SELECT n AS '' FROM t");
+        Sqlite().OneStatementParsesTo("SELECT N'hello'", "SELECT N AS 'hello'");
+
+        // Other dialects still tokenize N'...' as a national string literal.
+        TestUtils.AllDialectsWhere(d => d.SupportsNationalStringLiteral).VerifiedStmt("SELECT N'hello'");
+    }
+
     private static TestedDialects Sqlite() =>
         new TestedDialects(new List<Dialect> { new SQLiteDialect() });
 

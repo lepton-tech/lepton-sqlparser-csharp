@@ -132,6 +132,11 @@ public sealed partial class Parser
             {
                 columns.Add(ParseColumnDef());
             }
+            else if (PeekTokenRef().Token is Token.SingleQuotedString
+                && _dialect.SupportsStringLiteralColumnNames)
+            {
+                columns.Add(ParseColumnDef());
+            }
             else
             {
                 return ExpectedRef<(Sequence<ColumnDef>, Sequence<TableConstraint>)>(
@@ -1581,5 +1586,31 @@ public sealed partial class Parser
         var columns = ParseCommaSeparated(p => p.ParseExpr());
         ExpectToken(new Token.RParen());
         return new AlterTableOperation.AlterSortKey(Columns: columns);
+    }
+
+    /// <summary>
+    /// Parse the expression(s) following ClickHouse <c>ORDER BY</c>: either a single
+    /// expression or a possibly empty parenthesized list.
+    /// </summary>
+    internal OneOrManyWithParens<Expr> ParseSortingKey()
+    {
+        if (ConsumeToken(new Token.LParen()))
+        {
+            Sequence<Expr> columns;
+            if (PeekTokenRef().Token is not Token.RParen)
+            {
+                columns = ParseCommaSeparated(p => p.ParseExpr());
+            }
+            else
+            {
+                columns = Sequence<Expr>.Empty;
+            }
+            ExpectToken(new Token.RParen());
+            return new OneOrManyWithParens<Expr>.Many(columns);
+        }
+        else
+        {
+            return new OneOrManyWithParens<Expr>.One(ParseExpr());
+        }
     }
 }

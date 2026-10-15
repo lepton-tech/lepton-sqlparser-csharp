@@ -326,11 +326,18 @@ public class SqlParserCommonTests3
                 TrimCharacters: Sequence.Of<Expr>(new Expr.Value(new Value.SingleQuotedString("a").WithEmptySpan()))),
             TestUtils.ExprFromProjection(TestUtils.Only(select.Projection)));
 
+        dialects.OneStatementParsesTo(
+            "SELECT TRIM(BOTH FROM 'yxTomxx', 'xyz')",
+            "SELECT TRIM(BOTH 'yxTomxx', 'xyz')");
+
         // dialects without comma-style TRIM syntax should fail
         var unsupportedDialects = TestUtils.AllDialectsWhere(d => !d.SupportsCommaSeparatedTrim);
         Assert.Equal(
             new ParserError.ParserErrorValue("Expected: ), found: ,"),
             Assert.Throws<ParserException>(() => unsupportedDialects.ParseSqlStatements("SELECT TRIM('xyz', 'a')")).Error);
+        Assert.Equal(
+            new ParserError.ParserErrorValue("Expected: ), found: 'xyz'"),
+            Assert.Throws<ParserException>(() => unsupportedDialects.ParseSqlStatements("SELECT TRIM(FROM 'xyz')")).Error);
     }
 
     [Fact]

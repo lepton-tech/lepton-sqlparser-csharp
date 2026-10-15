@@ -96,6 +96,8 @@ public class DatabricksDialect : Dialect
 
     public override bool SupportsMapLiteralWithAngleBrackets => true;
 
+    public override bool SupportsDataTypeCollation => true;
+
     public override bool SupportsStringLiteralBackslashEscape => true;
 
     public override bool SupportsSelectWildcardReplace => true;

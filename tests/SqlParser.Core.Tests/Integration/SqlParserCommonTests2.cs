@@ -499,7 +499,7 @@ public class SqlParserCommonTests2
 
         var expectedQuery1 = new Query(
             With: null,
-            Body: new SetExpr.Table(new Table(TableName: "old_table", SchemaName: null)),
+            Body: new SetExpr.Table(new Table(TableName: new Ident("old_table"), SchemaName: null)),
             OrderBy: null,
             LimitClause: null,
             Fetch: null,
@@ -523,7 +523,7 @@ public class SqlParserCommonTests2
 
         var expectedQuery2 = new Query(
             With: null,
-            Body: new SetExpr.Table(new Table(TableName: "old_table", SchemaName: "schema_name")),
+            Body: new SetExpr.Table(new Table(TableName: new Ident("old_table"), SchemaName: new Ident("schema_name"))),
             OrderBy: null,
             LimitClause: null,
             Fetch: null,
@@ -1933,8 +1933,9 @@ public class SqlParserCommonTests2
     [Fact]
     public void parse_literal_string()
     {
+        var nationalStringDialects = TestUtils.AllDialectsWhere(d => d.SupportsNationalStringLiteral);
         var sql = "SELECT 'one', N'national string', X'deadBEEF'";
-        var select = VerifiedOnlySelect(sql);
+        var select = nationalStringDialects.VerifiedOnlySelect(sql);
         Assert.Equal(3, select.Projection.Count);
         Assert.Equal(
             new Expr.Value(new Value.SingleQuotedString("one").WithEmptySpan()),
@@ -1947,9 +1948,10 @@ public class SqlParserCommonTests2
             new Expr.Value(new Value.HexStringLiteral("deadBEEF").WithEmptySpan()),
             TestUtils.ExprFromProjection(select.Projection[2]));
 
-        OneStatementParsesTo("SELECT x'deadBEEF'", "SELECT X'deadBEEF'");
-        OneStatementParsesTo("SELECT n'national string'", "SELECT N'national string'");
-        OneStatementParsesTo(
+        TestUtils.AllDialects().OneStatementParsesTo("SELECT x'deadBEEF'", "SELECT X'deadBEEF'");
+        nationalStringDialects
+            .OneStatementParsesTo("SELECT n'national string'", "SELECT N'national string'");
+        nationalStringDialects.OneStatementParsesTo(
             """SELECT n'Tu geres '';'' et ''"'' ?'""",
             """SELECT N'Tu geres '';'' et ''"'' ?'""");
     }

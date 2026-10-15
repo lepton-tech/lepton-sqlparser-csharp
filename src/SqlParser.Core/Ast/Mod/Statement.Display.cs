@@ -530,6 +530,9 @@ public abstract partial record Statement : IDisplay
             case CreateServer stmt:
                 f.Write($"{stmt.Value}");
                 break;
+            case CreateForeignTable stmt:
+                f.Write($"{stmt.Value}");
+                break;
             case CreatePolicy policy:
                 f.Write($"{policy.Value}");
                 break;

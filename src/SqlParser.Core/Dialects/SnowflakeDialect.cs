@@ -122,6 +122,11 @@ public class SnowflakeDialect : Dialect
 
     public override bool SupportsFromTrailingCommas => true;
 
+    /// <summary>
+    /// See <see href="https://docs.snowflake.com/en/sql-reference/constructs/order-by#syntax"/>
+    /// </summary>
+    public override bool SupportsOrderByAll => true;
+
     // Snowflake supports double-dot notation when the schema name is not specified
     // In this case the default PUBLIC schema is used
     //
@@ -193,6 +198,17 @@ public class SnowflakeDialect : Dialect
     /// See <see href="https://docs.snowflake.com/en/sql-reference/data-types-semistructured#array">doc</see>
     /// </summary>
     public override bool SupportsArrayTypedefWithoutElementType => true;
+
+    /// <summary>
+    /// See <see href="https://docs.snowflake.com/en/sql-reference/data-types-structured#label-structured-types-array">doc</see>
+    /// </summary>
+    public override bool SupportsArrayTypedefWithParentheses => true;
+
+    public override bool SupportsArrayElementNotNull => true;
+
+    public override bool SupportsMapTypedefWithParentheses => true;
+
+    public override bool SupportsMapValueNotNull => true;
 
     /// <summary>
     /// See <see href="https://docs.snowflake.com/en/sql-reference/constructs/from">doc</see>
@@ -704,6 +720,8 @@ public class SnowflakeDialect : Dialect
     public override bool SupportsSelectWildcardExclude => true;
 
     public override bool SupportsSemanticViewTableFactor => true;
+
+    public override bool SupportsStages => true;
 
     /// <summary>
     /// See <see href="https://docs.snowflake.com/en/sql-reference/sql/select#parameters"/>
@@ -1558,14 +1576,10 @@ public class SnowflakeDialect : Dialect
             var stop = false;
             switch (nextToken.Token)
             {
-                case Token.Whitespace or Token.SemiColon:
+                case Token.Whitespace:
                     stop = true;
                     break;
-                case Token.Period:
-                    parser.PrevToken();
-                    stop = true;
-                    break;
-                case Token.LParen or Token.RParen:
+                case Token.Period or Token.Comma or Token.SemiColon or Token.LParen or Token.RParen:
                     parser.PrevToken();
                     stop = true;
                     break;
@@ -1606,6 +1620,10 @@ public class SnowflakeDialect : Dialect
             {
                 break;
             }
+        }
+        if (ident.Length == 0 || ident.ToString() == "@")
+        {
+            return parser.ExpectedRef<Ident>("stage name identifier", parser.PeekTokenRef());
         }
         return new Ident(ident.ToString());
     }
@@ -1994,11 +2012,12 @@ public class SnowflakeDialect : Dialect
             }
         }
 
-        // A trailing `::` means this is a cast expression (e.g.
-        // `$1:"col"::NUMBER(38,0)`), not a stage-load-select-item.
-        if (parser.PeekTokenRef().Token is Token.DoubleColon)
+        // More complex paths and casts must fall back to the standard expression
+        // parser so it can preserve the complete JsonAccess / Cast expression.
+        if (parser.PeekTokenRef().Token is Token.Colon or Token.Period or Token.LBracket or Token.DoubleColon)
         {
-            return parser.Expected<StageLoadSelectItem>("stage load select item", parser.PeekToken());
+            var token = parser.NextToken();
+            return parser.Expected<StageLoadSelectItem>("end of simple staged field", token);
         }
 
         // as
@@ -2327,6 +2346,7 @@ public class SnowflakeDialect : Dialect
             Table: new TableObject.TableName(new ObjectName(Sequence<ObjectNamePart>.Empty)), // Not used for multi-table insert
             TableAlias: null,
             Columns: Sequence<ObjectName>.Empty,
+            ByName: false,
             Overwrite: overwrite,
             Source: source,
             Assignments: Sequence<Assignment>.Empty,

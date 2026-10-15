@@ -146,6 +146,11 @@ public class MySqlDialect : Dialect
     public override bool SupportsCommaSeparatedSetAssignments => true;
 
     /// <summary>
+    /// See: <see href="https://dev.mysql.com/doc/refman/8.4/en/alter-table.html"/>
+    /// </summary>
+    public override bool SupportsAlterColumnPosition => true;
+
+    /// <summary>
     /// See: <see href="https://dev.mysql.com/doc/refman/8.4/en/update.html"/>
     /// </summary>
     public override bool SupportsUpdateOrderBy => true;
@@ -164,6 +169,11 @@ public class MySqlDialect : Dialect
     /// See: <see href="https://dev.mysql.com/doc/refman/8.4/en/cast-functions.html#operator_binary"/>
     /// </summary>
     public override bool SupportsBinaryKwAsCast => true;
+
+    /// <summary>
+    /// See: <see href="https://dev.mysql.com/doc/refman/8.4/en/partitioning-selection.html"/>
+    /// </summary>
+    public override bool SupportsTablePartitions => true;
 
     public override bool SupportsCommentOptimizerHint => true;
 

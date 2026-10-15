@@ -26,6 +26,8 @@ namespace SqlParser.Core.Dialects;
 /// </summary>
 public class GenericDialect : Dialect
 {
+    public override bool SupportsMapTypedefWithParentheses => true;
+
     public override bool IsDelimitedIdentifierStart(char ch) => ch == '"' || ch == '`';
 
     public override bool IsIdentifierStart(char ch) => char.IsLetter(ch) || ch == '_' || ch == '#' || ch == '@';
@@ -160,6 +162,8 @@ public class GenericDialect : Dialect
 
     public override bool SupportsSettings => true;
 
+    public override bool SupportsTablePartitions => true;
+
     public override bool SupportsSelectFormat => true;
 
     public override bool SupportsCommentOptimizerHint => true;
@@ -177,4 +181,6 @@ public class GenericDialect : Dialect
     public override bool SupportsXmlExpressions => true;
 
     public override bool SupportsAliasedFunctionArgs => true;
+
+    public override bool SupportsAlterColumnPosition => true;
 }

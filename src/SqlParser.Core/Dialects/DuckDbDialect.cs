@@ -113,4 +113,6 @@ public class DuckDbDialect : Dialect
     public override bool SupportsCommaSeparatedTrim => true;
 
     public override bool SupportsNumericLiteralUnderscores => true;
+
+    public override bool SupportsNestedComments => true;
 }

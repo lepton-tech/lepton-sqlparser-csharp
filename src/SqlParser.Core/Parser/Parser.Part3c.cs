@@ -793,7 +793,7 @@ public sealed partial class Parser
                 Ident ident;
                 switch (placeholderToken.Token)
                 {
-                    case Token.Word { Value: var placeholderWord }:
+                    case Token.Word { Value: var placeholderWord } when placeholderWord.QuoteStyle is null:
                         ident = placeholderWord.IntoIdent(placeholderToken.Span);
                         break;
                     case Token.Number { Value: var placeholderNumber, Long: false }:
@@ -1705,25 +1705,66 @@ public sealed partial class Parser
                         data = new DataType.Set(ParseStringValues());
                         break;
                     case Keyword.ARRAY:
-                        if (_dialect.SupportsArrayTypedefWithoutElementType)
+                        if (_dialect.SupportsArrayTypedefWithParentheses)
+                        {
+                            if (PeekTokenRef().Token is Token.LParen)
+                            {
+                                ExpectToken(new Token.LParen());
+                                var internalType = ParseDataType();
+                                var notNull = _dialect.SupportsArrayElementNotNull
+                                    && ParseKeywords(Keyword.NOT, Keyword.NULL);
+                                ExpectToken(new Token.RParen());
+
+                                if (notNull)
+                                {
+                                    data = new DataType.Array(new ArrayElemTypeDef.ParenthesisNotNull(
+                                        internalType));
+                                }
+                                else
+                                {
+                                    data = new DataType.Array(new ArrayElemTypeDef.Parenthesis(
+                                        internalType));
+                                }
+                            }
+                            else if (_dialect.SupportsArrayTypedefWithoutElementType)
+                            {
+                                data = new DataType.Array(new ArrayElemTypeDef.None());
+                            }
+                            else
+                            {
+                                data = Expected<DataType>("(", PeekToken());
+                            }
+                        }
+                        else if (_dialect.SupportsArrayTypedefWithoutElementType)
                         {
                             data = new DataType.Array(new ArrayElemTypeDef.None());
-                        }
-                        else if (_dialect is ClickHouseDialect)
-                        {
-                            data = ParseSubType(internalType =>
-                                new DataType.Array(new ArrayElemTypeDef.Parenthesis(internalType)));
                         }
                         else
                         {
                             ExpectToken(new Token.Lt());
                             // Rust: `_trailing_bracket` (caso 72: nome distinto do `trailing_bracket` externo).
-                            var (insideType, insideTrailingBracket) = ParseDataTypeHelper();
+                            var (insideType, insideTrailingBracket) =
+                                ParseDataTypeWithOptionalCollation();
                             trailingBracket = ExpectClosingAngleBracket(insideTrailingBracket);
                             data = new DataType.Array(new ArrayElemTypeDef.AngleBracket(
                                 insideType));
                         }
                         break;
+                    case Keyword.OBJECT when PeekTokenRef().Token is Token.LParen:
+                    {
+                        if (MaybeParseValue(parser => parser.ParseStructuredObjectTypeDef()) is { } fields)
+                        {
+                            data = new DataType.Object(fields);
+                        }
+                        else
+                        {
+                            PrevToken();
+                            var typeName = ParseObjectName(false);
+                            var modifiers = ParseOptionalTypeModifiers() ?? Sequence<string>.Empty;
+                            data = new DataType.Custom(typeName, modifiers);
+                        }
+                        break;
+                    }
                     case Keyword.STRUCT when dialect is DuckDbDialect:
                     {
                         PrevToken();
@@ -1758,9 +1799,18 @@ public sealed partial class Parser
                     case Keyword.MAP when _dialect.SupportsMapLiteralWithAngleBrackets:
                     {
                         ExpectToken(new Token.Lt());
-                        var keyDataType = ParseDataType();
+                        var (keyDataType, keyTrailingBracket) =
+                            ParseDataTypeWithOptionalCollation();
+                        if (keyTrailingBracket.Value)
+                        {
+                            // return parser_err!(MSG, self.peek_token_ref()): o segundo argumento é um
+                            // token (caso 88).
+                            throw new ParserException(new ParserError.ParserErrorValue(
+                                $"unmatched > after parsing data type {keyDataType}" + PeekTokenRef().ToString()));
+                        }
                         ExpectToken(new Token.Comma());
-                        var (valueDataType, valueTrailingBracket) = ParseDataTypeHelper();
+                        var (valueDataType, valueTrailingBracket) =
+                            ParseDataTypeWithOptionalCollation();
                         trailingBracket = ExpectClosingAngleBracket(valueTrailingBracket);
                         data = new DataType.Map(
                             keyDataType,
@@ -1768,14 +1818,18 @@ public sealed partial class Parser
                             MapBracketKind.AngleBrackets);
                         break;
                     }
-                    case Keyword.MAP when dialect is ClickHouseDialect or GenericDialect:
+                    case Keyword.MAP when _dialect.SupportsMapTypedefWithParentheses:
                     {
                         PrevToken();
-                        var (keyDataType, valueDataType) = ParseClickHouseMapDef();
+                        var (keyDataType, valueDataType, valueNotNull) =
+                            ParseParenthesizedMapTypeDef();
+                        var bracket = valueNotNull
+                            ? MapBracketKind.ParenthesesNotNull
+                            : MapBracketKind.Parentheses;
                         data = new DataType.Map(
                             keyDataType,
                             valueDataType,
-                            MapBracketKind.Parentheses);
+                            bracket);
                         break;
                     }
                     case Keyword.NESTED when dialect is ClickHouseDialect or GenericDialect:
@@ -1891,5 +1945,17 @@ public sealed partial class Parser
         }
 
         return (data, trailingBracket);
+    }
+
+    internal (DataType DataType, MatchedTrailingBracket TrailingBracket) ParseDataTypeWithOptionalCollation()
+    {
+        var (dataType, trailingBracket) = ParseDataTypeHelper();
+        if (!trailingBracket.Value
+            && _dialect.SupportsDataTypeCollation
+            && ParseKeyword(Keyword.COLLATE))
+        {
+            dataType = new DataType.Collate(dataType, ParseObjectName(false));
+        }
+        return (dataType, trailingBracket);
     }
 }

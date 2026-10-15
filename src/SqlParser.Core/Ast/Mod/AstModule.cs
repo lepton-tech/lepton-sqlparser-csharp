@@ -45,6 +45,33 @@ public static partial class AstModule
         // since display_separated doesn't handle that case.
         f.Write($";");
     }
+
+    // Rust: `pub(crate) fn fmt_ident(f: &mut fmt::Formatter, value: &str, quote_style: Option<char>)`,
+    // logo depois de `impl From<&str> for Ident` (convencoes.md §13, caso 135). Usada pelo `Display` de
+    // `Ident` e de `Word` (tokenizer).
+    internal static void FmtIdent(Formatter f, string value, char? quoteStyle)
+    {
+        switch (quoteStyle)
+        {
+            case '[':
+                f.Write($"[{value}]");
+                break;
+            case { } q:
+            {
+                var escaped = Value.EscapeQuotedString(value, q);
+                f.Write($"{q}{escaped}{q}");
+                break;
+            }
+            case null:
+                f.WriteStr(value);
+                break;
+        }
+    }
+
+    // Rust: `const fn is_number_expr(expr: &Expr) -> bool`, entre `pub enum AccessExpr` e
+    // `impl fmt::Display for AccessExpr` (privada do módulo → `internal`, casos 20 e 135).
+    internal static bool IsNumberExpr(Expr expr) =>
+        expr is Expr.Value { Inner.Value: Value.Number };
 }
 
 /// <summary>Helper used to format a slice using a separator string (e.g., <c>", "</c>).</summary>

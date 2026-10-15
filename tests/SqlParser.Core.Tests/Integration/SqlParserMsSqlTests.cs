@@ -2600,4 +2600,26 @@ public class SqlParserMsSqlTests
                 DataType: new DataType.Int(null),
                 DefaultExpr: null)));
     }
+
+    [Fact]
+    public void parse_bracket_quoted_eq_alias_assignment()
+    {
+        Ms().OneStatementParsesTo("SELECT a = [from] FROM t", "SELECT [from] AS a FROM t");
+    }
+
+    [Fact]
+    public void parse_create_proc()
+    {
+        Ms().OneStatementParsesTo(
+            "CREATE PROC test AS BEGIN SELECT 1; END",
+            "CREATE PROCEDURE test AS BEGIN SELECT 1; END");
+        Ms().OneStatementParsesTo(
+            "CREATE OR ALTER PROC test AS BEGIN SELECT 1; END",
+            "CREATE OR ALTER PROCEDURE test AS BEGIN SELECT 1; END");
+
+        // .expect_err("PROC should remain MSSQL-specific")
+        Assert.Throws<ParserException>(() => new TestedDialects(new List<Dialect> { new GenericDialect() })
+            .ParseSqlStatements("CREATE PROC test AS BEGIN SELECT 1; END"));
+        MsAndGeneric().VerifiedStmt("SELECT proc FROM jobs");
+    }
 }

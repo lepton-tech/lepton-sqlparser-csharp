@@ -1559,15 +1559,17 @@ public class TokenizerTests
     [Fact]
     public void test_national_strings_backslash_escape_not_supported()
     {
-        AllDialectsWhere(dialect => !dialect.SupportsStringLiteralBackslashEscape)
-            .TokenizesTo(
-                "select n'''''\\'",
-                new List<Token>
-                {
-                    Token.MakeKeyword("select"),
-                    new Token.Whitespace(new Whitespace.Space()),
-                    new Token.NationalStringLiteral("''\\"),
-                });
+        AllDialectsWhere(dialect =>
+            !dialect.SupportsStringLiteralBackslashEscape
+                && dialect.SupportsNationalStringLiteral)
+        .TokenizesTo(
+            "select n'''''\\'",
+            new List<Token>
+            {
+                Token.MakeKeyword("select"),
+                new Token.Whitespace(new Whitespace.Space()),
+                new Token.NationalStringLiteral("''\\"),
+            });
     }
 
     [Fact]
@@ -1966,5 +1968,97 @@ public class TokenizerTests
                 new Token.Plus(),
                 Token.MakeWord("b", null),
             });
+    }
+
+    [Fact]
+    public void test_word_display_quote_escaping()
+    {
+        Assert.Equal(
+            "\"a\"\"b\"",
+            new Word(Value: "a\"b", QuoteStyle: '"', Keyword: Keyword.NoKeyword).ToString());
+        Assert.Equal(
+            "`a``b`",
+            new Word(Value: "a`b", QuoteStyle: '`', Keyword: Keyword.NoKeyword).ToString());
+        Assert.Equal(
+            "[a b]",
+            new Word(Value: "a b", QuoteStyle: '[', Keyword: Keyword.NoKeyword).ToString());
+    }
+
+    [Fact]
+    public void tokenize_period_before_digits_after_identifier_or_bracket()
+    {
+        var dialect = new ClickHouseDialect();
+        foreach (var (sql, expected) in new (string, List<Token>)[]
+        {
+            (
+                "t.1",
+                new List<Token>
+                {
+                    Token.MakeWord("t", null),
+                    new Token.Period(),
+                    new Token.Number("1", false),
+                }
+            ),
+            (
+                "(1).1",
+                new List<Token>
+                {
+                    new Token.LParen(),
+                    new Token.Number("1", false),
+                    new Token.RParen(),
+                    new Token.Period(),
+                    new Token.Number("1", false),
+                }
+            ),
+            (
+                "a[1].1",
+                new List<Token>
+                {
+                    Token.MakeWord("a", null),
+                    new Token.LBracket(),
+                    new Token.Number("1", false),
+                    new Token.RBracket(),
+                    new Token.Period(),
+                    new Token.Number("1", false),
+                }
+            ),
+            (
+                "t.1.2",
+                new List<Token>
+                {
+                    Token.MakeWord("t", null),
+                    new Token.Period(),
+                    new Token.Number("1", false),
+                    new Token.Period(),
+                    new Token.Number("2", false),
+                }
+            ),
+            (
+                "t .1",
+                new List<Token>
+                {
+                    Token.MakeWord("t", null),
+                    new Token.Whitespace(new Whitespace.Space()),
+                    new Token.Number(".1", false),
+                }
+            ),
+            ("1.5", new List<Token> { new Token.Number("1.5", false) }),
+            (".5", new List<Token> { new Token.Number(".5", false) }),
+        })
+        {
+            var tokens = new Tokenizer(dialect, sql).Tokenize();
+            Compare(expected, tokens);
+        }
+
+        // `let tokens` repetido fora do laço: nome distinto (CS0136, caso 72).
+        var genericTokens = new Tokenizer(new GenericDialect(), "t.1")
+            .Tokenize();
+        Compare(
+            new List<Token>
+            {
+                Token.MakeWord("t", null),
+                new Token.Number(".1", false),
+            },
+            genericTokens);
     }
 }

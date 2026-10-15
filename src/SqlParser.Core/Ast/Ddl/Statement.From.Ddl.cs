@@ -34,4 +34,7 @@ public abstract partial record Statement
 
     // Rust: `impl From<AlterPolicy> for crate::ast::Statement`.
     public static Statement From(Ast.AlterPolicy v) => new AlterPolicy(v);
+
+    // Rust: `impl From<CreateForeignTable> for crate::ast::Statement`.
+    public static Statement From(Ast.CreateForeignTable v) => new CreateForeignTable(v);
 }

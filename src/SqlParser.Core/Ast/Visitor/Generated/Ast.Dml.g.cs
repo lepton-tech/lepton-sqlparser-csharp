@@ -329,6 +329,7 @@ namespace SqlParser.Core.Ast
                     }
                 }
             }
+            // ByName: nenhum gancho alcançável
             // Overwrite: nenhum gancho alcançável
             // Source
             if (this.Source is { } x6)
@@ -541,6 +542,7 @@ namespace SqlParser.Core.Ast
                 if (!global::SqlParser.Core.Ast.VisitSupport.IsSame(x5, node.Columns)) node = node with { Columns = x5 };
                 if (flow.IsBreak) return flow;
             }
+            // ByName: nenhum gancho alcançável
             // Overwrite: nenhum gancho alcançável
             // Source
             {

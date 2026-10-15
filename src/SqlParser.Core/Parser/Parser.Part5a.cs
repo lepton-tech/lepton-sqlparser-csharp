@@ -65,76 +65,79 @@ public sealed partial class Parser
     internal MatchRecognizePattern ParseRepetitionPattern()
     {
         var pattern = ParseBasePattern();
-        while (true)
+        var token = NextToken();
+        RepetitionQuantifier quantifier;
+        switch (token.Token)
         {
-            var token = NextToken();
-            RepetitionQuantifier quantifier;
-            switch (token.Token)
+            case Token.Mul:
+                quantifier = new RepetitionQuantifier.ZeroOrMore();
+                break;
+            case Token.Plus:
+                quantifier = new RepetitionQuantifier.OneOrMore();
+                break;
+            case Token.Placeholder { Value: var s } when s == "?":
+                quantifier = new RepetitionQuantifier.AtMostOne();
+                break;
+            case Token.LBrace:
             {
-                case Token.Mul:
-                    quantifier = new RepetitionQuantifier.ZeroOrMore();
-                    break;
-                case Token.Plus:
-                    quantifier = new RepetitionQuantifier.OneOrMore();
-                    break;
-                case Token.Placeholder { Value: var s } when s == "?":
-                    quantifier = new RepetitionQuantifier.AtMostOne();
-                    break;
-                case Token.LBrace:
+                // quantifier is a range like {n} or {n,} or {,m} or {n,m}
+                // Rust: `let token = self.next_token();` sombreia o `token` externo (caso 72).
+                var rangeToken = NextToken();
+                switch (rangeToken.Token)
                 {
-                    // quantifier is a range like {n} or {n,} or {,m} or {n,m}
-                    // Rust: `let token = self.next_token();` sombreia o `token` externo (caso 72).
-                    var rangeToken = NextToken();
-                    switch (rangeToken.Token)
+                    case Token.Comma:
                     {
-                        case Token.Comma:
+                        var nextToken = NextToken();
+                        if (nextToken.Token is not Token.Number { Value: var n })
                         {
-                            var nextToken = NextToken();
-                            if (nextToken.Token is not Token.Number { Value: var n })
-                            {
-                                return Expected<MatchRecognizePattern>("literal number", nextToken);
-                            }
-                            ExpectToken(new Token.RBrace());
-                            quantifier = new RepetitionQuantifier.AtMost(Parse<uint>(n, rangeToken.Span.Start));
-                            break;
+                            return Expected<MatchRecognizePattern>("literal number", nextToken);
                         }
-                        // A guarda consome a vírgula, como no Rust (o `when` só roda se o padrão casar).
-                        case Token.Number { Value: var n } when ConsumeToken(new Token.Comma()):
-                        {
-                            var nextToken = NextToken();
-                            switch (nextToken.Token)
-                            {
-                                case Token.Number { Value: var m }:
-                                    ExpectToken(new Token.RBrace());
-                                    quantifier = new RepetitionQuantifier.Range(
-                                        Parse<uint>(n, rangeToken.Span.Start),
-                                        Parse<uint>(m, rangeToken.Span.Start));
-                                    break;
-                                case Token.RBrace:
-                                    quantifier = new RepetitionQuantifier.AtLeast(Parse<uint>(n, rangeToken.Span.Start));
-                                    break;
-                                default:
-                                    return Expected<MatchRecognizePattern>("} or upper bound", nextToken);
-                            }
-                            break;
-                        }
-                        case Token.Number { Value: var n }:
-                            ExpectToken(new Token.RBrace());
-                            quantifier = new RepetitionQuantifier.Exactly(Parse<uint>(n, rangeToken.Span.Start));
-                            break;
-                        default:
-                            return Expected<MatchRecognizePattern>("quantifier range", rangeToken);
+                        ExpectToken(new Token.RBrace());
+                        quantifier = new RepetitionQuantifier.AtMost(Parse<uint>(n, rangeToken.Span.Start));
+                        break;
                     }
-                    break;
+                    // A guarda consome a vírgula, como no Rust (o `when` só roda se o padrão casar).
+                    case Token.Number { Value: var n } when ConsumeToken(new Token.Comma()):
+                    {
+                        var nextToken = NextToken();
+                        switch (nextToken.Token)
+                        {
+                            case Token.Number { Value: var m }:
+                                ExpectToken(new Token.RBrace());
+                                quantifier = new RepetitionQuantifier.Range(
+                                    Parse<uint>(n, rangeToken.Span.Start),
+                                    Parse<uint>(m, rangeToken.Span.Start));
+                                break;
+                            case Token.RBrace:
+                                quantifier = new RepetitionQuantifier.AtLeast(Parse<uint>(n, rangeToken.Span.Start));
+                                break;
+                            default:
+                                return Expected<MatchRecognizePattern>("} or upper bound", nextToken);
+                        }
+                        break;
+                    }
+                    case Token.Number { Value: var n }:
+                        ExpectToken(new Token.RBrace());
+                        quantifier = new RepetitionQuantifier.Exactly(Parse<uint>(n, rangeToken.Span.Start));
+                        break;
+                    default:
+                        return Expected<MatchRecognizePattern>("quantifier range", rangeToken);
                 }
-                default:
-                    PrevToken();
-                    // Rust: `break` do `loop` dentro do `match` usado como expressão; depois do laço só
-                    // há `Ok(pattern)` (decisão 1 da B4).
-                    return pattern;
+                break;
             }
-            pattern = new MatchRecognizePattern.Repetition(pattern, quantifier);
+            default:
+                PrevToken();
+                return pattern;
         }
+        // Rust: `let quantifier = if .. { Reluctant(..) } else { quantifier };` sombreia o `quantifier`
+        // anterior com o mesmo tipo: reatribuição (caso 72).
+        if (ConsumeToken(new Token.Placeholder("?")))
+        {
+            quantifier = new RepetitionQuantifier.Reluctant(quantifier);
+        }
+        return new MatchRecognizePattern.Repetition(
+            pattern,
+            quantifier);
     }
 
     internal MatchRecognizePattern ParseConcatPattern()

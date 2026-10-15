@@ -6197,6 +6197,7 @@ namespace SqlParser.Core.Ast
                 }
             }
             // Negated: nenhum gancho alcançável
+            // Global: nenhum gancho alcançável
             return global::SqlParser.Core.ControlFlow<TBreak>.Continue;
         }
 
@@ -6217,6 +6218,7 @@ namespace SqlParser.Core.Ast
                 if (flow.IsBreak) return flow;
             }
             // Negated: nenhum gancho alcançável
+            // Global: nenhum gancho alcançável
             return global::SqlParser.Core.ControlFlow<TBreak>.Continue;
         }
 
@@ -7791,6 +7793,7 @@ namespace SqlParser.Core.Ast
                 if (flow.IsBreak) { node = n; return flow; }
             }
             // Negated: nenhum gancho alcançável
+            // Global: nenhum gancho alcançável
             node = n;
             return flow;
         }
@@ -7823,6 +7826,7 @@ namespace SqlParser.Core.Ast
                 if (flow.IsBreak) { node = n; return flow; }
             }
             // Negated: nenhum gancho alcançável
+            // Global: nenhum gancho alcançável
             node = n;
             return flow;
         }
@@ -19862,6 +19866,10 @@ namespace SqlParser.Core.Ast
                     flow = VisitVariant((global::SqlParser.Core.Ast.Statement.CreateServer)this, visitor);
                     if (flow.IsBreak) return flow;
                     break;
+                case global::SqlParser.Core.Ast.Statement.CreateForeignTable:
+                    flow = VisitVariant((global::SqlParser.Core.Ast.Statement.CreateForeignTable)this, visitor);
+                    if (flow.IsBreak) return flow;
+                    break;
                 case global::SqlParser.Core.Ast.Statement.CreatePolicy:
                     flow = VisitVariant((global::SqlParser.Core.Ast.Statement.CreatePolicy)this, visitor);
                     if (flow.IsBreak) return flow;
@@ -20795,6 +20803,19 @@ namespace SqlParser.Core.Ast
 
         // CreateServer
         private static global::SqlParser.Core.ControlFlow<TBreak> VisitVariant<TBreak>(global::SqlParser.Core.Ast.Statement.CreateServer v, global::SqlParser.Core.Ast.Visitor<TBreak> visitor)
+        {
+            global::SqlParser.Core.ControlFlow<TBreak> flow;
+            // Value
+            if (v.Value is { } x1)
+            {
+                flow = x1.Visit(visitor);
+                if (flow.IsBreak) return flow;
+            }
+            return global::SqlParser.Core.ControlFlow<TBreak>.Continue;
+        }
+
+        // CreateForeignTable
+        private static global::SqlParser.Core.ControlFlow<TBreak> VisitVariant<TBreak>(global::SqlParser.Core.Ast.Statement.CreateForeignTable v, global::SqlParser.Core.Ast.Visitor<TBreak> visitor)
         {
             global::SqlParser.Core.ControlFlow<TBreak> flow;
             // Value
@@ -23010,6 +23031,9 @@ namespace SqlParser.Core.Ast
                 case global::SqlParser.Core.Ast.Statement.CreateServer:
                     flow = VisitMutVariant(ref node, (global::SqlParser.Core.Ast.Statement.CreateServer)node, visitor);
                     break;
+                case global::SqlParser.Core.Ast.Statement.CreateForeignTable:
+                    flow = VisitMutVariant(ref node, (global::SqlParser.Core.Ast.Statement.CreateForeignTable)node, visitor);
+                    break;
                 case global::SqlParser.Core.Ast.Statement.CreatePolicy:
                     flow = VisitMutVariant(ref node, (global::SqlParser.Core.Ast.Statement.CreatePolicy)node, visitor);
                     break;
@@ -24162,6 +24186,26 @@ namespace SqlParser.Core.Ast
                 if (x1 is { } y2)
                 {
                     flow = global::SqlParser.Core.Ast.CreateServerStatement.VisitMut(ref y2, visitor);
+                    x1 = y2;
+                }
+                if (!global::SqlParser.Core.Ast.VisitSupport.IsSame(x1, n.Value)) n = n with { Value = x1 };
+                if (flow.IsBreak) { node = n; return flow; }
+            }
+            node = n;
+            return flow;
+        }
+
+        // CreateForeignTable
+        private static global::SqlParser.Core.ControlFlow<TBreak> VisitMutVariant<TBreak>(ref global::SqlParser.Core.Ast.Statement node, global::SqlParser.Core.Ast.Statement.CreateForeignTable v, global::SqlParser.Core.Ast.VisitorMut<TBreak> visitor)
+        {
+            var flow = global::SqlParser.Core.ControlFlow<TBreak>.Continue;
+            var n = v;
+            // Value
+            {
+                var x1 = n.Value;
+                if (x1 is { } y2)
+                {
+                    flow = global::SqlParser.Core.Ast.CreateForeignTable.VisitMut(ref y2, visitor);
                     x1 = y2;
                 }
                 if (!global::SqlParser.Core.Ast.VisitSupport.IsSame(x1, n.Value)) n = n with { Value = x1 };

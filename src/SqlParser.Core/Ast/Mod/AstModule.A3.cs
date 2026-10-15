@@ -24,6 +24,30 @@ namespace SqlParser.Core.Ast;
 public static partial class AstModule
 {
     /// <summary>
+    /// Whether <c>expr</c> renders with an operator character first. A prefix <c>-</c> or <c>!</c>
+    /// must not abut one, since <c>--</c> starts a line comment and compound tokens
+    /// like <c>!!</c> or <c>!~</c> alter the parsed AST or fail to parse.
+    /// </summary>
+    // Rust: `fn starts_with_operator_char(mut expr: &Expr)` (privada do módulo → `internal`,
+    // convencoes.md §13, caso 20); o parâmetro `mut` é reatribuído no laço, como no Rust.
+    internal static bool StartsWithOperatorChar(Expr expr)
+    {
+        while (true)
+        {
+            switch (expr)
+            {
+                case Expr.UnaryOp { Op: var op }:
+                    return op is not UnaryOperator.Not;
+                case Expr.BinaryOp { Left: var left }:
+                    expr = left;
+                    break;
+                default:
+                    return false;
+            }
+        }
+    }
+
+    /// <summary>
     /// <c>FunctionArgOperator::Space</c> has no token of its own, so the name and the
     /// value are separated by a single space instead.
     /// </summary>

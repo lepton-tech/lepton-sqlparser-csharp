@@ -727,25 +727,7 @@ public sealed partial class Parser
         OneOrManyWithParens<Expr>? orderBy;
         if (ParseKeywords(Keyword.ORDER, Keyword.BY))
         {
-            if (ConsumeToken(new Token.LParen()))
-            {
-                // Rust: `let columns` interno sombreia o externo (caso 72).
-                Sequence<Expr> orderByColumns;
-                if (PeekTokenRef().Token is not Token.RParen)
-                {
-                    orderByColumns = ParseCommaSeparated(p => p.ParseExpr());
-                }
-                else
-                {
-                    orderByColumns = Sequence<Expr>.Empty;
-                }
-                ExpectToken(new Token.RParen());
-                orderBy = new OneOrManyWithParens<Expr>.Many(orderByColumns);
-            }
-            else
-            {
-                orderBy = new OneOrManyWithParens<Expr>.One(ParseExpr());
-            }
+            orderBy = ParseSortingKey();
         }
         else
         {

@@ -189,3 +189,27 @@ Decisões tomadas para esta fase, que o responsável deve confirmar ou trocar:
 7. **Membros de `SqlStatementKind`:** acrescentar `Show`, `Explain`, `Set`, `Use` ou `Call`? Classificar `RENAME TABLE` como `Alter`? Separar `CREATE USER`/`ROLE` de `Create`?
 8. **Tipo das colunas:** `ObjectName` (atual) ou um tipo próprio (por exemplo, `ColumnReference` com `Qualifier` e `Name`).
 9. **Interrupção no `SqlRewriter`** por `protected void Break()` (atual) ou por um gancho que devolva também um `ControlFlow`.
+
+## Impacto da Rodada 1 de sincronização com o upstream (2026-10-15)
+
+A Rodada 1 levou o Core de `v0.63.0` a `dacdbc9` (63 PRs; `docs/port/upstream-ledger.md`). A camada pública **não precisou de mudança de código**: nenhum tipo de `src/SqlParser` constrói os nós alterados, e os 220 testes de `tests/SqlParser.Tests` passam sem alteração nos três alvos. Mas a camada expõe a AST, os dialetos e o `Parser` do Core diretamente (ADR-0008, decisão 1), então as quebras do Core chegam ao consumidor. A próxima versão do pacote deve ser tratada como **quebra de compatibilidade**.
+
+**Assinaturas públicas do Core que mudaram (quebra de código-fonte):**
+
+| Antes | Depois | PR |
+|---|---|---|
+| `Insert(.., Sequence<ObjectName> Columns, bool Overwrite, ..)` (26 parâmetros) | `Insert(.., Sequence<ObjectName> Columns, bool ByName, bool Overwrite, ..)` (27): construtor e `Deconstruct` | #2403 |
+| `Table(string? TableName, string? SchemaName)` | `Table(Ident? TableName, Ident? SchemaName)` | #2540 |
+| `Expr.InList(Expr Expr, Sequence<Expr> List, bool Negated)` | `Expr.InList(Expr Expr, Sequence<Expr> List, bool Negated, bool Global)` | #2598 |
+| `Expr.InSubquery(Expr Expr, Query Subquery, bool Negated)` | `Expr.InSubquery(Expr Expr, Query Subquery, bool Negated, bool Global)` | #2598 |
+| `Parser.ParseIn(Expr expr, bool negated)` | `Parser.ParseIn(Expr expr, bool negated, bool global)` | #2598 |
+
+**Quebra binária sem mudança de código-fonte** (quem compilou contra o Core precisa recompilar): o `enum` `Keyword` foi renumerado (`APPROXIMATE`, #2480, e `PROC`, #2448), e `MapBracketKind.AngleBrackets` passou de 1 a 2 com o membro novo `ParenthesesNotNull` (#2489).
+
+**Acréscimos** (não quebram quem só consome; quebram quem faz `switch` exaustivo sobre as hierarquias): `CreateForeignTable` e `Statement.CreateForeignTable` (#2515), `DataType.Collate` (#2553), `DataType.Object` (#2489), `ArrayElemTypeDef.ParenthesisNotNull` (#2488), `AlterTableOperation.ModifyOrderBy` (#2569), `RepetitionQuantifier.Reluctant` (#2510), `Parser.ParseCreateForeignTable()` e 17 propriedades `virtual` novas no `Dialect` (`SupportsGlobalIn`, `SupportsTupleElementAccess`, `SupportsStages`...).
+
+**Comportamento visível pela camada pública:**
+- `ToSql()` gera outro texto em vários casos (operadores prefixos com espaço, aspas escapadas em literais, `AFTER` com aspas, `CAST(x AS)`, `TABLE "t"` com as aspas preservadas, `GLOBAL IN`).
+- A mesma entrada pode dar outra AST: `S*?` no `MATCH_RECOGNIZE`, `IN ((SELECT 1), 2)` (agora `InList`), `IN expr` sem parênteses no ClickHouse, `OBJECT(..)`, `TRIM(BOTH FROM ..)`.
+- `SqlVisitor`/`SqlRewriter` passam a receber `PreVisitIdentifier`/`PostVisitIdentifier` para os nomes do comando `TABLE t`, porque `Table` agora guarda `Ident`, como no Rust. `GetReferencedTables` não muda: esses nomes não são relações no Rust.
+- `GetStatementKind` classifica `CREATE FOREIGN TABLE` como `Create` sem código novo (decisão 6).

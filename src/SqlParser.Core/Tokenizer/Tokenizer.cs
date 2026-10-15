@@ -405,7 +405,7 @@ public class Tokenizer
                 chars.Next(); // consume, to check the next char
                 switch (chars.Peek())
                 {
-                    case '\'':
+                    case '\'' when _dialect.SupportsNationalStringLiteral:
                     {
                         // N'...' - a <national character string literal>
                         var backslashEscape = _dialect.SupportsStringLiteralBackslashEscape;
@@ -626,7 +626,25 @@ public class Tokenizer
                         "Unexpected character '_'");
                 }
 
+                // A period directly after an identifier, `)`, `]` or a tuple index
+                // starts a field access such as `t.1`, `(1, 2).1` or `t.1.2`, never a float.
+                if (ch == '.'
+                    && _dialect.SupportsTupleElementAccess
+                    && prevToken is Token.Word or Token.RParen or Token.RBracket or Token.Number)
+                {
+                    chars.Next();
+                    return new Token.Period();
+                }
+
                 var s = TokenizeNumberPart(chars, RustChar.IsAsciiDigit);
+
+                // A tuple index is an integer, so `t.1.2` is `(t.1).2`.
+                if (s.Length != 0
+                    && _dialect.SupportsTupleElementAccess
+                    && prevToken is Token.Period)
+                {
+                    return new Token.Number(s, false);
+                }
 
                 // match binary literal that starts with 0x
                 if (s == "0" && chars.Peek() == 'x')

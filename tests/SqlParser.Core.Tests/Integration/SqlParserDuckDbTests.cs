@@ -813,6 +813,23 @@ public class SqlParserDuckDbTests
         var sqlArrow = "SELECT list_filter([1, 2, 3], x -> x > 1)";
         DuckDb().VerifiedStmt(sqlArrow);
 
+        // Both readings of `->` print identically, so round-tripping cannot tell
+        // a lambda from JSON member access. Assert the shape instead.
+        var select = DuckDb().VerifiedOnlySelect(sqlArrow);
+        if (TestUtils.ExprFromProjection(TestUtils.Only(select.Projection)) is not Expr.Function { Value: var func })
+        {
+            throw new InvalidOperationException("expected a function call");
+        }
+        if (func.Args is not FunctionArguments.List { Value: var args })
+        {
+            throw new InvalidOperationException("expected an argument list");
+        }
+        if (args.Args is not [_, FunctionArg.Unnamed { Value: FunctionArgExpr.Expr { Value: Expr.Lambda { Value: var lambda } } }])
+        {
+            throw new InvalidOperationException("expected the second argument to be a lambda");
+        }
+        Assert.Equal(LambdaSyntax.Arrow, lambda.Syntax);
+
         // Test lambda with multiple parameters (with index)
         var sqlMulti = "SELECT list_filter([1, 3, 1, 5], lambda x, i : x > i)";
         DuckDb().VerifiedStmt(sqlMulti);
@@ -820,5 +837,20 @@ public class SqlParserDuckDbTests
         // Test lambda in list_transform
         var sqlTransform = "SELECT list_transform([1, 2, 3], lambda x : x * 2)";
         DuckDb().VerifiedStmt(sqlTransform);
+    }
+
+    [Fact]
+    public void test_duckdb_nested_block_comments()
+    {
+        DuckDb().OneStatementParsesTo(
+            "SELECT a /* outer /* inner */ still comment */ FROM t",
+            "SELECT a FROM t");
+
+        var err = Assert.Throws<ParserException>(() => DuckDb()
+            .ParseSqlStatements("SELECT a /* outer /* inner */ FROM t")).Error;
+        // assert!(err.to_string().contains(..), "{err}")
+        Assert.Contains(
+            "Unexpected EOF while in a multi-line comment",
+            err.ToString());
     }
 }

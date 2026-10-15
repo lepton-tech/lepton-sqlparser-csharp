@@ -695,6 +695,14 @@ public class SqlParserDatabricksTests
     }
 
     [Fact]
+    public void test_databricks_insert_by_name()
+    {
+        DatabricksAndGeneric().VerifiedStmt("INSERT INTO target BY NAME SELECT 1 AS a");
+        DatabricksAndGeneric().VerifiedStmt(
+            "INSERT INTO TABLE lakehouse.dwd.dwd_event_quality_sla_metric_di BY NAME WITH day AS (SELECT 1 AS event_data_id) SELECT event_data_id FROM day");
+    }
+
+    [Fact]
     public void parse_databricks_query_entry_points()
     {
         Databricks().VerifiedStmt("CREATE TABLE t (attrs MAP<STRING, ARRAY<INT>>)");
@@ -704,5 +712,17 @@ public class SqlParserDatabricksTests
             "CREATE VIEW cross_product AS FROM main.raw.left_table, main.raw.right_table");
         Databricks()
             .VerifiedStmt("CREATE VIEW filtered AS FROM main.raw.source |> WHERE id > 0 |> SELECT id");
+    }
+
+    [Fact]
+    public void parse_databricks_collated_data_types()
+    {
+        Databricks().VerifiedStmt(
+            "CREATE TABLE t (name STRING COLLATE UTF8_BINARY, values ARRAY<STRING COLLATE UTF8_LCASE>, attrs MAP<STRING COLLATE UTF8_BINARY, STRING COLLATE UTF8_LCASE>)");
+        Databricks().VerifiedStmt("CREATE TABLE t (s STRUCT<a STRING COLLATE UTF8_LCASE>)");
+        Databricks().VerifiedStmt("CREATE TABLE t (c ARRAY<ARRAY<STRING>> COLLATE UTF8_LCASE)");
+        // assert!(..parse_sql_statements(..).is_err())
+        Assert.Throws<ParserException>(() => new TestedDialects(new List<Dialect> { new GenericDialect() })
+            .ParseSqlStatements("CREATE TABLE t (c ARRAY<STRING COLLATE UTF8_LCASE>)"));
     }
 }

@@ -2526,4 +2526,29 @@ public class SqlParserBigQueryTests
         Bigquery().VerifiedStmt("FROM t SELECT a, b");
         Bigquery().VerifiedStmt("FROM t |> WHERE a > 1 |> SELECT a");
     }
+
+    [Fact]
+    public void test_byte_and_raw_string_quote_escaping()
+    {
+        var generic = new TestedDialects(new List<Dialect> { new GenericDialect() });
+        generic.VerifiedStmt("SELECT B''''");
+        generic.VerifiedStmt("SELECT B'it''s'");
+        generic.VerifiedStmt("SELECT B\"\"\"\"");
+        generic.VerifiedStmt("SELECT B\"it\"\"s\"");
+        generic.VerifiedStmt("SELECT R'it''s'");
+        generic.VerifiedStmt("SELECT R\"it\"\"s\"");
+        generic.VerifiedStmt("SELECT COUNSELECT AS name, B''''");
+
+        BigqueryAndGeneric().VerifiedStmt("SELECT B'it''s'");
+        BigqueryAndGeneric().VerifiedStmt("SELECT B\"it\"\"s\"");
+        BigqueryAndGeneric().VerifiedStmt("SELECT R'it''s'");
+        BigqueryAndGeneric().VerifiedStmt("SELECT R\"it\"\"s\"");
+
+        var err = Assert.Throws<ParserException>(() => generic
+            .ParseSqlStatements("SELECT B'unterminated")).Error;
+        Assert.Equal<ParserError>(
+            new ParserError.TokenizerError(
+                "Unterminated string literal at Line: 1, Column: 9"),
+            err);
+    }
 }

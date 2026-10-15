@@ -27,6 +27,9 @@ public enum MapBracketKind
     /// <summary>Example: <c>Map(String, UInt16)</c></summary>
     Parentheses,
 
+    /// <summary>Example: <c>MAP(VARCHAR, NUMBER NOT NULL)</c></summary>
+    ParenthesesNotNull,
+
     /// <summary>Example: <c>MAP&lt;STRING, INT&gt;</c></summary>
     AngleBrackets,
 }

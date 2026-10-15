@@ -167,18 +167,7 @@ public sealed partial class Parser
         ExpectKeywords(Keyword.FOREIGN, Keyword.DATA, Keyword.WRAPPER);
         var foreignDataWrapper = ParseObjectName(false);
 
-        Sequence<CreateServerOption>? options = null;
-        if (ParseKeyword(Keyword.OPTIONS))
-        {
-            ExpectToken(new Token.LParen());
-            options = ParseCommaSeparated(p =>
-            {
-                var key = p.ParseIdentifier();
-                var value = p.ParseIdentifier();
-                return new CreateServerOption(Key: key, Value: value);
-            });
-            ExpectToken(new Token.RParen());
-        }
+        var options = ParsePgOptionsClause();
 
         return new Statement.CreateServer(new CreateServerStatement(
             Name: name,
@@ -187,6 +176,58 @@ public sealed partial class Parser
             Version: version,
             ForeignDataWrapper: foreignDataWrapper,
             Options: options));
+    }
+
+    /// <summary>Parse an optional Postgres <c>OPTIONS ( key value [, ...] )</c> clause.</summary>
+    internal Sequence<CreateServerOption>? ParsePgOptionsClause()
+    {
+        if (!ParseKeyword(Keyword.OPTIONS))
+        {
+            return null;
+        }
+        ExpectToken(new Token.LParen());
+        var options = ParseCommaSeparated(p =>
+        {
+            var key = p.ParseIdentifier();
+            var value = p.ParseIdentifier();
+            return new CreateServerOption(Key: key, Value: value);
+        });
+        ExpectToken(new Token.RParen());
+        return options;
+    }
+
+    /// <summary>
+    /// Parse a <c>CREATE FOREIGN TABLE</c> statement.
+    /// <para>
+    /// Per-column <c>OPTIONS ( ... )</c>, <c>INHERITS</c>, and the <c>PARTITION OF</c> form are
+    /// not parsed yet.
+    /// </para>
+    /// <para>
+    /// See <see href="https://www.postgresql.org/docs/current/sql-createforeigntable.html"/>
+    /// </para>
+    /// </summary>
+    public CreateForeignTable ParseCreateForeignTable()
+    {
+        var ifNotExists = ParseKeywords(Keyword.IF, Keyword.NOT, Keyword.EXISTS);
+        var name = ParseObjectName(false);
+        if (PeekTokenRef().Token is not Token.LParen)
+        {
+            return ExpectedRef<CreateForeignTable>(
+                "'(' before the column list of CREATE FOREIGN TABLE",
+                PeekTokenRef());
+        }
+        var (columns, constraints) = ParseColumns();
+        ExpectKeywordIs(Keyword.SERVER);
+        var serverName = ParseIdentifier();
+        var options = ParsePgOptionsClause();
+
+        return new CreateForeignTable(
+            Name: name,
+            IfNotExists: ifNotExists,
+            Columns: columns,
+            Constraints: constraints,
+            ServerName: serverName,
+            Options: options);
     }
 
     /// <summary>The index of the first unprocessed token.</summary>
@@ -691,7 +732,7 @@ public sealed partial class Parser
 
     internal MySQLColumnPosition? ParseColumnPosition()
     {
-        if (_dialect is MySqlDialect or GenericDialect)
+        if (_dialect.SupportsAlterColumnPosition)
         {
             if (ParseKeyword(Keyword.FIRST))
             {

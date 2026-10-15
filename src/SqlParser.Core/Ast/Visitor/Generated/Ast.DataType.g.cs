@@ -50,6 +50,10 @@ namespace SqlParser.Core.Ast
                     flow = VisitVariant((global::SqlParser.Core.Ast.ArrayElemTypeDef.Parenthesis)this, visitor);
                     if (flow.IsBreak) return flow;
                     break;
+                case global::SqlParser.Core.Ast.ArrayElemTypeDef.ParenthesisNotNull:
+                    flow = VisitVariant((global::SqlParser.Core.Ast.ArrayElemTypeDef.ParenthesisNotNull)this, visitor);
+                    if (flow.IsBreak) return flow;
+                    break;
                 case global::SqlParser.Core.Ast.ArrayElemTypeDef.Qualified:
                     flow = VisitVariant((global::SqlParser.Core.Ast.ArrayElemTypeDef.Qualified)this, visitor);
                     if (flow.IsBreak) return flow;
@@ -87,6 +91,19 @@ namespace SqlParser.Core.Ast
 
         // Parenthesis
         private static global::SqlParser.Core.ControlFlow<TBreak> VisitVariant<TBreak>(global::SqlParser.Core.Ast.ArrayElemTypeDef.Parenthesis v, global::SqlParser.Core.Ast.Visitor<TBreak> visitor)
+        {
+            global::SqlParser.Core.ControlFlow<TBreak> flow;
+            // Value
+            if (v.Value is { } x1)
+            {
+                flow = x1.Visit(visitor);
+                if (flow.IsBreak) return flow;
+            }
+            return global::SqlParser.Core.ControlFlow<TBreak>.Continue;
+        }
+
+        // ParenthesisNotNull
+        private static global::SqlParser.Core.ControlFlow<TBreak> VisitVariant<TBreak>(global::SqlParser.Core.Ast.ArrayElemTypeDef.ParenthesisNotNull v, global::SqlParser.Core.Ast.Visitor<TBreak> visitor)
         {
             global::SqlParser.Core.ControlFlow<TBreak> flow;
             // Value
@@ -136,6 +153,9 @@ namespace SqlParser.Core.Ast
                     break;
                 case global::SqlParser.Core.Ast.ArrayElemTypeDef.Parenthesis:
                     flow = VisitMutVariant(ref node, (global::SqlParser.Core.Ast.ArrayElemTypeDef.Parenthesis)node, visitor);
+                    break;
+                case global::SqlParser.Core.Ast.ArrayElemTypeDef.ParenthesisNotNull:
+                    flow = VisitMutVariant(ref node, (global::SqlParser.Core.Ast.ArrayElemTypeDef.ParenthesisNotNull)node, visitor);
                     break;
                 case global::SqlParser.Core.Ast.ArrayElemTypeDef.Qualified:
                     flow = VisitMutVariant(ref node, (global::SqlParser.Core.Ast.ArrayElemTypeDef.Qualified)node, visitor);
@@ -187,6 +207,26 @@ namespace SqlParser.Core.Ast
 
         // Parenthesis
         private static global::SqlParser.Core.ControlFlow<TBreak> VisitMutVariant<TBreak>(ref global::SqlParser.Core.Ast.ArrayElemTypeDef node, global::SqlParser.Core.Ast.ArrayElemTypeDef.Parenthesis v, global::SqlParser.Core.Ast.VisitorMut<TBreak> visitor)
+        {
+            var flow = global::SqlParser.Core.ControlFlow<TBreak>.Continue;
+            var n = v;
+            // Value
+            {
+                var x1 = n.Value;
+                if (x1 is { } y2)
+                {
+                    flow = global::SqlParser.Core.Ast.DataType.VisitMut(ref y2, visitor);
+                    x1 = y2;
+                }
+                if (!global::SqlParser.Core.Ast.VisitSupport.IsSame(x1, n.Value)) n = n with { Value = x1 };
+                if (flow.IsBreak) { node = n; return flow; }
+            }
+            node = n;
+            return flow;
+        }
+
+        // ParenthesisNotNull
+        private static global::SqlParser.Core.ControlFlow<TBreak> VisitMutVariant<TBreak>(ref global::SqlParser.Core.Ast.ArrayElemTypeDef node, global::SqlParser.Core.Ast.ArrayElemTypeDef.ParenthesisNotNull v, global::SqlParser.Core.Ast.VisitorMut<TBreak> visitor)
         {
             var flow = global::SqlParser.Core.ControlFlow<TBreak>.Continue;
             var n = v;
@@ -291,6 +331,10 @@ namespace SqlParser.Core.Ast
                     flow = VisitVariant((global::SqlParser.Core.Ast.DataType.NamedTable)this, visitor);
                     if (flow.IsBreak) return flow;
                     break;
+                case global::SqlParser.Core.Ast.DataType.Collate:
+                    flow = VisitVariant((global::SqlParser.Core.Ast.DataType.Collate)this, visitor);
+                    if (flow.IsBreak) return flow;
+                    break;
                 case global::SqlParser.Core.Ast.DataType.Custom:
                     flow = VisitVariant((global::SqlParser.Core.Ast.DataType.Custom)this, visitor);
                     if (flow.IsBreak) return flow;
@@ -309,6 +353,10 @@ namespace SqlParser.Core.Ast
                     break;
                 case global::SqlParser.Core.Ast.DataType.Nested:
                     flow = VisitVariant((global::SqlParser.Core.Ast.DataType.Nested)this, visitor);
+                    if (flow.IsBreak) return flow;
+                    break;
+                case global::SqlParser.Core.Ast.DataType.Object:
+                    flow = VisitVariant((global::SqlParser.Core.Ast.DataType.Object)this, visitor);
                     if (flow.IsBreak) return flow;
                     break;
                 case global::SqlParser.Core.Ast.DataType.Enum:
@@ -382,6 +430,25 @@ namespace SqlParser.Core.Ast
             return global::SqlParser.Core.ControlFlow<TBreak>.Continue;
         }
 
+        // Collate
+        private static global::SqlParser.Core.ControlFlow<TBreak> VisitVariant<TBreak>(global::SqlParser.Core.Ast.DataType.Collate v, global::SqlParser.Core.Ast.Visitor<TBreak> visitor)
+        {
+            global::SqlParser.Core.ControlFlow<TBreak> flow;
+            // DataType
+            if (v.DataType is { } x1)
+            {
+                flow = x1.Visit(visitor);
+                if (flow.IsBreak) return flow;
+            }
+            // Collation
+            if (v.Collation is { } x2)
+            {
+                flow = x2.Visit(visitor);
+                if (flow.IsBreak) return flow;
+            }
+            return global::SqlParser.Core.ControlFlow<TBreak>.Continue;
+        }
+
         // Custom
         private static global::SqlParser.Core.ControlFlow<TBreak> VisitVariant<TBreak>(global::SqlParser.Core.Ast.DataType.Custom v, global::SqlParser.Core.Ast.Visitor<TBreak> visitor)
         {
@@ -450,6 +517,25 @@ namespace SqlParser.Core.Ast
 
         // Nested
         private static global::SqlParser.Core.ControlFlow<TBreak> VisitVariant<TBreak>(global::SqlParser.Core.Ast.DataType.Nested v, global::SqlParser.Core.Ast.Visitor<TBreak> visitor)
+        {
+            global::SqlParser.Core.ControlFlow<TBreak> flow;
+            // Value
+            {
+                var s1 = v.Value;
+                for (var i2 = 0; i2 < s1.Count; i2++)
+                {
+                    if (s1[i2] is { } x3)
+                    {
+                        flow = x3.Visit(visitor);
+                        if (flow.IsBreak) return flow;
+                    }
+                }
+            }
+            return global::SqlParser.Core.ControlFlow<TBreak>.Continue;
+        }
+
+        // Object
+        private static global::SqlParser.Core.ControlFlow<TBreak> VisitVariant<TBreak>(global::SqlParser.Core.Ast.DataType.Object v, global::SqlParser.Core.Ast.Visitor<TBreak> visitor)
         {
             global::SqlParser.Core.ControlFlow<TBreak> flow;
             // Value
@@ -574,6 +660,9 @@ namespace SqlParser.Core.Ast
                 case global::SqlParser.Core.Ast.DataType.NamedTable:
                     flow = VisitMutVariant(ref node, (global::SqlParser.Core.Ast.DataType.NamedTable)node, visitor);
                     break;
+                case global::SqlParser.Core.Ast.DataType.Collate:
+                    flow = VisitMutVariant(ref node, (global::SqlParser.Core.Ast.DataType.Collate)node, visitor);
+                    break;
                 case global::SqlParser.Core.Ast.DataType.Custom:
                     flow = VisitMutVariant(ref node, (global::SqlParser.Core.Ast.DataType.Custom)node, visitor);
                     break;
@@ -588,6 +677,9 @@ namespace SqlParser.Core.Ast
                     break;
                 case global::SqlParser.Core.Ast.DataType.Nested:
                     flow = VisitMutVariant(ref node, (global::SqlParser.Core.Ast.DataType.Nested)node, visitor);
+                    break;
+                case global::SqlParser.Core.Ast.DataType.Object:
+                    flow = VisitMutVariant(ref node, (global::SqlParser.Core.Ast.DataType.Object)node, visitor);
                     break;
                 case global::SqlParser.Core.Ast.DataType.Enum:
                     flow = VisitMutVariant(ref node, (global::SqlParser.Core.Ast.DataType.Enum)node, visitor);
@@ -685,6 +777,37 @@ namespace SqlParser.Core.Ast
                     if (a4 is not null) x3 = global::SqlParser.Core.Sequence<global::SqlParser.Core.Ast.ColumnDef>.FromArrayNoCopy(a4);
                 }
                 if (!global::SqlParser.Core.Ast.VisitSupport.IsSame(x3, n.Columns)) n = n with { Columns = x3 };
+                if (flow.IsBreak) { node = n; return flow; }
+            }
+            node = n;
+            return flow;
+        }
+
+        // Collate
+        private static global::SqlParser.Core.ControlFlow<TBreak> VisitMutVariant<TBreak>(ref global::SqlParser.Core.Ast.DataType node, global::SqlParser.Core.Ast.DataType.Collate v, global::SqlParser.Core.Ast.VisitorMut<TBreak> visitor)
+        {
+            var flow = global::SqlParser.Core.ControlFlow<TBreak>.Continue;
+            var n = v;
+            // DataType
+            {
+                var x1 = n.DataType;
+                if (x1 is { } y2)
+                {
+                    flow = global::SqlParser.Core.Ast.DataType.VisitMut(ref y2, visitor);
+                    x1 = y2;
+                }
+                if (!global::SqlParser.Core.Ast.VisitSupport.IsSame(x1, n.DataType)) n = n with { DataType = x1 };
+                if (flow.IsBreak) { node = n; return flow; }
+            }
+            // Collation
+            {
+                var x3 = n.Collation;
+                if (x3 is { } y4)
+                {
+                    flow = global::SqlParser.Core.Ast.ObjectName.VisitMut(ref y4, visitor);
+                    x3 = y4;
+                }
+                if (!global::SqlParser.Core.Ast.VisitSupport.IsSame(x3, n.Collation)) n = n with { Collation = x3 };
                 if (flow.IsBreak) { node = n; return flow; }
             }
             node = n;
@@ -800,6 +923,40 @@ namespace SqlParser.Core.Ast
 
         // Nested
         private static global::SqlParser.Core.ControlFlow<TBreak> VisitMutVariant<TBreak>(ref global::SqlParser.Core.Ast.DataType node, global::SqlParser.Core.Ast.DataType.Nested v, global::SqlParser.Core.Ast.VisitorMut<TBreak> visitor)
+        {
+            var flow = global::SqlParser.Core.ControlFlow<TBreak>.Continue;
+            var n = v;
+            // Value
+            {
+                var x1 = n.Value;
+                {
+                    global::SqlParser.Core.Ast.ColumnDef[]? a2 = null;
+                    for (var i3 = 0; i3 < x1.Count; i3++)
+                    {
+                        var e4 = x1[i3];
+                        if (e4 is { } y5)
+                        {
+                            flow = global::SqlParser.Core.Ast.ColumnDef.VisitMut(ref y5, visitor);
+                            e4 = y5;
+                        }
+                        if (!global::SqlParser.Core.Ast.VisitSupport.IsSame(e4, x1[i3]))
+                        {
+                            a2 ??= global::System.Linq.Enumerable.ToArray(x1);
+                            a2[i3] = e4;
+                        }
+                        if (flow.IsBreak) break;
+                    }
+                    if (a2 is not null) x1 = global::SqlParser.Core.Sequence<global::SqlParser.Core.Ast.ColumnDef>.FromArrayNoCopy(a2);
+                }
+                if (!global::SqlParser.Core.Ast.VisitSupport.IsSame(x1, n.Value)) n = n with { Value = x1 };
+                if (flow.IsBreak) { node = n; return flow; }
+            }
+            node = n;
+            return flow;
+        }
+
+        // Object
+        private static global::SqlParser.Core.ControlFlow<TBreak> VisitMutVariant<TBreak>(ref global::SqlParser.Core.Ast.DataType node, global::SqlParser.Core.Ast.DataType.Object v, global::SqlParser.Core.Ast.VisitorMut<TBreak> visitor)
         {
             var flow = global::SqlParser.Core.ControlFlow<TBreak>.Continue;
             var n = v;

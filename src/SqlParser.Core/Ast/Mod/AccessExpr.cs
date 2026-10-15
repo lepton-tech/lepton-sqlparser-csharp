@@ -18,6 +18,8 @@
 // Portado para C# a partir de sqlparser-rs v0.63.0, src/ast/mod.rs.
 // Modificado: tradução de Rust para C#.
 
+using static SqlParser.Core.Ast.AstModule;
+
 namespace SqlParser.Core.Ast;
 
 /// <summary>
@@ -34,12 +36,14 @@ public abstract partial record AccessExpr : IDisplay
     // Value: Rust: campo `.0` (tipo qualificado: a variante tem o nome do tipo, convencoes.md §13, caso 38).
     public sealed record Subscript(Ast.Subscript Value) : AccessExpr;
 
+    // Rust: `const fn is_number_expr` fica entre `pub enum AccessExpr` e este `impl Display`;
+    // no C#, está em AstModule.cs (convencoes.md §13, caso 135).
     public void Fmt(Formatter f)
     {
         switch (this)
         {
-            case Dot { Value: Expr.Value { Inner: var value } } when value.Value is Ast.Value.Number:
-                f.Write($" . {value}");
+            case Dot { Value: var expr } when IsNumberExpr(expr):
+                f.Write($" . {expr}");
                 break;
             case Dot dot:
                 f.Write($".{dot.Value}");

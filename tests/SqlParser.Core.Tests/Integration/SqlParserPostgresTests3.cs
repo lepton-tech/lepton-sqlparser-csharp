@@ -2705,6 +2705,104 @@ public class SqlParserPostgresTests3
     }
 
     [Fact]
+    public void parse_create_foreign_table()
+    {
+        // Each of these round-trips through Display, so verified_stmt already pins
+        // the name, columns, server and IF NOT EXISTS. Only the parsed shape that
+        // Display cannot show is asserted below.
+        foreach (var sql in new[]
+        {
+            "CREATE FOREIGN TABLE ft1 (id INTEGER, name TEXT) SERVER myserver",
+            "CREATE FOREIGN TABLE IF NOT EXISTS ft2 (col INTEGER) SERVER remoteserver",
+        })
+        {
+            Assert.IsType<Statement.CreateForeignTable>(PgAndGeneric().VerifiedStmt(sql));
+        }
+
+        // `let sql` repetido fora do laço: nome distinto (CS0136, caso 72).
+        var optionsSql =
+            "CREATE FOREIGN TABLE ft3 (col INTEGER) SERVER remoteserver OPTIONS (schema_name 'public')";
+        if (PgAndGeneric().VerifiedStmt(optionsSql) is not Statement.CreateForeignTable { Value: var stmt })
+        {
+            throw new InvalidOperationException("internal error: entered unreachable code");
+        }
+        Assert.Equal<Sequence<CreateServerOption>?>(
+            stmt.Options,
+            Sequence.Of(new CreateServerOption(
+                Key: Ident.From("schema_name"),
+                Value: new Ident(
+                    Value: "public",
+                    QuoteStyle: '\'',
+                    Span: Span.Empty()))));
+    }
+
+    [Fact]
+    public void parse_create_foreign_table_requires_column_list()
+    {
+        // Without the parens Display would invent a `()` the input never had.
+        Assert.IsType<ParserError.ParserErrorValue>(Assert.Throws<ParserException>(() =>
+            PgAndGeneric().ParseSqlStatements("CREATE FOREIGN TABLE ft SERVER s")).Error);
+
+        // An empty list is still legal PostgreSQL.
+        PgAndGeneric().VerifiedStmt("CREATE FOREIGN TABLE ft () SERVER s");
+    }
+
+    [Fact]
+    public void parse_create_foreign_table_rejects_modifiers()
+    {
+        // None of these has a field on CreateForeignTable, so accepting one would
+        // drop it silently on the way back out through Display.
+        foreach (var sql in new[]
+        {
+            "CREATE TEMPORARY FOREIGN TABLE ft (a INT) SERVER s",
+            "CREATE GLOBAL FOREIGN TABLE ft (a INT) SERVER s",
+            "CREATE LOCAL FOREIGN TABLE ft (a INT) SERVER s",
+            "CREATE TRANSIENT FOREIGN TABLE ft (a INT) SERVER s",
+            "CREATE VOLATILE FOREIGN TABLE ft (a INT) SERVER s",
+            "CREATE OR ALTER FOREIGN TABLE ft (a INT) SERVER s",
+            "CREATE MULTISET FOREIGN TABLE ft (a INT) SERVER s",
+            "CREATE SET FOREIGN TABLE ft (a INT) SERVER s",
+            "CREATE ALGORITHM = UNDEFINED FOREIGN TABLE ft (a INT) SERVER s",
+        })
+        {
+            var err = Assert.Throws<ParserException>(() => PgAndGeneric().ParseSqlStatements(sql)).Error;
+            // assert!(err.to_string().contains(..), "unexpected error for {sql}: {err}")
+            Assert.Contains(
+                "CREATE FOREIGN TABLE does not accept this modifier",
+                err.ToString());
+        }
+
+        // OR REPLACE is caught by an earlier arm, so it never reaches the guard.
+        Assert.IsType<ParserError.ParserErrorValue>(Assert.Throws<ParserException>(() =>
+            PgAndGeneric()
+                .ParseSqlStatements("CREATE OR REPLACE FOREIGN TABLE ft (a INT) SERVER s")).Error);
+    }
+
+    [Fact]
+    public void parse_create_foreign_table_with_check_constraint()
+    {
+        // PostgreSQL accepts table-level CHECK constraints in CREATE FOREIGN TABLE.
+        var sql =
+            "CREATE FOREIGN TABLE ft (id INTEGER, CONSTRAINT id_positive CHECK (id > 0)) SERVER s";
+        if (PgAndGeneric().VerifiedStmt(sql) is not Statement.CreateForeignTable { Value: var stmt })
+        {
+            throw new InvalidOperationException("internal error: entered unreachable code");
+        }
+        Assert.Equal(1, stmt.Columns.Count);
+        Assert.Equal(1, stmt.Constraints.Count);
+
+        // Zero columns with only a table-level constraint must not emit `(, CONSTRAINT ...)`.
+        sql = "CREATE FOREIGN TABLE ft (CONSTRAINT c CHECK (id > 0)) SERVER s";
+        // `let Statement::CreateForeignTable(stmt)` repetido: nome distinto (CS0128, caso 72).
+        if (PgAndGeneric().VerifiedStmt(sql) is not Statement.CreateForeignTable { Value: var constraintOnlyStmt })
+        {
+            throw new InvalidOperationException("internal error: entered unreachable code");
+        }
+        Assert.Equal(0, constraintOnlyStmt.Columns.Count);
+        Assert.Equal(1, constraintOnlyStmt.Constraints.Count);
+    }
+
+    [Fact]
     public void exclude_as_column_name()
     {
         // `EXCLUDE` is a non-reserved keyword, so it stays usable as a column name
@@ -2994,6 +3092,111 @@ public class SqlParserPostgresTests3
             Pg().VerifiedStmt(
                 $"SELECT * FROM tbl_name {kw} JOIN tbl_name_2 ON {kw}.id = tbl_name_2.id");
         }
+    }
+
+    [Fact]
+    public void parse_trim_from_without_characters()
+    {
+        Pg().OneStatementParsesTo("SELECT TRIM(FROM ' x ')", "SELECT TRIM(' x ')");
+    }
+
+    [Fact]
+    public void parse_insert_by_name_keywords_as_table_and_alias()
+    {
+        // Without a table name, `BY NAME` is not an INSERT BY NAME clause. PostgreSQL
+        // treats `BY` as the table name and `NAME` as its implicit table alias.
+        switch (Pg().VerifiedStmt("INSERT INTO BY NAME SELECT 1 AS a"))
+        {
+            case Statement.Insert
+            {
+                Value:
+                {
+                    Table: TableObject.TableName { Value: var table },
+                    TableAlias: { } tableAlias,
+                    ByName: var byName,
+                }
+            }:
+                Assert.Equal("BY", table.ToString());
+                Assert.Equal("NAME", tableAlias.Alias.Value);
+                Assert.False(byName);
+                break;
+            case var statement:
+                throw new InvalidOperationException($"Expected INSERT statement, got: {statement}");
+        }
+    }
+
+    [Fact]
+    public void parse_pg_abs_space_before_negative_operand()
+    {
+        // `@-` tokenizes as a geometric operator prefix, so displaying PGAbs
+        // without a space breaks re-parsing of a negative operand.
+        Pg().VerifiedStmt("SELECT @ -2");
+        Pg().OneStatementParsesTo("SELECT @a", "SELECT @ a");
+        var err = Assert.Throws<ParserException>(() => Pg().ParseSqlStatements("SELECT @-2")).Error;
+        Assert.Equal<ParserError>(
+            new ParserError.TokenizerError(
+                "Expected a valid binary operator after '@-' at Line: 1, Column: 10"),
+            err);
+    }
+
+    [Fact]
+    public void parse_bitwise_not_before_pg_prefix_operators()
+    {
+        Pg().OneStatementParsesTo("SELECT ~ @2", "SELECT ~ @ 2");
+        Pg().VerifiedStmt("SELECT ~ @ 2");
+        Pg().OneStatementParsesTo("SELECT ~ #x", "SELECT ~ # x");
+    }
+
+    [Fact]
+    public void parse_unary_minus_before_pg_prefix_operators()
+    {
+        Pg().OneStatementParsesTo("SELECT - ~1", "SELECT - ~ 1");
+        Pg().VerifiedStmt("SELECT - ~ 1");
+        Pg().OneStatementParsesTo("SELECT - @2", "SELECT - @ 2");
+        Pg().VerifiedStmt("SELECT - @ 2");
+        Pg().OneStatementParsesTo("SELECT - #x", "SELECT - # x");
+    }
+
+    [Fact]
+    public void parse_postfix_factorial_spacing()
+    {
+        Pg().VerifiedStmt("SELECT a!");
+        Pg().VerifiedStmt("SELECT 5!");
+        Pg().VerifiedStmt("SELECT (a!)!");
+        Pg().VerifiedStmt("SELECT a! !");
+        Pg().VerifiedStmt("SELECT a! ! !");
+        Pg().VerifiedStmt("SELECT a! ! % 2");
+        Pg().OneStatementParsesTo("SELECT a! !%2", "SELECT a! ! % 2");
+        Pg().OneStatementParsesTo("SELECT -a, +b, a! !%2, a", "SELECT -a, +b, a! ! % 2, a");
+
+        var err = Assert.Throws<ParserException>(() => Pg().ParseSqlStatements("SELECT a!!")).Error;
+        Assert.Equal<ParserError>(
+            new ParserError.ParserErrorValue("Expected: end of statement, found: !!"),
+            err);
+    }
+
+    [Fact]
+    public void parse_pg_roots_render_apart_from_operand()
+    {
+        Pg().VerifiedStmt("SELECT |/ -2");
+        Pg().VerifiedStmt("SELECT ||/ -2");
+        Pg().VerifiedStmt("SELECT |/ ||/ 2");
+    }
+
+    [Fact]
+    public void parse_stage_table_factor_rejected()
+    {
+        var sql = "SELECT * FROM @stage";
+        Assert.Equal<ParserError>(
+            Assert.Throws<ParserException>(() => Pg().ParseSqlStatements(sql)).Error,
+            new ParserError.ParserErrorValue("Expected: identifier, found: @"));
+    }
+
+    [Fact]
+    public void parse_bitstring_literal_escaping()
+    {
+        PgAndGeneric().VerifiedStmt("SELECT B''''");
+        PgAndGeneric().VerifiedStmt("SELECT B'it''s'");
     }
 }
 #pragma warning restore xUnit2013

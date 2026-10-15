@@ -355,7 +355,7 @@ public sealed partial class Parser
         {
             return ParseSemanticViewTableFactor();
         }
-        else if (PeekTokenRef().Token is Token.AtSign)
+        else if (_dialect.SupportsStages && PeekTokenRef().Token is Token.AtSign)
         {
             // Stage reference: @mystage or @namespace.stage (e.g. Snowflake)
             return ParseSnowflakeStageTableFactor();
@@ -376,7 +376,7 @@ public sealed partial class Parser
             }
 
             Sequence<Ident> partitions;
-            if ((_dialect is MySqlDialect or GenericDialect)
+            if (_dialect.SupportsTablePartitions
                 && ParseKeyword(Keyword.PARTITION))
             {
                 partitions = ParseParenthesizedIdentifiers();

@@ -453,6 +453,24 @@ public class SqlParserPostgresTests1
         Pg().VerifiedStmt("CREATE TABLE t (c TEXT DEFAULT (foo())::TEXT NOT NULL)");
     }
 
+    /// <summary>
+    /// <c>::</c> binds tighter than <c>COLLATE</c>, so <c>expr::type COLLATE collation</c> collates the cast result.
+    /// See <see href="https://www.postgresql.org/docs/current/sql-syntax-lexical.html#SQL-PRECEDENCE"/>
+    /// </summary>
+    [Fact]
+    public void parse_collate_after_cast()
+    {
+        switch (Pg().VerifiedExpr("contact_name::TEXT COLLATE \"POSIX\""))
+        {
+            case Expr.Collate { Expr: var expr, Collation: var collation }:
+                Assert.IsType<Expr.Cast>(expr);
+                Assert.Equal("\"POSIX\"", collation.ToString());
+                break;
+            case var other:
+                throw new InvalidOperationException($"Expected Expr::Collate, got: {other}");
+        }
+    }
+
     [Fact]
     public void parse_create_table_from_pg_dump()
     {
@@ -484,19 +502,6 @@ public class SqlParserPostgresTests1
             "release_year public.year, " +
             "active INT" +
             ")");
-    }
-
-    [Fact]
-    public void parse_create_table_with_inherit()
-    {
-        var sql = "" +
-            "CREATE TABLE bazaar.settings (" +
-            "settings_id UUID PRIMARY KEY DEFAULT uuid_generate_v4() NOT NULL, " +
-            "user_id UUID UNIQUE, " +
-            "value TEXT[], " +
-            "use_metric BOOLEAN DEFAULT true" +
-            ")";
-        Pg().VerifiedStmt(sql);
     }
 
     [Fact]
@@ -2426,19 +2431,32 @@ public class SqlParserPostgresTests1
     {
         var pgUnaryOps = new (string, UnaryOperator)[]
         {
-            ("|/", new UnaryOperator.PGSquareRoot()),
-            ("||/", new UnaryOperator.PGCubeRoot()),
-            ("!!", new UnaryOperator.PGPrefixFactorial()),
-            ("@", new UnaryOperator.PGAbs()),
+            ("SELECT !!a", new UnaryOperator.PGPrefixFactorial()),
+            ("SELECT @ a", new UnaryOperator.PGAbs()),
         };
-        foreach (var (strOp, op) in pgUnaryOps)
+        foreach (var (sql, op) in pgUnaryOps)
         {
-            var select = Pg().VerifiedOnlySelect($"SELECT {strOp}a");
+            var select = Pg().VerifiedOnlySelect(sql);
             Assert.Equal<SelectItem>(
                 new SelectItem.UnnamedExpr(new Expr.UnaryOp(
                     Op: op,
                     Expr: new Expr.Identifier(new Ident("a")))),
                 select.Projection[0]);
+        }
+
+        foreach (var (strOp, op) in new (string, UnaryOperator)[]
+        {
+            ("|/", new UnaryOperator.PGSquareRoot()),
+            ("||/", new UnaryOperator.PGCubeRoot()),
+        })
+        {
+            var select = Pg().VerifiedOnlySelect($"SELECT {strOp} a");
+            Assert.Equal<SelectItem>(
+                new SelectItem.UnnamedExpr(new Expr.UnaryOp(
+                    Op: op,
+                    Expr: new Expr.Identifier(new Ident("a")))),
+                select.Projection[0]);
+            Pg().OneStatementParsesTo($"SELECT {strOp}a", $"SELECT {strOp} a");
         }
     }
 

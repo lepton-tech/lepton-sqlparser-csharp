@@ -29,46 +29,18 @@ public sealed partial class Parser
     /// <summary>Parse <c>CREATE TABLE x AS TABLE y</c></summary>
     public Table ParseAsTable()
     {
-        var token1 = NextToken();
-        var token2 = NextToken();
-        var token3 = NextToken();
-
-        string tableName;
-        string schemaName;
-        if (token2.Equals(new Token.Period()))
+        var firstName = ParseIdentifier();
+        if (ConsumeToken(new Token.Period()))
         {
-            switch (token1.Token)
-            {
-                case Token.Word { Value: var w }:
-                    schemaName = w.Value;
-                    break;
-                default:
-                    return Expected<Table>("Schema name", token1);
-            }
-            switch (token3.Token)
-            {
-                case Token.Word { Value: var w }:
-                    tableName = w.Value;
-                    break;
-                default:
-                    return Expected<Table>("Table name", token3);
-            }
+            var secondName = ParseIdentifier();
             return new Table(
-                TableName: tableName,
-                SchemaName: schemaName);
+                TableName: secondName,
+                SchemaName: firstName);
         }
         else
         {
-            switch (token1.Token)
-            {
-                case Token.Word { Value: var w }:
-                    tableName = w.Value;
-                    break;
-                default:
-                    return Expected<Table>("Table name", token1);
-            }
             return new Table(
-                TableName: tableName,
+                TableName: firstName,
                 SchemaName: null);
         }
     }

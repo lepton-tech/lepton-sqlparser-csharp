@@ -168,6 +168,43 @@ public class SqlParserCustomDialectTests
         Assert.Throws<ParserException>(() => Parser.ParseSql(dialect, sql)); // assert!(ast.is_err())
     }
 
+    private static class CustomDialectSupportsTablePartitions
+    {
+        // #[derive(Debug)] struct MyDialect {}
+        internal sealed class MyDialect : Dialect
+        {
+            public override bool IsIdentifierStart(char ch) =>
+                SqlParserCustomDialectTests.IsIdentifierStart(ch);
+
+            public override bool IsIdentifierPart(char ch) =>
+                SqlParserCustomDialectTests.IsIdentifierPart(ch);
+
+            public override bool SupportsTablePartitions => true;
+        }
+
+        // #[derive(Debug)] struct WithoutPartitions {}
+        internal sealed class WithoutPartitions : Dialect
+        {
+            public override bool IsIdentifierStart(char ch) =>
+                SqlParserCustomDialectTests.IsIdentifierStart(ch);
+
+            public override bool IsIdentifierPart(char ch) =>
+                SqlParserCustomDialectTests.IsIdentifierPart(ch);
+        }
+    }
+
+    [Fact]
+    public void custom_dialect_supports_table_partitions()
+    {
+        var sql = "SELECT * FROM employees PARTITION (p0, p1)";
+        var ast = Parser.ParseSql(new CustomDialectSupportsTablePartitions.MyDialect(), sql);
+        Assert.Equal(sql, $"{ast[0]}");
+
+        // A dialect that does not opt in still rejects the clause.
+        // assert!(Parser::parse_sql(&WithoutPartitions {}, sql).is_err())
+        Assert.Throws<ParserException>(() => Parser.ParseSql(new CustomDialectSupportsTablePartitions.WithoutPartitions(), sql));
+    }
+
     private static bool IsIdentifierStart(char ch) =>
         RustChar.IsAsciiLowercase(ch) || RustChar.IsAsciiUppercase(ch) || ch == '_';
 
@@ -177,4 +214,117 @@ public class SqlParserCustomDialectTests
         || RustChar.IsAsciiDigit(ch)
         || ch == '$'
         || ch == '_';
+
+    private static class CustomDialectLambdaKeywordSyntaxWithoutArrow
+    {
+        // #[derive(Debug)] struct MyDialect {}
+        internal sealed class MyDialect : Dialect
+        {
+            public override bool IsIdentifierStart(char ch) =>
+                SqlParserCustomDialectTests.IsIdentifierStart(ch);
+
+            public override bool IsIdentifierPart(char ch) =>
+                SqlParserCustomDialectTests.IsIdentifierPart(ch);
+
+            public override bool SupportsLambdaKeywordSyntax => true;
+        }
+    }
+
+    [Fact]
+    public void custom_dialect_lambda_keyword_syntax_without_arrow()
+    {
+        // A dialect that gives `->` its own meaning can still support lambdas
+        // through the `LAMBDA` keyword spelling.
+        var dialect = new CustomDialectLambdaKeywordSyntaxWithoutArrow.MyDialect();
+
+        // The `LAMBDA` spelling parses.
+        var sql = "SELECT transform(xs, lambda x : x + 1)";
+        Assert.Equal(
+            sql,
+            $"{Parser.ParseSql(dialect, sql)[0]}");
+
+        // `->` keeps whatever meaning the dialect gives it, rather than
+        // introducing a lambda parameter.
+        sql = "SELECT a -> 'b'";
+        var ast = Parser.ParseSql(dialect, sql);
+        switch (ast[0])
+        {
+            case Statement.Query { Value: var query }:
+                if (TestUtils.ExprFromProjection(TestUtils.Only(query.Body.AsSelect()!.Projection))
+                    is not Expr.BinaryOp { Op: var op })
+                {
+                    throw new InvalidOperationException("expected `->` to stay a binary operator");
+                }
+                Assert.Equal<BinaryOperator>(new BinaryOperator.Arrow(), op);
+                break;
+            case var stmt:
+                throw new InvalidOperationException($"unexpected statement {stmt}");
+        }
+    }
+
+    private static class CustomDialectLambdaKeywordDefaultsToArrowSupport
+    {
+        // #[derive(Debug)] struct MyDialect {}
+        internal sealed class MyDialect : Dialect
+        {
+            public override bool IsIdentifierStart(char ch) =>
+                SqlParserCustomDialectTests.IsIdentifierStart(ch);
+
+            public override bool IsIdentifierPart(char ch) =>
+                SqlParserCustomDialectTests.IsIdentifierPart(ch);
+
+            public override bool SupportsLambdaFunctions => true;
+        }
+    }
+
+    [Fact]
+    public void custom_dialect_lambda_keyword_defaults_to_arrow_support()
+    {
+        // Dialects that opt into the `->` spelling get the `LAMBDA` spelling too,
+        // so the new capability does not change any existing dialect.
+        var dialect = new CustomDialectLambdaKeywordDefaultsToArrowSupport.MyDialect();
+        Assert.True(dialect.SupportsLambdaKeywordSyntax);
+        foreach (var sql in new[]
+        {
+            "SELECT transform(xs, lambda x : x + 1)",
+            "SELECT transform(xs, x -> x + 1)",
+        })
+        {
+            Assert.Equal(
+                sql,
+                $"{Parser.ParseSql(dialect, sql)[0]}");
+        }
+    }
+
+    private static class CustomDialectLambdaArrowSyntaxWithoutKeyword
+    {
+        // #[derive(Debug)] struct MyDialect {}
+        internal sealed class MyDialect : Dialect
+        {
+            public override bool IsIdentifierStart(char ch) =>
+                SqlParserCustomDialectTests.IsIdentifierStart(ch);
+
+            public override bool IsIdentifierPart(char ch) =>
+                SqlParserCustomDialectTests.IsIdentifierPart(ch);
+
+            public override bool SupportsLambdaFunctions => true;
+
+            public override bool SupportsLambdaKeywordSyntax => false;
+        }
+    }
+
+    [Fact]
+    public void custom_dialect_lambda_arrow_syntax_without_keyword()
+    {
+        // Arrow lambdas stay on while the `LAMBDA` keyword spelling is off,
+        // as in engines like Spark and Snowflake.
+        var dialect = new CustomDialectLambdaArrowSyntaxWithoutKeyword.MyDialect();
+
+        var sql = "SELECT transform(xs, x -> x + 1)";
+        Assert.Equal(
+            sql,
+            $"{Parser.ParseSql(dialect, sql)[0]}");
+        // assert!(Parser::parse_sql(..).is_err())
+        Assert.Throws<ParserException>(() => Parser.ParseSql(dialect, "SELECT transform(xs, lambda x : x + 1)"));
+    }
 }

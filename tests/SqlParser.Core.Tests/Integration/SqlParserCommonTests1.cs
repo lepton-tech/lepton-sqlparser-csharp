@@ -1955,7 +1955,8 @@ public class SqlParserCommonTests1
                     Expr: new Expr.Identifier(new Ident("a")),
                     List: Sequence.Of<Expr>(new Expr.Value(
                         new Value.SingleQuotedString("a").WithEmptySpan())),
-                    Negated: true)));
+                    Negated: true,
+                    Global: false)));
     }
 
     [Fact]
@@ -2168,7 +2169,8 @@ public class SqlParserCommonTests1
                     List: Sequence.Of<Expr>(
                         new Expr.Value(new Value.SingleQuotedString("HIGH").WithEmptySpan()),
                         new Expr.Value(new Value.SingleQuotedString("MED").WithEmptySpan())),
-                    Negated: negated),
+                    Negated: negated,
+                    Global: false),
                 select.Selection!);
         }
         Chk(false);
@@ -2184,7 +2186,8 @@ public class SqlParserCommonTests1
             new Expr.InSubquery(
                 Expr: new Expr.Identifier(new Ident("segment")),
                 Subquery: VerifiedQuery("SELECT segm FROM bar"),
-                Negated: false),
+                Negated: false,
+                Global: false),
             select.Selection!);
     }
 
@@ -2198,7 +2201,8 @@ public class SqlParserCommonTests1
                 Expr: new Expr.Identifier(new Ident("segment")),
                 Subquery: VerifiedQuery(
                     "(SELECT segm FROM bar) UNION (SELECT segm FROM bar2)"),
-                Negated: false),
+                Negated: false,
+                Global: false),
             select.Selection!);
     }
 
@@ -3291,7 +3295,8 @@ public class SqlParserCommonTests1
         VerifiedStmt("SELECT LISTAGG(dateid)");
         VerifiedStmt("SELECT LISTAGG(DISTINCT dateid)");
         VerifiedStmt("SELECT LISTAGG(dateid ON OVERFLOW ERROR)");
-        VerifiedStmt("SELECT LISTAGG(dateid ON OVERFLOW TRUNCATE N'...' WITH COUNT)");
+        TestUtils.AllDialectsWhere(d => d.SupportsNationalStringLiteral)
+            .VerifiedStmt("SELECT LISTAGG(dateid ON OVERFLOW TRUNCATE N'...' WITH COUNT)");
         VerifiedStmt("SELECT LISTAGG(dateid ON OVERFLOW TRUNCATE X'deadbeef' WITH COUNT)");
     }
 

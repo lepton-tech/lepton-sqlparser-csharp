@@ -524,4 +524,19 @@ public class SqlParserRedshiftTests
     {
         Redshift().VerifiedStmt("SELECT * FROM table_name WHERE interval = 78");
     }
+
+    [Fact]
+    public void parse_approximate_percentile_disc()
+    {
+        var supporting = TestUtils.AllDialectsWhere(d => d.SupportsApproximatePercentileDisc);
+        supporting.VerifiedStmt(
+            "SELECT APPROXIMATE PERCENTILE_DISC(0.5) WITHIN GROUP (ORDER BY totalprice)");
+
+        // Without dialect support, `APPROXIMATE` is just a column name and
+        // `PERCENTILE_DISC` its implicit alias.
+        var nonSupporting = TestUtils.AllDialectsWhere(d => !d.SupportsApproximatePercentileDisc);
+        nonSupporting.OneStatementParsesTo(
+            "SELECT APPROXIMATE PERCENTILE_DISC FROM t",
+            "SELECT APPROXIMATE AS PERCENTILE_DISC FROM t");
+    }
 }

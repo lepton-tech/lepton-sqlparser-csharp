@@ -519,7 +519,10 @@ public sealed partial class Parser
         ExpectToken(new Token.LParen());
         var expr = ParseExpr();
         ExpectKeywordIs(Keyword.AS);
-        var dataType = ParseDataType();
+        var dataType = _dialect.SupportsCastEmptyDataTypeToUnspecified
+            && PeekTokenRef().Token is Token.RParen
+            ? new DataType.Unspecified()
+            : ParseDataType();
         var format = ParseOptionalCastFormat();
         ExpectToken(new Token.RParen());
         return new Expr.Cast(
@@ -618,6 +621,13 @@ public sealed partial class Parser
     public Expr ParsePositionExpr(Ident ident)
     {
         var betweenPrec = _dialect.PrecValue(Precedence.Between);
+        // Memoize a failed `IN` form: the function-call fallback re-parses the
+        // same argument, so nested `POSITION(POSITION(...))` would take 2^N.
+        var memoKey = (_index, _state);
+        if (_failedPositionSyntaxPositions.Contains(memoKey))
+        {
+            return ParseFunction(ObjectName.From(Sequence.Of(ident)));
+        }
         var positionExpr = MaybeParse<Expr>(p =>
         {
             // PARSE SELECT POSITION('@' in field)
@@ -639,6 +649,7 @@ public sealed partial class Parser
             // Snowflake supports `position` as an ordinary function call
             // without the special `IN` syntax.
             case null:
+                _failedPositionSyntaxPositions.Add(memoKey);
                 return ParseFunction(ObjectName.From(Sequence.Of(ident)));
         }
     }
@@ -733,6 +744,19 @@ public sealed partial class Parser
                 trimWhere = ParseTrimWhere();
             }
         }
+        if (_dialect.SupportsCommaSeparatedTrim && ParseKeyword(Keyword.FROM))
+        {
+            var fromExpr = ParseExpr();
+            Sequence<Expr>? trimCharacters = ConsumeToken(new Token.Comma())
+                ? ParseCommaSeparated(p => p.ParseExpr())
+                : null;
+            ExpectToken(new Token.RParen());
+            return new Expr.Trim(
+                Expr: fromExpr,
+                TrimWhere: trimWhere,
+                TrimWhat: null,
+                TrimCharacters: trimCharacters);
+        }
         var expr = ParseExpr();
         if (ParseKeyword(Keyword.FROM))
         {
@@ -751,7 +775,7 @@ public sealed partial class Parser
             ExpectToken(new Token.RParen());
             return new Expr.Trim(
                 Expr: expr,
-                TrimWhere: null,
+                TrimWhere: trimWhere,
                 TrimWhat: null,
                 TrimCharacters: characters);
         }

@@ -287,6 +287,14 @@ public abstract partial record Statement
 
     /// <summary>
     /// <code>
+    /// CREATE FOREIGN TABLE
+    /// </code>
+    /// See <see href="https://www.postgresql.org/docs/current/sql-createforeigntable.html">PostgreSQL</see>
+    /// </summary>
+    public sealed record CreateForeignTable(Ast.CreateForeignTable Value) : Statement;
+
+    /// <summary>
+    /// <code>
     /// CREATE POLICY
     /// </code>
     /// See <see href="https://www.postgresql.org/docs/current/sql-createpolicy.html">PostgreSQL</see>

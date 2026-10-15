@@ -785,9 +785,9 @@ public sealed partial class Parser
             case Token.Word { Value: var w }:
                 return w.IntoIdent(nextToken.Span);
             case Token.SingleQuotedString { Value: var s }:
-                return Ident.WithQuote('\'', s);
+                return Ident.WithQuoteAndSpan('\'', nextToken.Span, s);
             case Token.DoubleQuotedString { Value: var s }:
-                return Ident.WithQuote('"', s);
+                return Ident.WithQuoteAndSpan('"', nextToken.Span, s);
             default:
                 return Expected<Ident>("identifier", nextToken);
         }
@@ -1368,6 +1368,41 @@ public sealed partial class Parser
         {
             return null;
         }
+    }
+
+    internal Sequence<ColumnDef> ParseStructuredObjectTypeDef()
+    {
+        ExpectToken(new Token.LParen());
+        if (ConsumeToken(new Token.RParen()))
+        {
+            return Sequence<ColumnDef>.Empty;
+        }
+        var fields = ParseCommaSeparated(parser =>
+        {
+            if (parser.PeekTokenRef().Token is Token.SingleQuotedString)
+            {
+                return parser.Expected<ColumnDef>("an object field identifier", parser.PeekToken());
+            }
+            var name = parser.ParseIdentifier();
+            var dataType = parser.ParseDataType();
+            Sequence<ColumnOptionDef> options;
+            if (parser.ParseKeywords(Keyword.NOT, Keyword.NULL))
+            {
+                options = Sequence.Of(new ColumnOptionDef(
+                    Name: null,
+                    Option: new ColumnOption.NotNull()));
+            }
+            else
+            {
+                options = Sequence<ColumnOptionDef>.Empty;
+            }
+            return new ColumnDef(
+                Name: name,
+                DataType: dataType,
+                Options: options);
+        });
+        ExpectToken(new Token.RParen());
+        return fields;
     }
 
     /// <summary>Parse a parenthesized sub data type</summary>

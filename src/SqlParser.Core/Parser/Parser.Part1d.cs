@@ -175,7 +175,7 @@ public sealed partial class Parser
             fieldName = null;
         }
 
-        var (fieldType, trailingBracket) = ParseDataTypeHelper();
+        var (fieldType, trailingBracket) = ParseDataTypeWithOptionalCollation();
 
         var options = MaybeParseOptions(Keyword.OPTIONS);
         return (
@@ -289,7 +289,7 @@ public sealed partial class Parser
             Value: value);
     }
 
-    /// <summary>Parse clickhouse [map]</summary>
+    /// <summary>Parse a parenthesized MAP type (ClickHouse or Snowflake).</summary>
     /// <remarks>
     /// Syntax
     /// <code>
@@ -297,16 +297,18 @@ public sealed partial class Parser
     /// </code>
     /// [map]: <see href="https://clickhouse.com/docs/en/sql-reference/data-types/map"/>
     /// </remarks>
-    internal (DataType KeyDataType, DataType ValueDataType) ParseClickHouseMapDef()
+    internal (DataType KeyDataType, DataType ValueDataType, bool ValueNotNull) ParseParenthesizedMapTypeDef()
     {
         ExpectKeywordIs(Keyword.MAP);
         ExpectToken(new Token.LParen());
         var keyDataType = ParseDataType();
         ExpectToken(new Token.Comma());
         var valueDataType = ParseDataType();
+        var valueNotNull = _dialect.SupportsMapValueNotNull
+            && ParseKeywords(Keyword.NOT, Keyword.NULL);
         ExpectToken(new Token.RParen());
 
-        return (keyDataType, valueDataType);
+        return (keyDataType, valueDataType, valueNotNull);
     }
 
     /// <summary>Parse clickhouse [tuple]</summary>
@@ -778,6 +780,12 @@ public sealed partial class Parser
                     return new Expr.AtTimeZone(
                         Timestamp: expr,
                         TimeZone: ParseSubexpr(precedence));
+                case Keyword.GLOBAL when _dialect.SupportsGlobalIn:
+                {
+                    var negated = ParseKeyword(Keyword.NOT);
+                    ExpectKeywordIs(Keyword.IN);
+                    return ParseIn(expr, negated, true);
+                }
                 case Keyword.NOT
                     or Keyword.IN
                     or Keyword.BETWEEN
@@ -814,7 +822,7 @@ public sealed partial class Parser
                     }
                     else if (ParseKeyword(Keyword.IN))
                     {
-                        return ParseIn(expr, negated);
+                        return ParseIn(expr, negated, false);
                     }
                     else if (ParseKeyword(Keyword.BETWEEN))
                     {
@@ -867,6 +875,13 @@ public sealed partial class Parser
                     {
                         return ExpectedRef<Expr>("OF after MEMBER", PeekTokenRef());
                     }
+                // Reached when the dialect assigns `COLLATE` a lower precedence than `::`, e.g.
+                // Postgres's `expr::type COLLATE collation`.
+                // See <https://www.postgresql.org/docs/current/sql-syntax-lexical.html#SQL-PRECEDENCE>
+                case Keyword.COLLATE:
+                    return new Expr.Collate(
+                        Expr: expr,
+                        Collation: ParseObjectName(false));
                 // Can only happen if `get_next_precedence` got out of sync with this function
                 default:
                     throw ParserErr(
@@ -1111,12 +1126,15 @@ public sealed partial class Parser
         return new JsonPath(Path: path.ToSequence());
     }
 
-    /// <summary>Parses the parens following the <c>[ NOT ] IN</c> operator.</summary>
-    public Expr ParseIn(Expr expr, bool negated)
+    /// <summary>Parses the parens following the <c>[ GLOBAL ] [ NOT ] IN</c> operator.</summary>
+    public Expr ParseIn(
+        Expr expr,
+        bool negated,
+        bool global)
     {
         // BigQuery allows `IN UNNEST(array_expression)`
         // https://cloud.google.com/bigquery/docs/reference/standard-sql/operators#in_operators
-        if (ParseKeyword(Keyword.UNNEST))
+        if (!global && ParseKeyword(Keyword.UNNEST))
         {
             ExpectToken(new Token.LParen());
             var arrayExpr = ParseExpr();
@@ -1131,30 +1149,77 @@ public sealed partial class Parser
         {
             return new Expr.InList(
                 Expr: expr,
-                List: Sequence.Of(ParseExpr()),
-                Negated: negated);
+                List: Sequence.Of(ParseSubexpr(_dialect.PrecValue(Precedence.Eq))),
+                Negated: negated,
+                Global: global);
         }
         ExpectToken(new Token.LParen());
-        Expr inOp;
-        switch (MaybeParse(p => p.ParseQuery()))
+        // A leading query is the whole subquery only when `)` follows it,
+        // otherwise it is the first item of a list, as in `IN ((SELECT 1), 2)`.
+        var start = _index;
+        // Where a parsed query lacked its `)`. Reported if the list fails no
+        // further in, since that error would sit inside the query.
+        int? missingRparen;
+        if (_failedInSubqueryPositions.TryGetValue(start, out var cached))
         {
-            case { } subquery:
-                inOp = new Expr.InSubquery(
-                    Expr: expr,
-                    Subquery: subquery,
-                    Negated: negated);
-                break;
-            case null:
-                inOp = new Expr.InList(
-                    Expr: expr,
-                    List: _dialect.SupportsInEmptyList
-                        ? ParseCommaSeparated0(p => p.ParseExpr(), new Token.RParen())
-                        : ParseCommaSeparated(p => p.ParseExpr()),
-                    Negated: negated);
-                break;
+            missingRparen = cached;
         }
-        ExpectToken(new Token.RParen());
-        return inOp;
+        else
+        {
+            // Rust: o `let mut missing_rparen = None;` interno só repete o nome externo, e o valor
+            // do braço vai direto para ele: atribuição ao local externo (caso 94).
+            missingRparen = null;
+            if (MaybeParse(p => p.ParseQuery()) is { } subquery)
+            {
+                if (ConsumeToken(new Token.RParen()))
+                {
+                    return new Expr.InSubquery(
+                        Expr: expr,
+                        Subquery: subquery,
+                        Negated: negated,
+                        Global: global);
+                }
+                missingRparen = _index;
+                _index = start;
+            }
+            _failedInSubqueryPositions[start] = missingRparen;
+        }
+        // Rust: `let list = ..;` (um `Result`, sem `?`) e `match list.and_then(|list|
+        // self.expect_token(&Token::RParen).map(|_| list)) { .. }`: o `try` cobre só a expressão
+        // que produz o `Result`; os braços `Err` rodam depois do `catch` (casos 82 e 124).
+        var list = Sequence<Expr>.Empty;
+        ParserException? listError = null;
+        try
+        {
+            list = _dialect.SupportsInEmptyList
+                ? ParseCommaSeparated0(p => p.ParseExpr(), new Token.RParen())
+                : ParseCommaSeparated(p => p.ParseExpr());
+            ExpectToken(new Token.RParen());
+        }
+        catch (ParserException error)
+        {
+            listError = error;
+        }
+        switch (listError)
+        {
+            case null:
+                return new Expr.InList(
+                    Expr: expr,
+                    List: list,
+                    Negated: negated,
+                    Global: global);
+            case { Error: ParserError.RecursionLimitExceeded }:
+                throw StackGuard.Rethrow(listError);
+            default:
+                // Rust: `Err(e) => match missing_rparen { Some(index) if self.index <= index => {..}
+                // _ => Err(e) }`.
+                if (missingRparen is { } index && _index <= index)
+                {
+                    _index = index;
+                    return ExpectedRef<Expr>(")", PeekTokenRef());
+                }
+                throw StackGuard.Rethrow(listError);
+        }
     }
 
     /// <summary>Parses <c>BETWEEN &lt;low&gt; AND &lt;high&gt;</c>, assuming the <c>BETWEEN</c> keyword was already consumed.</summary>

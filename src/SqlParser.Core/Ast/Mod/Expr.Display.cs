@@ -52,9 +52,19 @@ public abstract partial record Expr
             case CompoundFieldAccess compoundFieldAccess:
             {
                 f.Write($"{compoundFieldAccess.Root}");
+                var prevIsNumber = IsNumberExpr(compoundFieldAccess.Root);
                 foreach (var field in compoundFieldAccess.AccessChain)
                 {
-                    f.Write($"{field}");
+                    switch (field)
+                    {
+                        case AccessExpr.Dot { Value: var expr } when prevIsNumber:
+                            f.Write($" . {expr}");
+                            break;
+                        default:
+                            f.Write($"{field}");
+                            break;
+                    }
+                    prevIsNumber = field is AccessExpr.Dot { Value: var dotExpr } && IsNumberExpr(dotExpr);
                 }
                 break;
             }
@@ -101,10 +111,10 @@ public abstract partial record Expr
                 break;
             }
             case InList inList:
-                f.Write($"{inList.Expr} {(inList.Negated ? "NOT " : "")}IN ({DisplayCommaSeparated(inList.List)})");
+                f.Write($"{inList.Expr} {(inList.Global ? "GLOBAL " : "")}{(inList.Negated ? "NOT " : "")}IN ({DisplayCommaSeparated(inList.List)})");
                 break;
             case InSubquery inSubquery:
-                f.Write($"{inSubquery.Expr} {(inSubquery.Negated ? "NOT " : "")}IN ({inSubquery.Subquery})");
+                f.Write($"{inSubquery.Expr} {(inSubquery.Global ? "GLOBAL " : "")}{(inSubquery.Negated ? "NOT " : "")}IN ({inSubquery.Subquery})");
                 break;
             case InUnnest inUnnest:
                 f.Write($"{inUnnest.Expr} {(inUnnest.Negated ? "NOT " : "")}IN UNNEST({inUnnest.ArrayExpr})");
@@ -187,22 +197,45 @@ public abstract partial record Expr
             {
                 var op = unaryOp.Op;
                 var expr = unaryOp.Expr;
-                if (op is UnaryOperator.PGPostfixFactorial)
+                switch (op)
                 {
-                    f.Write($"{expr}{op}");
-                }
-                else if (op is UnaryOperator.Not
-                    or UnaryOperator.Hash
-                    or UnaryOperator.AtDashAt
-                    or UnaryOperator.DoubleAt
-                    or UnaryOperator.QuestionDash
-                    or UnaryOperator.QuestionPipe)
-                {
-                    f.Write($"{op} {expr}");
-                }
-                else
-                {
-                    f.Write($"{op}{expr}");
+                    case UnaryOperator.PGPostfixFactorial:
+                        if (expr is UnaryOp { Op: UnaryOperator.PGPostfixFactorial })
+                        {
+                            f.Write($"{expr} {op}");
+                        }
+                        else
+                        {
+                            f.Write($"{expr}{op}");
+                        }
+                        break;
+                    case UnaryOperator.Not
+                        or UnaryOperator.BitwiseNot
+                        or UnaryOperator.Hash
+                        or UnaryOperator.AtDashAt
+                        or UnaryOperator.DoubleAt
+                        or UnaryOperator.PGAbs
+                        or UnaryOperator.QuestionDash
+                        or UnaryOperator.QuestionPipe
+                        or UnaryOperator.PGSquareRoot
+                        or UnaryOperator.PGCubeRoot:
+                        f.Write($"{op} {expr}");
+                        break;
+                    case UnaryOperator.Minus or UnaryOperator.BangNot:
+                        if (StartsWithOperatorChar(expr))
+                        {
+                            f.Write($"{op} {expr}");
+                        }
+                        else
+                        {
+                            f.Write($"{op}{expr}");
+                        }
+                        break;
+                    case UnaryOperator.Plus or UnaryOperator.PGPrefixFactorial:
+                        f.Write($"{op}{expr}");
+                        break;
+                    default:
+                        throw new InvalidOperationException($"Variante de UnaryOperator não tratada: {op.GetType().Name}");
                 }
                 break;
             }
@@ -245,7 +278,14 @@ public abstract partial record Expr
                 {
                     case CastKind.Cast:
                     {
-                        f.Write($"CAST({cast.Expr} AS {cast.DataType}");
+                        if (cast.DataType is DataType.Unspecified)
+                        {
+                            f.Write($"CAST({cast.Expr} AS");
+                        }
+                        else
+                        {
+                            f.Write($"CAST({cast.Expr} AS {cast.DataType}");
+                        }
                         if (cast.Format is { } format)
                         {
                             f.Write($" FORMAT {format}");

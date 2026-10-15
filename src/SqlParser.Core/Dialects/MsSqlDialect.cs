@@ -57,6 +57,8 @@ public class MsSqlDialect : Dialect
     /// </summary>
     public override bool SupportsDollarAsMoneyPrefix => true;
 
+    public override bool SupportsCreateProcSyntax => true;
+
     public override bool SupportsConnectBy => true;
 
     public override bool SupportsEqAliasAssignment => true;

@@ -3146,6 +3146,10 @@ namespace SqlParser.Core.Ast
                     flow = VisitVariant((global::SqlParser.Core.Ast.AlterTableOperation.ModifyColumn)this, visitor);
                     if (flow.IsBreak) return flow;
                     break;
+                case global::SqlParser.Core.Ast.AlterTableOperation.ModifyOrderBy:
+                    flow = VisitVariant((global::SqlParser.Core.Ast.AlterTableOperation.ModifyOrderBy)this, visitor);
+                    if (flow.IsBreak) return flow;
+                    break;
                 case global::SqlParser.Core.Ast.AlterTableOperation.RenameConstraint:
                     flow = VisitVariant((global::SqlParser.Core.Ast.AlterTableOperation.RenameConstraint)this, visitor);
                     if (flow.IsBreak) return flow;
@@ -3727,6 +3731,19 @@ namespace SqlParser.Core.Ast
             return global::SqlParser.Core.ControlFlow<TBreak>.Continue;
         }
 
+        // ModifyOrderBy
+        private static global::SqlParser.Core.ControlFlow<TBreak> VisitVariant<TBreak>(global::SqlParser.Core.Ast.AlterTableOperation.ModifyOrderBy v, global::SqlParser.Core.Ast.Visitor<TBreak> visitor)
+        {
+            global::SqlParser.Core.ControlFlow<TBreak> flow;
+            // OrderBy
+            if (v.OrderBy is { } x1)
+            {
+                flow = x1.Visit(visitor);
+                if (flow.IsBreak) return flow;
+            }
+            return global::SqlParser.Core.ControlFlow<TBreak>.Continue;
+        }
+
         // RenameConstraint
         private static global::SqlParser.Core.ControlFlow<TBreak> VisitVariant<TBreak>(global::SqlParser.Core.Ast.AlterTableOperation.RenameConstraint v, global::SqlParser.Core.Ast.Visitor<TBreak> visitor)
         {
@@ -3999,6 +4016,9 @@ namespace SqlParser.Core.Ast
                     break;
                 case global::SqlParser.Core.Ast.AlterTableOperation.ModifyColumn:
                     flow = VisitMutVariant(ref node, (global::SqlParser.Core.Ast.AlterTableOperation.ModifyColumn)node, visitor);
+                    break;
+                case global::SqlParser.Core.Ast.AlterTableOperation.ModifyOrderBy:
+                    flow = VisitMutVariant(ref node, (global::SqlParser.Core.Ast.AlterTableOperation.ModifyOrderBy)node, visitor);
                     break;
                 case global::SqlParser.Core.Ast.AlterTableOperation.RenameConstraint:
                     flow = VisitMutVariant(ref node, (global::SqlParser.Core.Ast.AlterTableOperation.RenameConstraint)node, visitor);
@@ -4906,6 +4926,26 @@ namespace SqlParser.Core.Ast
                     x10 = y11;
                 }
                 if (!global::SqlParser.Core.Ast.VisitSupport.IsSame(x10, n.ColumnPosition)) n = n with { ColumnPosition = x10 };
+                if (flow.IsBreak) { node = n; return flow; }
+            }
+            node = n;
+            return flow;
+        }
+
+        // ModifyOrderBy
+        private static global::SqlParser.Core.ControlFlow<TBreak> VisitMutVariant<TBreak>(ref global::SqlParser.Core.Ast.AlterTableOperation node, global::SqlParser.Core.Ast.AlterTableOperation.ModifyOrderBy v, global::SqlParser.Core.Ast.VisitorMut<TBreak> visitor)
+        {
+            var flow = global::SqlParser.Core.ControlFlow<TBreak>.Continue;
+            var n = v;
+            // OrderBy
+            {
+                var x1 = n.OrderBy;
+                if (x1 is { } y2)
+                {
+                    flow = global::SqlParser.Core.Ast.OneOrManyWithParens<global::SqlParser.Core.Ast.Expr>.VisitMut(ref y2, visitor);
+                    x1 = y2;
+                }
+                if (!global::SqlParser.Core.Ast.VisitSupport.IsSame(x1, n.OrderBy)) n = n with { OrderBy = x1 };
                 if (flow.IsBreak) { node = n; return flow; }
             }
             node = n;
@@ -8010,6 +8050,203 @@ namespace SqlParser.Core.Ast
                     x5 = y6;
                 }
                 if (!global::SqlParser.Core.Ast.VisitSupport.IsSame(x5, node.Version)) node = node with { Version = x5 };
+                if (flow.IsBreak) return flow;
+            }
+            return flow;
+        }
+    }
+
+    // Rust: src/ast/ddl.rs, struct CreateForeignTable. C#: Ast/Ddl/CreateForeignTable.cs.
+    public sealed partial record CreateForeignTable : global::SqlParser.Core.Ast.IVisit, global::SqlParser.Core.Ast.IVisitMut<global::SqlParser.Core.Ast.CreateForeignTable>
+    {
+        /// <inheritdoc/>
+        public global::SqlParser.Core.ControlFlow<TBreak> Visit<TBreak>(global::SqlParser.Core.Ast.Visitor<TBreak> visitor)
+        {
+            // #[cfg_attr(feature = "recursive-protection", recursive::recursive)]
+            if (global::SqlParser.Core.Ast.VisitSupport.StackIsLow()) return global::SqlParser.Core.Ast.VisitSupport.VisitOnNewStack(this, visitor);
+            global::SqlParser.Core.ControlFlow<TBreak> flow;
+            // Name [visit(with = "visit_relation")]
+            if (this.Name is { } x1)
+            {
+                flow = visitor.PreVisitRelation(x1);
+                if (flow.IsBreak) return flow;
+                flow = x1.Visit(visitor);
+                if (flow.IsBreak) return flow;
+                flow = visitor.PostVisitRelation(x1);
+                if (flow.IsBreak) return flow;
+            }
+            // IfNotExists: nenhum gancho alcançável
+            // Columns
+            {
+                var s2 = this.Columns;
+                for (var i3 = 0; i3 < s2.Count; i3++)
+                {
+                    if (s2[i3] is { } x4)
+                    {
+                        flow = x4.Visit(visitor);
+                        if (flow.IsBreak) return flow;
+                    }
+                }
+            }
+            // Constraints
+            {
+                var s5 = this.Constraints;
+                for (var i6 = 0; i6 < s5.Count; i6++)
+                {
+                    if (s5[i6] is { } x7)
+                    {
+                        flow = x7.Visit(visitor);
+                        if (flow.IsBreak) return flow;
+                    }
+                }
+            }
+            // ServerName
+            if (this.ServerName is { } x8)
+            {
+                flow = x8.Visit(visitor);
+                if (flow.IsBreak) return flow;
+            }
+            // Options
+            if (this.Options is { } x9)
+            {
+                {
+                    var s10 = x9;
+                    for (var i11 = 0; i11 < s10.Count; i11++)
+                    {
+                        if (s10[i11] is { } x12)
+                        {
+                            flow = x12.Visit(visitor);
+                            if (flow.IsBreak) return flow;
+                        }
+                    }
+                }
+            }
+            return global::SqlParser.Core.ControlFlow<TBreak>.Continue;
+        }
+
+        /// <inheritdoc/>
+        public global::SqlParser.Core.ControlFlow<TBreak> Visit<TBreak>(global::SqlParser.Core.Ast.VisitorMut<TBreak> visitor, out global::SqlParser.Core.Ast.CreateForeignTable self)
+        {
+            var node = this;
+            var flow = VisitMut(ref node, visitor);
+            self = node;
+            return flow;
+        }
+
+        internal static global::SqlParser.Core.ControlFlow<TBreak> VisitMut<TBreak>(ref global::SqlParser.Core.Ast.CreateForeignTable node, global::SqlParser.Core.Ast.VisitorMut<TBreak> visitor)
+        {
+            // #[cfg_attr(feature = "recursive-protection", recursive::recursive)]
+            if (global::SqlParser.Core.Ast.VisitSupport.StackIsLow()) return global::SqlParser.Core.Ast.VisitSupport.VisitMutOnNewStack(ref node, visitor);
+            var flow = global::SqlParser.Core.ControlFlow<TBreak>.Continue;
+            // Name [visit(with = "visit_relation")]
+            {
+                var x1 = node.Name;
+                if (x1 is { } y2)
+                {
+                    flow = visitor.PreVisitRelation(ref y2);
+                    if (!flow.IsBreak)
+                    {
+                        if (y2 is { } y3)
+                        {
+                            flow = global::SqlParser.Core.Ast.ObjectName.VisitMut(ref y3, visitor);
+                            y2 = y3;
+                        }
+                        if (!flow.IsBreak) flow = visitor.PostVisitRelation(ref y2);
+                    }
+                    x1 = y2;
+                }
+                if (!global::SqlParser.Core.Ast.VisitSupport.IsSame(x1, node.Name)) node = node with { Name = x1 };
+                if (flow.IsBreak) return flow;
+            }
+            // IfNotExists: nenhum gancho alcançável
+            // Columns
+            {
+                var x4 = node.Columns;
+                {
+                    global::SqlParser.Core.Ast.ColumnDef[]? a5 = null;
+                    for (var i6 = 0; i6 < x4.Count; i6++)
+                    {
+                        var e7 = x4[i6];
+                        if (e7 is { } y8)
+                        {
+                            flow = global::SqlParser.Core.Ast.ColumnDef.VisitMut(ref y8, visitor);
+                            e7 = y8;
+                        }
+                        if (!global::SqlParser.Core.Ast.VisitSupport.IsSame(e7, x4[i6]))
+                        {
+                            a5 ??= global::System.Linq.Enumerable.ToArray(x4);
+                            a5[i6] = e7;
+                        }
+                        if (flow.IsBreak) break;
+                    }
+                    if (a5 is not null) x4 = global::SqlParser.Core.Sequence<global::SqlParser.Core.Ast.ColumnDef>.FromArrayNoCopy(a5);
+                }
+                if (!global::SqlParser.Core.Ast.VisitSupport.IsSame(x4, node.Columns)) node = node with { Columns = x4 };
+                if (flow.IsBreak) return flow;
+            }
+            // Constraints
+            {
+                var x9 = node.Constraints;
+                {
+                    global::SqlParser.Core.Ast.TableConstraint[]? a10 = null;
+                    for (var i11 = 0; i11 < x9.Count; i11++)
+                    {
+                        var e12 = x9[i11];
+                        if (e12 is { } y13)
+                        {
+                            flow = global::SqlParser.Core.Ast.TableConstraint.VisitMut(ref y13, visitor);
+                            e12 = y13;
+                        }
+                        if (!global::SqlParser.Core.Ast.VisitSupport.IsSame(e12, x9[i11]))
+                        {
+                            a10 ??= global::System.Linq.Enumerable.ToArray(x9);
+                            a10[i11] = e12;
+                        }
+                        if (flow.IsBreak) break;
+                    }
+                    if (a10 is not null) x9 = global::SqlParser.Core.Sequence<global::SqlParser.Core.Ast.TableConstraint>.FromArrayNoCopy(a10);
+                }
+                if (!global::SqlParser.Core.Ast.VisitSupport.IsSame(x9, node.Constraints)) node = node with { Constraints = x9 };
+                if (flow.IsBreak) return flow;
+            }
+            // ServerName
+            {
+                var x14 = node.ServerName;
+                if (x14 is { } y15)
+                {
+                    flow = global::SqlParser.Core.Ast.Ident.VisitMut(ref y15, visitor);
+                    x14 = y15;
+                }
+                if (!global::SqlParser.Core.Ast.VisitSupport.IsSame(x14, node.ServerName)) node = node with { ServerName = x14 };
+                if (flow.IsBreak) return flow;
+            }
+            // Options
+            {
+                var x16 = node.Options;
+                if (x16 is { } y17)
+                {
+                    {
+                        global::SqlParser.Core.Ast.CreateServerOption[]? a18 = null;
+                        for (var i19 = 0; i19 < y17.Count; i19++)
+                        {
+                            var e20 = y17[i19];
+                            if (e20 is { } y21)
+                            {
+                                flow = global::SqlParser.Core.Ast.CreateServerOption.VisitMut(ref y21, visitor);
+                                e20 = y21;
+                            }
+                            if (!global::SqlParser.Core.Ast.VisitSupport.IsSame(e20, y17[i19]))
+                            {
+                                a18 ??= global::System.Linq.Enumerable.ToArray(y17);
+                                a18[i19] = e20;
+                            }
+                            if (flow.IsBreak) break;
+                        }
+                        if (a18 is not null) y17 = global::SqlParser.Core.Sequence<global::SqlParser.Core.Ast.CreateServerOption>.FromArrayNoCopy(a18);
+                    }
+                    x16 = y17;
+                }
+                if (!global::SqlParser.Core.Ast.VisitSupport.IsSame(x16, node.Options)) node = node with { Options = x16 };
                 if (flow.IsBreak) return flow;
             }
             return flow;

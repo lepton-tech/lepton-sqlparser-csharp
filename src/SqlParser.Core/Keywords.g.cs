@@ -96,6 +96,8 @@ public enum Keyword
     APPLY,
     /// <summary>The <c>APPLYBUDGET</c> SQL keyword.</summary>
     APPLYBUDGET,
+    /// <summary>The <c>APPROXIMATE</c> SQL keyword.</summary>
+    APPROXIMATE,
     /// <summary>The <c>ARCHIVE</c> SQL keyword.</summary>
     ARCHIVE,
     /// <summary>The <c>ARE</c> SQL keyword.</summary>
@@ -1492,6 +1494,8 @@ public enum Keyword
     PRIOR,
     /// <summary>The <c>PRIVILEGES</c> SQL keyword.</summary>
     PRIVILEGES,
+    /// <summary>The <c>PROC</c> SQL keyword.</summary>
+    PROC,
     /// <summary>The <c>PROCEDURE</c> SQL keyword.</summary>
     PROCEDURE,
     /// <summary>The <c>PROCESSLIST</c> SQL keyword.</summary>
@@ -2277,6 +2281,7 @@ public static partial class Keywords
         "APPLICATION",
         "APPLY",
         "APPLYBUDGET",
+        "APPROXIMATE",
         "ARCHIVE",
         "ARE",
         "ARRAY",
@@ -2975,6 +2980,7 @@ public static partial class Keywords
         "PRINT",
         "PRIOR",
         "PRIVILEGES",
+        "PROC",
         "PROCEDURE",
         "PROCESSLIST",
         "PROFILE",
@@ -3385,6 +3391,7 @@ public static partial class Keywords
         Keyword.APPLICATION,
         Keyword.APPLY,
         Keyword.APPLYBUDGET,
+        Keyword.APPROXIMATE,
         Keyword.ARCHIVE,
         Keyword.ARE,
         Keyword.ARRAY,
@@ -4083,6 +4090,7 @@ public static partial class Keywords
         Keyword.PRINT,
         Keyword.PRIOR,
         Keyword.PRIVILEGES,
+        Keyword.PROC,
         Keyword.PROCEDURE,
         Keyword.PROCESSLIST,
         Keyword.PROFILE,
@@ -4605,6 +4613,7 @@ public static partial class Keywords
         "APPLICATION",
         "APPLY",
         "APPLYBUDGET",
+        "APPROXIMATE",
         "ARCHIVE",
         "ARE",
         "ARRAY",
@@ -5303,6 +5312,7 @@ public static partial class Keywords
         "PRINT",
         "PRIOR",
         "PRIVILEGES",
+        "PROC",
         "PROCEDURE",
         "PROCESSLIST",
         "PROFILE",

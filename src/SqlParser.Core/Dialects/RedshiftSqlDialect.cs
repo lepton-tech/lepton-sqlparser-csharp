@@ -126,6 +126,11 @@ public class RedshiftSqlDialect : Dialect
 
     public override bool SupportsStringEscapeConstant => true;
 
+    /// <summary>
+    /// See <see href="https://docs.aws.amazon.com/redshift/latest/dg/r_APPROXIMATE_PERCENTILE_DISC.html"/>
+    /// </summary>
+    public override bool SupportsApproximatePercentileDisc => true;
+
     public override bool SupportsGeometricTypes => true;
 
     public override bool SupportsBitwiseShiftOperators => true;

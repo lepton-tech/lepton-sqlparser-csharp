@@ -92,6 +92,21 @@ public sealed partial class Parser
     /// </summary>
     private readonly SortedSet<int> _failedDerivedTableFactorPositions;
 
+    /// <summary>
+    /// Cached failures of the speculative <c>POSITION(&lt;expr&gt; IN &lt;expr&gt;)</c> arm.
+    /// See <c>Parser::parse_position_expr</c> for the 2^N pattern this guards.
+    /// Keyed by state too, since <c>PRIOR</c> parses differently in <c>CONNECT BY</c>.
+    /// </summary>
+    private readonly SortedSet<(int, ParserState)> _failedPositionSyntaxPositions;
+
+    /// <summary>
+    /// Cached failures from the speculative subquery arm of <c>Parser::parse_in</c>,
+    /// which <c>IN</c> lists nested in a leading subquery would otherwise retry at
+    /// every level, taking 2^N time. Maps the arm's start to where a parsed
+    /// query lacked its <c>)</c>.
+    /// </summary>
+    private readonly SortedDictionary<int, int?> _failedInSubqueryPositions;
+
     /// <summary>Create a parser for a <see cref="Dialect"/></summary>
     /// <remarks>
     /// See also <see cref="ParseSql"/>. Example:
@@ -112,6 +127,8 @@ public sealed partial class Parser
         _failedPrefixPositions = new SortedDictionary<int, ExprPrefixError>();
         _failedReservedWordPrefixPositions = new SortedDictionary<int, ExprPrefixError>();
         _failedDerivedTableFactorPositions = new SortedSet<int>();
+        _failedPositionSyntaxPositions = new SortedSet<(int, ParserState)>();
+        _failedInSubqueryPositions = new SortedDictionary<int, int?>();
     }
 
     /// <summary>Specify the maximum recursion limit while parsing.</summary>
@@ -148,6 +165,8 @@ public sealed partial class Parser
         _failedPrefixPositions.Clear();
         _failedReservedWordPrefixPositions.Clear();
         _failedDerivedTableFactorPositions.Clear();
+        _failedPositionSyntaxPositions.Clear();
+        _failedInSubqueryPositions.Clear();
         return this;
     }
 

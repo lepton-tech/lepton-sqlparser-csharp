@@ -324,6 +324,16 @@ public abstract partial record AlterTableOperation : IDisplay
         MySQLColumnPosition? ColumnPosition) : AlterTableOperation;
 
     /// <summary>
+    /// <c>MODIFY ORDER BY &lt;expr&gt;</c>
+    /// <para>
+    /// Note: this is a ClickHouse-specific operation.
+    /// Please refer to <see href="https://clickhouse.com/docs/en/sql-reference/statements/alter/order-by">ClickHouse</see>
+    /// </para>
+    /// </summary>
+    /// <param name="OrderBy">The new sorting key.</param>
+    public sealed record ModifyOrderBy(OneOrManyWithParens<Expr> OrderBy) : AlterTableOperation;
+
+    /// <summary>
     /// <c>RENAME CONSTRAINT &lt;old_constraint_name&gt; TO &lt;new_constraint_name&gt;</c>
     /// <para>
     /// Note: this is a PostgreSQL-specific operation.
@@ -664,6 +674,9 @@ public abstract partial record AlterTableOperation : IDisplay
 
                 break;
             }
+            case ModifyOrderBy op:
+                f.Write($"MODIFY ORDER BY {op.OrderBy}");
+                break;
             case RenameConstraint op:
                 f.Write($"RENAME CONSTRAINT {op.OldName} TO {op.NewName}");
                 break;

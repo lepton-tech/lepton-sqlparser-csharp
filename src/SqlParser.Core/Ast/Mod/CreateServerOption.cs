@@ -20,7 +20,7 @@
 
 namespace SqlParser.Core.Ast;
 
-/// <summary>A key/value option for <c>CREATE SERVER</c>.</summary>
+/// <summary>A key/value entry in a Postgres <c>OPTIONS ( ... )</c> clause.</summary>
 /// <param name="Key">Option key identifier.</param>
 /// <param name="Value">Option value identifier.</param>
 public sealed partial record CreateServerOption(Ident Key, Ident Value) : IDisplay

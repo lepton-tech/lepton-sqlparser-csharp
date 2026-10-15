@@ -208,16 +208,16 @@ public abstract partial record Value : IDisplay
                 f.Write($"N{v.Value}");
                 break;
             case HexStringLiteral v:
-                f.Write($"X'{v.Value}'");
+                f.Write($"X'{EscapeSingleQuoteString(v.Value)}'");
                 break;
             case Boolean v:
                 f.Write($"{v.Value}");
                 break;
             case SingleQuotedByteStringLiteral v:
-                f.Write($"B'{v.Value}'");
+                f.Write($"B'{EscapeSingleQuoteString(v.Value)}'");
                 break;
             case DoubleQuotedByteStringLiteral v:
-                f.Write($"B\"{v.Value}\"");
+                f.Write($"B\"{EscapeDoubleQuoteString(v.Value)}\"");
                 break;
             case TripleSingleQuotedByteStringLiteral v:
                 f.Write($"B'''{v.Value}'''");
@@ -226,10 +226,10 @@ public abstract partial record Value : IDisplay
                 f.Write($"B\"\"\"{v.Value}\"\"\"");
                 break;
             case SingleQuotedRawStringLiteral v:
-                f.Write($"R'{v.Value}'");
+                f.Write($"R'{EscapeSingleQuoteString(v.Value)}'");
                 break;
             case DoubleQuotedRawStringLiteral v:
-                f.Write($"R\"{v.Value}\"");
+                f.Write($"R\"{EscapeDoubleQuoteString(v.Value)}\"");
                 break;
             case TripleSingleQuotedRawStringLiteral v:
                 f.Write($"R'''{v.Value}'''");

@@ -208,6 +208,8 @@ public abstract partial record AlterTableOperation : ISpanned
                     .Concat(c.Options.Select(i => i.Span()))),
             // AlterTableOperation::ModifyColumn { col_name, data_type: _, options, column_position: _ }
             ModifyColumn m => UnionSpans(Once(m.ColName.Span).Concat(m.Options.Select(i => i.Span()))),
+            // AlterTableOperation::ModifyOrderBy { order_by }
+            ModifyOrderBy m => UnionSpans(m.OrderBy.Select(e => e.Span())),
             // AlterTableOperation::RenameConstraint { old_name, new_name }
             RenameConstraint r => r.OldName.Span.Union(r.NewName.Span),
             // AlterTableOperation::AlterColumn { column_name, op }
@@ -367,6 +369,7 @@ public sealed partial record Insert : ISpanned
         //     table,
         //     table_alias,
         //     columns,
+        //     by_name: _,   // bool
         //     overwrite: _, // bool
         //     source,
         //     partitioned,
@@ -551,10 +554,10 @@ public abstract partial record Expr : ISpanned
             // Expr::IsDistinctFrom(lhs, rhs) / Expr::IsNotDistinctFrom(lhs, rhs) (nomes.md: Left/Right)
             IsDistinctFrom d => d.Left.Span().Union(d.Right.Span()),
             IsNotDistinctFrom d => d.Left.Span().Union(d.Right.Span()),
-            // Expr::InList { expr, list, negated: _ }
+            // Expr::InList { expr, list, negated: _, global: _ }
             InList inList => UnionSpans(
                 Once(inList.Expr.Span()).Concat(inList.List.Select(item => item.Span()))),
-            // Expr::InSubquery { expr, subquery, negated: _ }
+            // Expr::InSubquery { expr, subquery, negated: _, global: _ }
             InSubquery inSubquery => inSubquery.Expr.Span().Union(inSubquery.Subquery.Span()),
             // Expr::InUnnest { expr, array_expr, negated: _ }
             InUnnest inUnnest => inUnnest.Expr.Span().Union(inUnnest.ArrayExpr.Span()),

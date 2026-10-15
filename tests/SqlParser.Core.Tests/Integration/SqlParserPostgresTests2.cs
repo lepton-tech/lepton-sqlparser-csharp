@@ -2359,6 +2359,7 @@ public class SqlParserPostgresTests2
                 Columns: Sequence.Of(
                     ObjectName.From(new Ident("id", null, Span.Empty())),
                     ObjectName.From(new Ident("a", null, Span.Empty()))),
+                ByName: false,
                 Overwrite: false,
                 Source: new Query(
                     With: null,
@@ -2419,6 +2420,7 @@ public class SqlParserPostgresTests2
                 Columns: Sequence.Of(
                     ObjectName.From(new Ident("id", null, Span.Empty())),
                     ObjectName.From(new Ident("a", null, Span.Empty()))),
+                ByName: false,
                 Overwrite: false,
                 Source: new Query(
                     With: null,

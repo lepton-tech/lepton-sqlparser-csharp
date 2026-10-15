@@ -45,9 +45,9 @@ public class SQLiteDialect : Dialect
         (ch >= 'a' && ch <= 'z')
             || (ch >= 'A' && ch <= 'Z')
             || ch == '_'
-            // Port: um char Rust nunca é substituto; `!char.IsSurrogate` mantém o intervalo do Rust
-            // (fora do BMP não é aceito). Ver convencoes.md §13.
-            || (ch >= '\u007f' && ch <= '\uffff' && !char.IsSurrogate(ch));
+            // Port: fora do BMP, as duas metades do par substituto (>= U+D800) passam no teste, o que dá
+            // o mesmo resultado do Rust, que recebe o scalar inteiro (convencoes.md §13, caso 14).
+            || ch >= '\u0080';
 
     public override bool SupportsFilterDuringAggregation => true;
 
@@ -107,4 +107,12 @@ public class SQLiteDialect : Dialect
     public override bool SupportsCommaSeparatedTrim => true;
 
     public override bool SupportsNumericLiteralUnderscores => true;
+
+    public override bool SupportsDoubleEqAssignment => true;
+
+    public override bool SupportsStringLiteralColumnNames => true;
+
+    public override bool SupportsCastEmptyDataTypeToUnspecified => true;
+
+    public override bool SupportsNationalStringLiteral => false;
 }

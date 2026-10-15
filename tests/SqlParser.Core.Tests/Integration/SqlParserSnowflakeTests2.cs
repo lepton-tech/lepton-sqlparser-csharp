@@ -76,6 +76,15 @@ public class SqlParserSnowflakeTests2
             "(SELECT $1:\"A\"::VARIANT, $1:\"B\"::TEXT FROM @stg)",
             "COPY INTO my_company.emp_basic (a, b) FROM " +
             "(SELECT t.$1:plain AS plain, $1:\"B\"::TEXT FROM @stg AS t)",
+            // https://docs.snowflake.com/en/user-guide/tutorials/script-data-load-transform-parquet
+            "COPY INTO my_company.emp_basic (a, b) FROM " +
+            "(SELECT $1:continent::VARCHAR, $1:country:name::VARCHAR FROM @stg)",
+            "COPY INTO my_company.emp_basic (a) FROM " +
+            "(SELECT $1:country.name::VARCHAR FROM @stg)",
+            "COPY INTO my_company.emp_basic (a) FROM " +
+            "(SELECT $1['country']['name']::VARCHAR FROM @stg)",
+            "COPY INTO my_company.emp_basic (a) FROM " +
+            "(SELECT t.$1:country.name::VARCHAR AS country FROM @stg AS t)",
         };
         foreach (var sql in variants)
         {
@@ -2456,6 +2465,137 @@ public class SqlParserSnowflakeTests2
         Snowflake().VerifiedStmt("SELECT $1, $2 FROM @mystage1");
         // With table function args, without alias
         Snowflake().VerifiedStmt("SELECT $1, $2 FROM @mystage1(file_format => 'myformat')");
+    }
+
+    [Fact]
+    public void test_structured_array_type()
+    {
+        Snowflake().OneStatementParsesTo(
+            "CREATE TABLE t (a ARRAY(VARCHAR))",
+            "CREATE TABLE t (a Array(VARCHAR))");
+        Snowflake().OneStatementParsesTo(
+            "SELECT CAST(a AS ARRAY(NUMBER(10, 2))) FROM t",
+            "SELECT CAST(a AS Array(NUMBER(10, 2))) FROM t");
+        Snowflake().VerifiedStmt("CREATE TABLE t (a ARRAY(VARCHAR NOT NULL))");
+        var select =
+            Snowflake().VerifiedOnlySelect("SELECT CAST(a AS ARRAY(VARCHAR NOT NULL)) FROM t");
+        if (TestUtils.ExprFromProjection(TestUtils.Only(select.Projection)) is not Expr.Cast { DataType: var dataType })
+        {
+            throw new InvalidOperationException("internal error: entered unreachable code");
+        }
+        Assert.Equal<DataType>(
+            dataType,
+            new DataType.Array(new ArrayElemTypeDef.ParenthesisNotNull(
+                new DataType.Varchar(null))));
+    }
+
+    [Fact]
+    public void test_structured_object_type()
+    {
+        SnowflakeAndGeneric().VerifiedStmt(
+            "SELECT payload::OBJECT(address OBJECT(city VARCHAR NOT NULL), zip NUMBER) FROM t");
+        Snowflake().OneStatementParsesTo(
+            "SELECT payload::OBJECT(tags ARRAY, labels MAP(VARCHAR, VARCHAR)) FROM t",
+            "SELECT payload::OBJECT(tags ARRAY, labels Map(VARCHAR, VARCHAR)) FROM t");
+        var select = Snowflake().VerifiedOnlySelect(
+            "SELECT payload::OBJECT(items ARRAY(NUMBER NOT NULL), meta MAP(VARCHAR, OBJECT(k NUMBER) NOT NULL)) FROM t");
+        if (TestUtils.ExprFromProjection(TestUtils.Only(select.Projection)) is not Expr.Cast { DataType: var dataType })
+        {
+            throw new InvalidOperationException("internal error: entered unreachable code");
+        }
+        if (dataType is not DataType.Object { Value: var fields })
+        {
+            throw new InvalidOperationException("internal error: entered unreachable code");
+        }
+        Assert.True(fields[0].DataType is DataType.Array { Value: ArrayElemTypeDef.ParenthesisNotNull });
+        if (fields[1].DataType is not DataType.Map { ValueDataType: var value, Bracket: MapBracketKind.ParenthesesNotNull })
+        {
+            throw new InvalidOperationException("internal error: entered unreachable code");
+        }
+        Assert.IsType<DataType.Object>(value);
+
+        Snowflake().OneStatementParsesTo(
+            "SELECT payload::ARRAY(NUMBER) FROM t",
+            "SELECT payload::Array(NUMBER) FROM t");
+        Snowflake().OneStatementParsesTo(
+            "SELECT payload::MAP(VARCHAR, OBJECT(k NUMBER)) FROM t",
+            "SELECT payload::Map(VARCHAR, OBJECT(k NUMBER)) FROM t");
+        Snowflake().VerifiedStmt("SELECT payload::ARRAY(NUMBER NOT NULL) FROM t");
+        Snowflake().VerifiedStmt("SELECT payload::MAP(VARCHAR, NUMBER NOT NULL) FROM t");
+        SnowflakeAndGeneric().VerifiedStmt("CREATE TABLE t (o OBJECT())");
+
+        select = Snowflake().VerifiedOnlySelect(
+            "SELECT CAST(payload AS OBJECT(city VARCHAR, zip NUMBER NOT NULL)) FROM t");
+        // `let Expr::Cast { data_type, .. }` e `let DataType::Object(fields)` repetidos: nomes
+        // distintos (CS0128, caso 72).
+        if (TestUtils.ExprFromProjection(TestUtils.Only(select.Projection)) is not Expr.Cast { DataType: var castDataType })
+        {
+            throw new InvalidOperationException("internal error: entered unreachable code");
+        }
+        if (castDataType is not DataType.Object { Value: var castFields })
+        {
+            throw new InvalidOperationException("internal error: entered unreachable code");
+        }
+        Assert.Equal(2, castFields.Count);
+        Assert.Equal(castFields[0].Name, new Ident("city"));
+        Assert.True(castFields[0].Options.IsEmpty);
+        Assert.Equal(castFields[1].Name, new Ident("zip"));
+        Assert.Equal(1, castFields[1].Options.Count);
+        Assert.Equal<ColumnOption>(castFields[1].Options[0].Option, new ColumnOption.NotNull());
+
+        // assert!(..parse_sql_statements(..).is_err())
+        Assert.Throws<ParserException>(() => Snowflake()
+            .ParseSqlStatements("CREATE TABLE t (o OBJECT(city VARCHAR)"));
+
+        if (SnowflakeAndGeneric().VerifiedStmt("CREATE TABLE t (o OBJECT)")
+            is not Statement.CreateTable { Value.Columns: var columns })
+        {
+            throw new InvalidOperationException("internal error: entered unreachable code");
+        }
+
+        Assert.Equal<DataType>(
+            columns[0].DataType,
+            new DataType.Custom(ObjectName.From(Sequence.Of(new Ident("OBJECT"))), Sequence<string>.Empty));
+    }
+
+    [Fact]
+    public void test_snowflake_stage_name_with_escaped_quotes()
+    {
+        Snowflake().VerifiedStmt("REMOVE @````");
+        Snowflake().OneStatementParsesTo("RM @````", "REMOVE @````");
+        Snowflake().VerifiedStmt("REMOVE @\"stage\"\"name\"");
+    }
+
+    [Fact]
+    public void test_stage_name_delimiters()
+    {
+        Snowflake().VerifiedStmt("SELECT * FROM @stage1, @stage2");
+        Snowflake().VerifiedStmt("SELECT * FROM @stage, my_table");
+        Snowflake().VerifiedStmt("SELECT * FROM my_table, @stage");
+        Snowflake().VerifiedStmt("SELECT * FROM @namespace.stage_name, item");
+        Snowflake().VerifiedStmt("SELECT * FROM @stage(file_format => 'myformat'), my_table");
+        Snowflake().VerifiedStmt("SELECT * FROM @stage AS s, my_table");
+        Snowflake().VerifiedStmt("SELECT * FROM @stage s, my_table");
+        var stmts = Snowflake()
+            .ParseSqlStatements("SELECT * FROM @stage; SELECT 1");
+        Assert.Equal(2, stmts.Count);
+
+        Assert.Equal<ParserError>(
+            Assert.Throws<ParserException>(() => Snowflake()
+                .ParseSqlStatements("SELECT * FROM @")).Error,
+            new ParserError.ParserErrorValue("Expected: stage name identifier, found: EOF"));
+        Assert.Equal<ParserError>(
+            Assert.Throws<ParserException>(() => Snowflake()
+                .ParseSqlStatements("SELECT * FROM @;")).Error,
+            new ParserError.ParserErrorValue("Expected: stage name identifier, found: ;"));
+        Assert.Equal<ParserError>(
+            Assert.Throws<ParserException>(() => Snowflake()
+                .ParseSqlStatements("SELECT * FROM @, item")).Error,
+            new ParserError.ParserErrorValue("Expected: stage name identifier, found: ,"));
+        Assert.Equal<ParserError>(
+            Assert.Throws<ParserException>(() => Snowflake()
+                .ParseSqlStatements("SELECT * FROM @.stage")).Error,
+            new ParserError.ParserErrorValue("Expected: stage name identifier, found: ."));
     }
 }
 #pragma warning restore xUnit2013

@@ -311,6 +311,7 @@ public abstract partial record Statement : ISpanned
             DropOperatorClass dropOperatorClass => dropOperatorClass.Value.Span(),
             CreateSecret => Core.Span.Empty(),
             CreateServer => Core.Span.Empty(),
+            CreateForeignTable stmt => stmt.Value.Span(),
             CreateConnector => Core.Span.Empty(),
             CreateOperator createOperator => createOperator.Value.Span(),
             CreateOperatorFamily createOperatorFamily => createOperatorFamily.Value.Span(),

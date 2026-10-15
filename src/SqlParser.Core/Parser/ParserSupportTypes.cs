@@ -109,6 +109,9 @@ public sealed record ParserOptions(bool TrailingCommas, bool Unescape, bool Requ
 }
 
 /// <summary>The state of the parser.</summary>
+// Rust: #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord)] (o `PartialEq`/`Ord` entrou no upstream
+// #2619, para a chave de `failed_position_syntax_positions`): o `enum` C# já tem igualdade e ordem pelos
+// valores, na ordem de declaração, como o derive.
 internal enum ParserState
 {
     /// <summary>The default state of the parser.</summary>

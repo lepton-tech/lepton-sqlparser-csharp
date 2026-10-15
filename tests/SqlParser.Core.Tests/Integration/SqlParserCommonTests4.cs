@@ -1363,14 +1363,34 @@ public class SqlParserCommonTests4
                 new MatchRecognizePattern.Repetition(new MatchRecognizePattern.Symbol(new MatchRecognizeSymbol.Named(new Ident("S2"))), new RepetitionQuantifier.OneOrMore()),
                 new MatchRecognizePattern.Repetition(new MatchRecognizePattern.Symbol(new MatchRecognizeSymbol.Named(new Ident("S3"))), new RepetitionQuantifier.AtMostOne()))));
 
-        // double repetition
+        // reluctant repetition
         Check(
             "S2*?",
             new MatchRecognizePattern.Repetition(
+                new MatchRecognizePattern.Symbol(new MatchRecognizeSymbol.Named(new Ident("S2"))),
+                new RepetitionQuantifier.Reluctant(new RepetitionQuantifier.ZeroOrMore())));
+
+        Check(
+            "S1+? S2?? S3{2,4}?",
+            new MatchRecognizePattern.Concat(Sequence.Of<MatchRecognizePattern>(
+                new MatchRecognizePattern.Repetition(
+                    new MatchRecognizePattern.Symbol(new MatchRecognizeSymbol.Named(new Ident("S1"))),
+                    new RepetitionQuantifier.Reluctant(new RepetitionQuantifier.OneOrMore())),
                 new MatchRecognizePattern.Repetition(
                     new MatchRecognizePattern.Symbol(new MatchRecognizeSymbol.Named(new Ident("S2"))),
-                    new RepetitionQuantifier.ZeroOrMore()),
-                new RepetitionQuantifier.AtMostOne()));
+                    new RepetitionQuantifier.Reluctant(new RepetitionQuantifier.AtMostOne())),
+                new MatchRecognizePattern.Repetition(
+                    new MatchRecognizePattern.Symbol(new MatchRecognizeSymbol.Named(new Ident("S3"))),
+                    new RepetitionQuantifier.Reluctant(new RepetitionQuantifier.Range(2, 4))))));
+
+        foreach (var pattern in new[] { "S1**", "S1+++", "S1???", "S1{2,4}+" })
+        {
+            var sql =
+                $"SELECT * FROM my_table MATCH_RECOGNIZE(PATTERN ({pattern}) DEFINE DUMMY AS 1 = 1)";
+            // "stacked quantifier should fail: {pattern}"
+            Assert.Throws<ParserException>(() => TestUtils.AllDialectsWhere(d => d.SupportsMatchRecognize)
+                .ParseSqlStatements(sql));
+        }
 
         // range quantifiers in an alternation
         Check(
@@ -1405,10 +1425,8 @@ public class SqlParserCommonTests4
                     new MatchRecognizePattern.Symbol(new MatchRecognizeSymbol.Start()),
                     new MatchRecognizePattern.Symbol(new MatchRecognizeSymbol.Named(new Ident("S1"))),
                     new MatchRecognizePattern.Repetition(
-                        new MatchRecognizePattern.Repetition(
-                            new MatchRecognizePattern.Symbol(new MatchRecognizeSymbol.Named(new Ident("S2"))),
-                            new RepetitionQuantifier.ZeroOrMore()),
-                        new RepetitionQuantifier.AtMostOne()),
+                        new MatchRecognizePattern.Symbol(new MatchRecognizeSymbol.Named(new Ident("S2"))),
+                        new RepetitionQuantifier.Reluctant(new RepetitionQuantifier.ZeroOrMore())),
                     new MatchRecognizePattern.Repetition(
                         new MatchRecognizePattern.Group(new MatchRecognizePattern.Concat(Sequence.Of<MatchRecognizePattern>(
                             new MatchRecognizePattern.Exclude(new MatchRecognizeSymbol.Named(new Ident("S3"))),
@@ -2398,6 +2416,20 @@ public class SqlParserCommonTests4
         sql = "SELECT some_alias = (a*b) FROM some_table";
         expected = "SELECT (a * b) AS some_alias FROM some_table";
         _ = dialects.OneStatementParsesTo(sql, expected);
+
+        sql = """SELECT some_alias = "from" FROM some_table""";
+        expected = """SELECT "from" AS some_alias FROM some_table""";
+        _ = dialects.OneStatementParsesTo(sql, expected);
+
+        Assert.Equal<ParserError>(
+            Assert.Throws<ParserException>(() => dialects
+                .ParseSqlStatements("SELECT a = FROM")).Error,
+            new ParserError.ParserErrorValue("Expected an expression, found: FROM"));
+
+        Assert.Equal<ParserError>(
+            Assert.Throws<ParserException>(() => dialects
+                .ParseSqlStatements("SELECT a = FROM some_table")).Error,
+            new ParserError.ParserErrorValue("Expected an expression, found: FROM"));
 
         dialects = TestUtils.AllDialectsWhere(d => !d.SupportsEqAliasAssignment);
         sql = "SELECT x = (a * b) FROM some_table";

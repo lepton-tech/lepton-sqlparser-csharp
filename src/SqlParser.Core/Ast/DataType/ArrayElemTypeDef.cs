@@ -43,6 +43,9 @@ public abstract partial record ArrayElemTypeDef
     /// <summary>Parenthesis style, e.g. <c>Array(Int64)</c>.</summary>
     public sealed record Parenthesis(DataType Value) : ArrayElemTypeDef;
 
+    /// <summary>Parenthesis style with a non-null element constraint, e.g. <c>ARRAY(INT NOT NULL)</c>.</summary>
+    public sealed record ParenthesisNotNull(DataType Value) : ArrayElemTypeDef;
+
     /// <summary>Qualified by a data type and optional size, e.g. <c>INT ARRAY</c> or <c>INT ARRAY[4]</c>.</summary>
     // Rust: `Qualified(Box<DataType>, Option<u64>)`; nomes dos campos em nomes.md.
     public sealed record Qualified(DataType DataType, ulong? Size) : ArrayElemTypeDef;

@@ -7632,6 +7632,10 @@ namespace SqlParser.Core.Ast
                     flow = VisitVariant((global::SqlParser.Core.Ast.SetExpr.Merge)this, visitor);
                     if (flow.IsBreak) return flow;
                     break;
+                case global::SqlParser.Core.Ast.SetExpr.Table:
+                    flow = VisitVariant((global::SqlParser.Core.Ast.SetExpr.Table)this, visitor);
+                    if (flow.IsBreak) return flow;
+                    break;
             }
             return global::SqlParser.Core.ControlFlow<TBreak>.Continue;
         }
@@ -7748,6 +7752,19 @@ namespace SqlParser.Core.Ast
             return global::SqlParser.Core.ControlFlow<TBreak>.Continue;
         }
 
+        // Table
+        private static global::SqlParser.Core.ControlFlow<TBreak> VisitVariant<TBreak>(global::SqlParser.Core.Ast.SetExpr.Table v, global::SqlParser.Core.Ast.Visitor<TBreak> visitor)
+        {
+            global::SqlParser.Core.ControlFlow<TBreak> flow;
+            // Value
+            if (v.Value is { } x1)
+            {
+                flow = x1.Visit(visitor);
+                if (flow.IsBreak) return flow;
+            }
+            return global::SqlParser.Core.ControlFlow<TBreak>.Continue;
+        }
+
         /// <inheritdoc/>
         public global::SqlParser.Core.ControlFlow<TBreak> Visit<TBreak>(global::SqlParser.Core.Ast.VisitorMut<TBreak> visitor, out global::SqlParser.Core.Ast.SetExpr self)
         {
@@ -7787,6 +7804,9 @@ namespace SqlParser.Core.Ast
                     break;
                 case global::SqlParser.Core.Ast.SetExpr.Merge:
                     flow = VisitMutVariant(ref node, (global::SqlParser.Core.Ast.SetExpr.Merge)node, visitor);
+                    break;
+                case global::SqlParser.Core.Ast.SetExpr.Table:
+                    flow = VisitMutVariant(ref node, (global::SqlParser.Core.Ast.SetExpr.Table)node, visitor);
                     break;
             }
             return flow;
@@ -7964,6 +7984,26 @@ namespace SqlParser.Core.Ast
             node = n;
             return flow;
         }
+
+        // Table
+        private static global::SqlParser.Core.ControlFlow<TBreak> VisitMutVariant<TBreak>(ref global::SqlParser.Core.Ast.SetExpr node, global::SqlParser.Core.Ast.SetExpr.Table v, global::SqlParser.Core.Ast.VisitorMut<TBreak> visitor)
+        {
+            var flow = global::SqlParser.Core.ControlFlow<TBreak>.Continue;
+            var n = v;
+            // Value
+            {
+                var x1 = n.Value;
+                if (x1 is { } y2)
+                {
+                    flow = global::SqlParser.Core.Ast.Table.VisitMut(ref y2, visitor);
+                    x1 = y2;
+                }
+                if (!global::SqlParser.Core.Ast.VisitSupport.IsSame(x1, n.Value)) n = n with { Value = x1 };
+                if (flow.IsBreak) { node = n; return flow; }
+            }
+            node = n;
+            return flow;
+        }
     }
 
     // Rust: src/ast/query.rs, enum SetOperator. C#: Ast/Query/SetOperator.cs.
@@ -8128,14 +8168,63 @@ namespace SqlParser.Core.Ast
     public sealed partial record Table : global::SqlParser.Core.Ast.IVisit, global::SqlParser.Core.Ast.IVisitMut<global::SqlParser.Core.Ast.Table>
     {
         /// <inheritdoc/>
-        // Nenhum campo alcança um gancho do Visitor<TBreak>: a visita do derive Rust não tem efeito.
-        public global::SqlParser.Core.ControlFlow<TBreak> Visit<TBreak>(global::SqlParser.Core.Ast.Visitor<TBreak> visitor) => global::SqlParser.Core.ControlFlow<TBreak>.Continue;
+        public global::SqlParser.Core.ControlFlow<TBreak> Visit<TBreak>(global::SqlParser.Core.Ast.Visitor<TBreak> visitor)
+        {
+            // #[cfg_attr(feature = "recursive-protection", recursive::recursive)]
+            if (global::SqlParser.Core.Ast.VisitSupport.StackIsLow()) return global::SqlParser.Core.Ast.VisitSupport.VisitOnNewStack(this, visitor);
+            global::SqlParser.Core.ControlFlow<TBreak> flow;
+            // TableName
+            if (this.TableName is { } x1)
+            {
+                flow = x1.Visit(visitor);
+                if (flow.IsBreak) return flow;
+            }
+            // SchemaName
+            if (this.SchemaName is { } x2)
+            {
+                flow = x2.Visit(visitor);
+                if (flow.IsBreak) return flow;
+            }
+            return global::SqlParser.Core.ControlFlow<TBreak>.Continue;
+        }
 
         /// <inheritdoc/>
         public global::SqlParser.Core.ControlFlow<TBreak> Visit<TBreak>(global::SqlParser.Core.Ast.VisitorMut<TBreak> visitor, out global::SqlParser.Core.Ast.Table self)
         {
-            self = this;
-            return global::SqlParser.Core.ControlFlow<TBreak>.Continue;
+            var node = this;
+            var flow = VisitMut(ref node, visitor);
+            self = node;
+            return flow;
+        }
+
+        internal static global::SqlParser.Core.ControlFlow<TBreak> VisitMut<TBreak>(ref global::SqlParser.Core.Ast.Table node, global::SqlParser.Core.Ast.VisitorMut<TBreak> visitor)
+        {
+            // #[cfg_attr(feature = "recursive-protection", recursive::recursive)]
+            if (global::SqlParser.Core.Ast.VisitSupport.StackIsLow()) return global::SqlParser.Core.Ast.VisitSupport.VisitMutOnNewStack(ref node, visitor);
+            var flow = global::SqlParser.Core.ControlFlow<TBreak>.Continue;
+            // TableName
+            {
+                var x1 = node.TableName;
+                if (x1 is { } y2)
+                {
+                    flow = global::SqlParser.Core.Ast.Ident.VisitMut(ref y2, visitor);
+                    x1 = y2;
+                }
+                if (!global::SqlParser.Core.Ast.VisitSupport.IsSame(x1, node.TableName)) node = node with { TableName = x1 };
+                if (flow.IsBreak) return flow;
+            }
+            // SchemaName
+            {
+                var x3 = node.SchemaName;
+                if (x3 is { } y4)
+                {
+                    flow = global::SqlParser.Core.Ast.Ident.VisitMut(ref y4, visitor);
+                    x3 = y4;
+                }
+                if (!global::SqlParser.Core.Ast.VisitSupport.IsSame(x3, node.SchemaName)) node = node with { SchemaName = x3 };
+                if (flow.IsBreak) return flow;
+            }
+            return flow;
         }
     }
 

@@ -483,6 +483,10 @@ public abstract partial record DataType : IDisplay
     /// <summary>String with optional length.</summary>
     public sealed record String(ulong? Value) : DataType;
 
+    /// <summary>A data type with an explicit collation, as supported by Databricks.</summary>
+    // Rust: `Collate(Box<DataType>, ObjectName)`; nomes dos campos em nomes.md.
+    public sealed record Collate(DataType DataType, ObjectName Collation) : DataType;
+
     /// <summary>A fixed-length string e.g <see href="https://clickhouse.com/docs/en/sql-reference/data-types/fixedstring">ClickHouse</see>.</summary>
     public sealed record FixedString(ulong Value) : DataType;
 
@@ -529,6 +533,11 @@ public abstract partial record DataType : IDisplay
     /// Nested type, see <see href="https://clickhouse.com/docs/en/sql-reference/data-types/nested-data-structures/nested">ClickHouse</see>.
     /// </summary>
     public sealed record Nested(Sequence<ColumnDef> Value) : DataType;
+
+    /// <summary>
+    /// Structured object type, see <see href="https://docs.snowflake.com/en/sql-reference/data-types-structured#structured-object-types">Snowflake</see>.
+    /// </summary>
+    public sealed record Object(Sequence<ColumnDef> Value) : DataType;
 
     /// <summary>Enum type.</summary>
     // Rust: `Enum(Vec<EnumMember>, Option<u8>)`; nomes dos campos em nomes.md.
@@ -871,6 +880,9 @@ public abstract partial record DataType : IDisplay
             case String d:
                 FormatTypeWithOptionalLength(f, "STRING", d.Value, false);
                 break;
+            case Collate d:
+                f.Write($"{d.DataType} COLLATE {d.Collation}");
+                break;
             case Bytea:
                 f.Write($"BYTEA");
                 break;
@@ -900,6 +912,9 @@ public abstract partial record DataType : IDisplay
                         break;
                     case ArrayElemTypeDef.Parenthesis t:
                         f.Write($"Array({t.Value})");
+                        break;
+                    case ArrayElemTypeDef.ParenthesisNotNull t:
+                        f.Write($"ARRAY({t.Value} NOT NULL)");
                         break;
                     case ArrayElemTypeDef.Qualified { Size: null } t:
                         f.Write($"{t.DataType} ARRAY");
@@ -1005,6 +1020,9 @@ public abstract partial record DataType : IDisplay
                     case MapBracketKind.Parentheses:
                         f.Write($"Map({d.KeyDataType}, {d.ValueDataType})");
                         break;
+                    case MapBracketKind.ParenthesesNotNull:
+                        f.Write($"MAP({d.KeyDataType}, {d.ValueDataType} NOT NULL)");
+                        break;
                     case MapBracketKind.AngleBrackets:
                         f.Write($"MAP<{d.KeyDataType}, {d.ValueDataType}>");
                         break;
@@ -1017,6 +1035,9 @@ public abstract partial record DataType : IDisplay
                 break;
             case Nested d:
                 f.Write($"Nested({DisplayCommaSeparated(d.Value)})");
+                break;
+            case Object d:
+                f.Write($"OBJECT({DisplayCommaSeparated(d.Value)})");
                 break;
             case Unspecified:
                 break;

@@ -956,6 +956,8 @@ public sealed partial class Parser
                 while (ConsumeToken(new Token.Period()))
                 {
                     var partToken = NextToken();
+                    // `break` do laço dentro do `match`: flag `stop` (convencoes.md §13, caso 100).
+                    var stop = false;
                     switch (partToken.Token)
                     {
                         case Token.Word { Value: var w }:
@@ -974,8 +976,16 @@ public sealed partial class Parser
                             return new Expr.QualifiedWildcard(
                                 Prefix: ObjectName.From(idParts.ToSequence()),
                                 Token: new AttachedToken(partToken));
+                        // A field index such as `t.1` is parsed as an expression.
+                        case Token.Number when _dialect.SupportsTupleElementAccess:
+                            stop = true;
+                            break;
                         default:
                             return Expected<Expr>("an identifier or a '*' after '.'", partToken);
+                    }
+                    if (stop)
+                    {
+                        break;
                     }
                 }
                 break;

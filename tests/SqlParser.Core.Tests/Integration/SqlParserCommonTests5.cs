@@ -50,8 +50,21 @@ public class SqlParserCommonTests5
     private static Statement VerifiedStmt(string query) =>
         TestUtils.AllDialects().VerifiedStmt(query);
 
+    // fn verified_query(..) (usada a partir do upstream #2586, Rodada 1 de sincronização)
+    private static Query VerifiedQuery(string query) =>
+        TestUtils.AllDialects().VerifiedQuery(query);
+
     private static Select VerifiedOnlySelect(string query) =>
         TestUtils.AllDialects().VerifiedOnlySelect(query);
+
+    // fn pg_and_generic() -> TestedDialects (sqlparser_common.rs, linha 1717; usada a partir do
+    // upstream #2586, Rodada 1 de sincronização)
+    private static TestedDialects PgAndGeneric() =>
+        new TestedDialects(new List<Dialect>
+        {
+            new PostgreSqlDialect(),
+            new GenericDialect(),
+        });
 
     // ---- Tradução de construções da std do Rust (sem equivalente direto em C#) ----
 
@@ -88,7 +101,13 @@ public class SqlParserCommonTests5
     //     rx.recv_timeout(timeout).expect(expect_message);
     // Se o corpo lançar uma exceção (o `panic!` da thread no Rust), o `tx` é descartado sem enviar e
     // o `recv_timeout` falha com `Disconnected`; se o prazo vencer, com `Timeout`.
-    private static void SpawnAndRecvTimeout(System.Action body, TimeSpan timeout, string expectMessage)
+    // `stackSize`: `thread::Builder::new().stack_size(n).spawn(..)` (upstream #2619, Rodada 1 de
+    // sincronização); sem ele, a pilha padrão do `std::thread::spawn`.
+    private static void SpawnAndRecvTimeout(
+        System.Action body,
+        TimeSpan timeout,
+        string expectMessage,
+        int stackSize = RustThreadStackSize)
     {
         var sent = false;
         Exception? panic = null;
@@ -105,7 +124,7 @@ public class SqlParserCommonTests5
                     panic = e;
                 }
             },
-            RustThreadStackSize)
+            stackSize)
         {
             IsBackground = true,
         };
@@ -2846,12 +2865,7 @@ public class SqlParserCommonTests5
     [Fact]
     public void parse_generic_unary_ops()
     {
-        var unaryOps = new (string, UnaryOperator)[]
-        {
-            ("~", new UnaryOperator.BitwiseNot()),
-            ("-", new UnaryOperator.Minus()),
-            ("+", new UnaryOperator.Plus()),
-        };
+        var unaryOps = new (string, UnaryOperator)[] { ("-", new UnaryOperator.Minus()), ("+", new UnaryOperator.Plus()) };
         foreach (var (strOp, op) in unaryOps)
         {
             var select = VerifiedOnlySelect($"SELECT {strOp}expr");
@@ -2861,6 +2875,15 @@ public class SqlParserCommonTests5
                     Expr: new Expr.Identifier(new Ident("expr")))),
                 select.Projection[0]);
         }
+
+        // `let select` repetido fora do laço: nome distinto (CS0136, caso 72).
+        var bitwiseNotSelect = VerifiedOnlySelect("SELECT ~ expr");
+        Assert.Equal(
+            new SelectItem.UnnamedExpr(new Expr.UnaryOp(
+                Op: new UnaryOperator.BitwiseNot(),
+                Expr: new Expr.Identifier(new Ident("expr")))),
+            bitwiseNotSelect.Projection[0]);
+        OneStatementParsesTo("SELECT ~expr", "SELECT ~ expr");
     }
 
     [Fact]
@@ -3412,5 +3435,440 @@ public class SqlParserCommonTests5
             },
             TimeSpan.FromSeconds(5),
             "parser should reject this quickly, not loop exponentially");
+    }
+
+    [Fact]
+    public void parse_insert_by_name()
+    {
+        VerifiedStmt("INSERT INTO target BY NAME SELECT 1 AS a");
+
+        switch (VerifiedStmt("INSERT INTO target (a) BY NAME SELECT 1 AS a"))
+        {
+            case Statement.Insert { Value: { ByName: var byName, Columns: var columns } }:
+                Assert.True(byName);
+                Assert.Single(columns);
+                break;
+            default:
+                throw Unreachable();
+        }
+
+        var dialects = TestUtils.AllDialectsWhere(d => !d.SupportsInsertTableAlias);
+        switch (dialects.VerifiedStmt("INSERT INTO TABLE target PARTITION (p = 1) BY NAME SELECT 1 AS a"))
+        {
+            case Statement.Insert
+            {
+                Value:
+                {
+                    ByName: var byName,
+                    HasTableKeyword: var hasTableKeyword,
+                    Partitioned: var partitioned,
+                }
+            }:
+                Assert.True(byName);
+                Assert.True(hasTableKeyword);
+                Assert.Single(partitioned!.Value);
+                break;
+            default:
+                throw Unreachable();
+        }
+
+        // `BY NAME` does not shadow a table alias in dialects supporting one.
+        dialects = TestUtils.AllDialectsWhere(d => d.SupportsInsertTableAlias);
+        switch (dialects.VerifiedStmt("INSERT INTO target AS t BY NAME SELECT 1 AS a"))
+        {
+            case Statement.Insert { Value: { ByName: var byName, TableAlias: var tableAlias } }:
+                Assert.True(byName);
+                Assert.Equal("t", tableAlias!.Alias.Value);
+                break;
+            default:
+                throw Unreachable();
+        }
+    }
+
+    [Fact]
+    public void parse_bitwise_not_renders_apart_from_operand()
+    {
+        TestUtils.AllDialects().VerifiedStmt("SELECT ~ -1");
+        TestUtils.AllDialects().VerifiedStmt("SELECT ~ ~ 1");
+    }
+
+    [Fact]
+    public void parse_unary_minus_never_renders_line_comment()
+    {
+        TestUtils.AllDialects().VerifiedStmt("SELECT - -1");
+        TestUtils.AllDialects().VerifiedStmt("SELECT - - -1");
+        TestUtils.AllDialects().VerifiedStmt("SELECT -1");
+        TestUtils.AllDialects().VerifiedStmt("SELECT -x");
+    }
+
+    [Fact]
+    public void parse_table_preserves_quotes_and_trailing_tokens()
+    {
+        var dialects = new TestedDialects(new List<Dialect>
+        {
+            new AnsiDialect(),
+            new GenericDialect(),
+            new PostgreSqlDialect(),
+            new DuckDbDialect(),
+            new SnowflakeDialect(),
+        });
+        dialects.VerifiedStmt("CREATE TABLE new_table AS TABLE \"old_table\"");
+        dialects.VerifiedStmt("CREATE TABLE new_table AS TABLE \"schema_name\".\"old_table\"");
+        dialects.VerifiedStmt("CREATE TABLE new_table AS TABLE old_table ORDER BY x");
+        dialects.VerifiedStmt("CREATE TABLE new_table AS TABLE old_table LIMIT 10");
+        dialects.VerifiedStmt("SELECT * FROM (TABLE old_table ORDER BY x)");
+
+        var backtickDialects = new TestedDialects(new List<Dialect>
+        {
+            new AnsiDialect(),
+            new GenericDialect(),
+            new MySqlDialect(),
+        });
+        backtickDialects.VerifiedStmt("CREATE TABLE new_table AS TABLE `old_table`");
+        backtickDialects.VerifiedStmt("CREATE TABLE new_table AS TABLE `%mpty`");
+        backtickDialects.VerifiedStmt("INSERT INTO t TABLE `%mpty`");
+
+        var err = Assert.Throws<ParserException>(() => dialects
+            .ParseSqlStatements("CREATE TABLE new_table AS TABLE %mpty")).Error;
+        Assert.Equal(
+            new ParserError.ParserErrorValue("Expected: identifier, found: %"),
+            err);
+
+        err = Assert.Throws<ParserException>(() => backtickDialects
+            .ParseSqlStatements("CREATE TABLE new_table AS TABLE `x` ORE")).Error;
+        Assert.Equal(
+            new ParserError.ParserErrorValue("Expected: end of statement, found: ORE"),
+            err);
+    }
+
+    [Fact]
+    public void parse_hex_string_literal_display_escaping()
+    {
+        TestUtils.AllDialects().VerifiedStmt("SELECT X''''");
+        TestUtils.AllDialects().VerifiedStmt("SELECT X'ab''cd'");
+        TestUtils.AllDialects().OneStatementParsesTo("SELECT x'''' N", "SELECT X'''' AS N");
+    }
+
+    [Fact]
+    public void parse_stage_table_factor()
+    {
+        var supported = TestUtils.AllDialectsWhere(d => d.SupportsStages);
+        supported.VerifiedStmt("SELECT * FROM @stage");
+        supported.VerifiedStmt("SELECT * FROM @stage, my_table");
+
+        var unsupported = TestUtils.AllDialectsWhere(d => !d.SupportsStages && !d.IsIdentifierStart('@'));
+        Assert.Equal<ParserError>(
+            Assert.Throws<ParserException>(() => unsupported
+                .ParseSqlStatements("SELECT * FROM @stage")).Error,
+            new ParserError.ParserErrorValue("Expected: identifier, found: @"));
+    }
+
+    [Fact]
+    public void parse_alter_table_column_position()
+    {
+        var dialects = TestUtils.AllDialectsWhere(d => d.SupportsAlterColumnPosition);
+        switch (TestUtils.AlterTableOp(dialects.VerifiedStmt("ALTER TABLE tab ADD COLUMN c INT FIRST")))
+        {
+            case AlterTableOperation.AddColumn { ColumnPosition: var columnPosition }:
+                Assert.Equal<MySQLColumnPosition?>(columnPosition, new MySQLColumnPosition.First());
+                break;
+            default:
+                throw Unreachable();
+        }
+        switch (TestUtils.AlterTableOp(dialects.VerifiedStmt("ALTER TABLE tab ADD COLUMN c INT AFTER b")))
+        {
+            case AlterTableOperation.AddColumn { ColumnPosition: var columnPosition }:
+                Assert.Equal<MySQLColumnPosition?>(
+                    columnPosition,
+                    new MySQLColumnPosition.After(new Ident("b")));
+                break;
+            default:
+                throw Unreachable();
+        }
+        switch (TestUtils.AlterTableOp(dialects.VerifiedStmt("ALTER TABLE tab MODIFY COLUMN c INT AFTER b")))
+        {
+            case AlterTableOperation.ModifyColumn { ColumnPosition: var columnPosition }:
+                Assert.Equal<MySQLColumnPosition?>(
+                    columnPosition,
+                    new MySQLColumnPosition.After(new Ident("b")));
+                break;
+            default:
+                throw Unreachable();
+        }
+        // assert!(..parse_sql_statements(..).is_err())
+        Assert.Throws<ParserException>(() => dialects
+            .ParseSqlStatements("ALTER TABLE tab ADD COLUMN c INT AFTER"));
+
+        dialects = TestUtils.AllDialectsWhere(d => !d.SupportsAlterColumnPosition);
+        foreach (var sql in new[]
+        {
+            "ALTER TABLE tab ADD COLUMN c INT FIRST",
+            "ALTER TABLE tab ADD COLUMN c INT AFTER b",
+        })
+        {
+            // assert!(dialects.parse_sql_statements(sql).is_err(), "{sql}")
+            Assert.Throws<ParserException>(() => dialects.ParseSqlStatements(sql));
+        }
+    }
+
+    [Fact]
+    public void parse_compound_field_access_numeric_display()
+    {
+        TestUtils.AllDialects().VerifiedStmt("SELECT 1 . i");
+        TestUtils.AllDialects().VerifiedStmt("SELECT (1 . i)");
+        TestUtils.AllDialects().VerifiedStmt("SELECT 1 . 2");
+        TestUtils.AllDialects().VerifiedStmt("SELECT (a . 1 . b)");
+        TestUtils.AllDialects().VerifiedStmt("SELECT 1 . i.j");
+        TestUtils.AllDialects().VerifiedStmt("SELECT 1 . 2 . 3");
+        TestUtils.AllDialects().VerifiedStmt("SELECT a.b.c");
+
+        var err = Assert.Throws<ParserException>(() => TestUtils.AllDialectsWhere(d => !d.SupportsNumericPrefix)
+            .ParseSqlStatements("SELECT (1.i)")).Error;
+        Assert.Equal<ParserError>(
+            err,
+            new ParserError.ParserErrorValue("Expected: ), found: i"));
+    }
+
+    [Fact]
+    public void parse_placeholder_disallows_quoted_ident()
+    {
+        var dialects = new TestedDialects(new List<Dialect>
+        {
+            new AnsiDialect(),
+            new GenericDialect(),
+            new SnowflakeDialect(),
+            new SQLiteDialect(),
+        });
+        // Valid placeholders roundtrip
+        dialects.VerifiedStmt("SELECT :x");
+
+        // Quoted identifiers are not valid placeholders
+        var err = Assert.Throws<ParserException>(() => dialects.ParseSqlStatements("SELECT :`a`")).Error;
+        Assert.Equal(
+            new ParserError.ParserErrorValue("Expected: placeholder, found: `a`"),
+            err);
+        err = Assert.Throws<ParserException>(() => dialects.ParseSqlStatements("SELECT :\"a\"")).Error;
+        Assert.Equal(
+            new ParserError.ParserErrorValue("Expected: placeholder, found: \"a\""),
+            err);
+        err = Assert.Throws<ParserException>(() => dialects.ParseSqlStatements("SELECT:` a` a")).Error;
+        Assert.Equal(
+            new ParserError.ParserErrorValue("Expected: placeholder, found: ` a`"),
+            err);
+
+        var ansi = new TestedDialects(new List<Dialect> { new AnsiDialect() });
+        ansi.VerifiedStmt("SELECT @x");
+        err = Assert.Throws<ParserException>(() => ansi.ParseSqlStatements("SELECT @`a`")).Error;
+        Assert.Equal(
+            new ParserError.ParserErrorValue("Expected: placeholder, found: `a`"),
+            err);
+        err = Assert.Throws<ParserException>(() => ansi.ParseSqlStatements("SELECT @\"a\"")).Error;
+        Assert.Equal(
+            new ParserError.ParserErrorValue("Expected: placeholder, found: \"a\""),
+            err);
+    }
+
+    [Fact]
+    public void parse_in_list_leading_subquery()
+    {
+        Func<Expr> x = () => new Expr.Identifier(new Ident("x"));
+        Func<Expr> subquery = () => new Expr.Subquery(VerifiedQuery("SELECT a FROM u"));
+
+        var select = VerifiedOnlySelect("SELECT * FROM t WHERE x IN ((SELECT a FROM u), 1)");
+        Assert.Equal(
+            new Expr.InList(
+                Expr: x(),
+                List: Sequence.Of(subquery(), Expr.MakeValue(TestUtils.Number("1"))),
+                Negated: false,
+                Global: false),
+            select.Selection!);
+
+        select = VerifiedOnlySelect("SELECT * FROM t WHERE x NOT IN (((SELECT a FROM u)), 1)");
+        Assert.Equal(
+            new Expr.InList(
+                Expr: x(),
+                List: Sequence.Of<Expr>(new Expr.Nested(subquery()), Expr.MakeValue(TestUtils.Number("1"))),
+                Negated: true,
+                Global: false),
+            select.Selection!);
+
+        select = VerifiedOnlySelect("SELECT * FROM t WHERE x IN ((SELECT a FROM u) + 1, 2)");
+        Assert.Equal(
+            new Expr.InList(
+                Expr: x(),
+                List: Sequence.Of<Expr>(
+                    new Expr.BinaryOp(
+                        Left: subquery(),
+                        Op: new BinaryOperator.Plus(),
+                        Right: Expr.MakeValue(TestUtils.Number("1"))),
+                    Expr.MakeValue(TestUtils.Number("2"))),
+                Negated: false,
+                Global: false),
+            select.Selection!);
+
+        select = PgAndGeneric()
+            .VerifiedOnlySelect("SELECT * FROM t WHERE x IN ((SELECT a FROM u)[1], 2)");
+        Assert.True(
+            select.Selection is Expr.InList { List: var list }
+            && list[0] is Expr.CompoundFieldAccess { Root: var root }
+            && root.Equals(subquery()));
+
+        select = VerifiedOnlySelect("SELECT * FROM t WHERE x IN ((SELECT a FROM u))");
+        Assert.Equal(
+            new Expr.InSubquery(
+                Expr: x(),
+                Subquery: VerifiedQuery("(SELECT a FROM u)"),
+                Negated: false,
+                Global: false),
+            select.Selection!);
+
+        Assert.Equal(
+            new ParserError.ParserErrorValue("Expected: ), found: 1"),
+            Assert.Throws<ParserException>(
+                () => ParseSqlStatements("SELECT * FROM t WHERE x IN ((SELECT a FROM u) 1)")).Error);
+        Assert.Equal(
+            new ParserError.ParserErrorValue("Expected: ), found: EOF"),
+            Assert.Throws<ParserException>(
+                () => ParseSqlStatements("SELECT * FROM t WHERE x IN (SELECT a FROM u")).Error);
+        Assert.Equal(
+            new ParserError.ParserErrorValue("Expected: ), found: EOF"),
+            Assert.Throws<ParserException>(
+                () => ParseSqlStatements("SELECT * FROM t WHERE x IN ((SELECT a FROM u), 1")).Error);
+        // The inner `IN` is read again for the outer list after its subquery
+        // arm was cached as failed.
+        Assert.Equal(
+            new ParserError.ParserErrorValue("Expected: ), found: EOF"),
+            Assert.Throws<ParserException>(
+                () => ParseSqlStatements("SELECT * FROM t WHERE x IN ((SELECT 1 FROM u WHERE y IN (SELECT 2")).Error);
+    }
+
+    /// <summary>
+    /// Hang guard for <c>IN</c> lists nested in the leading subquery of an enclosing
+    /// <c>IN</c> list, where every level is first tried as the whole subquery and then
+    /// read again as a list item.
+    /// </summary>
+    [Fact]
+    public void parse_in_list_nested_leading_subquery_no_exponential_blowup()
+    {
+        foreach (var level in new[]
+        {
+            "x IN ((SELECT {}), 1)",
+            "x IN ((SELECT {}) + 1, 2)",
+            "x IN (((SELECT {}) + 1), 2)",
+        })
+        {
+            var sql = "SELECT "
+                + Enumerable.Range(0, 30).Aggregate("1", (inner, _) => level.Replace("{}", inner));
+
+            // let _ = tx.send(result.is_ok()); ... let parsed = rx.recv_timeout(..).expect(..);
+            var parsed = false;
+            SpawnAndRecvTimeout(
+                () =>
+                {
+                    try
+                    {
+                        _ = new Parser(new GenericDialect())
+                            .WithRecursionLimit(1000)
+                            .TryWithSql(sql)
+                            .ParseStatements();
+                        parsed = true;
+                    }
+                    catch (ParserException)
+                    {
+                        parsed = false;
+                    }
+                },
+                TimeSpan.FromSeconds(5),
+                "parser should handle this quickly, not loop exponentially");
+            Assert.True(parsed, $"{level} nested 30 deep should parse");
+        }
+    }
+
+    [Fact]
+    public void parse_bang_not_renders_apart_from_operand()
+    {
+        var dialects = TestUtils.AllDialectsWhere(d => d.SupportsBangNotOperator);
+        dialects.VerifiedStmt("SELECT ! !a");
+        dialects.VerifiedStmt("SELECT ! ! !a");
+        dialects.VerifiedStmt("SELECT ! ~ a");
+        dialects.VerifiedStmt("SELECT ! -a");
+        dialects.VerifiedStmt("SELECT ! +a");
+        dialects.VerifiedStmt("SELECT !a");
+        dialects.VerifiedStmt("SELECT !(b > 3)");
+        dialects.VerifiedStmt("SELECT ! -a + b");
+        dialects.VerifiedStmt("SELECT !a + b");
+        dialects.VerifiedStmt("SELECT !NOT a");
+        dialects.VerifiedStmt("SET eaac_cion = ! !o");
+        dialects.OneStatementParsesTo("SET eaac_cion = ! ! o", "SET eaac_cion = ! !o");
+    }
+
+    [Fact]
+    public void parse_position_chain_no_exponential_blowup()
+    {
+        var sql = "SELECT " + string.Concat(Enumerable.Repeat("POSITION(", 24)) + "1" + new string(')', 24);
+
+        // let _ = tx.send(Parser::parse_sql(&GenericDialect {}, &sql).map(|_| ()));
+        // `null` = `Ok(())`; senão, o erro do `Err`.
+        ParserException? result = null;
+        // 24 levels overflow the default 2 MB test-thread stack in debug builds.
+        SpawnAndRecvTimeout(
+            () =>
+            {
+                try
+                {
+                    _ = Parser.ParseSql(new GenericDialect(), sql);
+                }
+                catch (ParserException e)
+                {
+                    result = e;
+                }
+            },
+            TimeSpan.FromSeconds(5),
+            "parser should finish quickly, not loop exponentially",
+            stackSize: 8 * 1024 * 1024);
+        // assert!(result.is_ok(), "{result:?}")
+        Assert.True(result is null, $"{result?.Error}");
+    }
+
+    [Fact]
+    public void parse_position_forms_with_nested_fallback()
+    {
+        var dialects = TestUtils.AllDialects();
+        Assert.IsType<Expr.Position>(dialects.VerifiedExpr("POSITION('@' IN field)"));
+        // The inner call takes the `IN` form and the outer one falls back.
+        switch (dialects.VerifiedExpr("POSITION(POSITION('@' IN field))"))
+        {
+            case Expr.Function { Value.Args: FunctionArguments.List { Value.Args: var args } }:
+                Assert.True(args is [FunctionArg.Unnamed { Value: FunctionArgExpr.Expr { Value: Expr.Position } }]);
+                break;
+            case var other:
+                throw new InvalidOperationException($"outer POSITION should be an ordinary call, got {other}");
+        }
+        // The outer call takes the `IN` form around an ordinary inner call.
+        Assert.IsType<Expr.Position>(dialects.VerifiedExpr("POSITION(POSITION(x) IN field)"));
+        dialects.VerifiedExpr("POSITION(POSITION(POSITION(x)), POSITION(y))");
+    }
+
+    // #[cfg(feature = "visitor")]: o visitor está portado (src/ast/visitor.rs → Ast/Visitor/, ADR-0007).
+    [Fact]
+    public void parse_position_in_connect_by_list_after_state_change()
+    {
+        // The list is first tried as a subquery in `CONNECT BY` state, where
+        // `PRIOR` is an operator, then reparsed as expressions, where it is a name.
+        var sql = "SELECT * FROM t CONNECT BY x IN (((SELECT POSITION(PRIOR IN (z)))), 1)";
+        foreach (var dialect in TestUtils.AllDialects().Dialects)
+        {
+            var stmts = Parser.ParseSql(dialect, sql);
+            var positions = 0;
+            _ = Visitor.VisitExpressions(stmts, expr =>
+            {
+                if (expr is Expr.Position)
+                {
+                    positions += 1;
+                }
+                return ControlFlow<ValueTuple>.Continue; // core::ops::ControlFlow::<()>::Continue(())
+            });
+            TestUtils.AssertEqualWithMessage(positions, 1, dialect.GetType().Name);
+        }
     }
 }

@@ -58,6 +58,10 @@ public class ClickHouseDialect : Dialect
 
     public override bool SupportsArrayJoinSyntax => true;
 
+    public override bool SupportsArrayTypedefWithParentheses => true;
+
+    public override bool SupportsMapTypedefWithParentheses => true;
+
     // ClickHouse uses this for some FORMAT expressions in `INSERT` context, e.g. when inserting
     // with FORMAT JSONEachRow a raw JSON key-value expression is valid and expected.
     //
@@ -66,6 +70,9 @@ public class ClickHouseDialect : Dialect
 
     // See <https://clickhouse.com/docs/sql-reference/operators/in>
     public override bool SupportsInUnparenthesizedExpr => true;
+
+    // See <https://clickhouse.com/docs/sql-reference/operators/in#distributed-subqueries>
+    public override bool SupportsGlobalIn => true;
 
     /// <summary>
     /// See <see href="https://clickhouse.com/docs/en/sql-reference/functions#higher-order-functions---operator-and-lambdaparams-expr-function"/>
@@ -134,4 +141,14 @@ public class ClickHouseDialect : Dialect
     public override bool SupportsSelectWildcardReplace => true;
 
     public override bool SupportsCommaSeparatedTrim => true;
+
+    /// <summary>
+    /// See <see href="https://clickhouse.com/docs/sql-reference/statements/alter/column"/>
+    /// </summary>
+    public override bool SupportsAlterColumnPosition => true;
+
+    /// <summary>
+    /// See <see href="https://clickhouse.com/docs/sql-reference/data-types/tuple#addressing-tuple-elements"/>
+    /// </summary>
+    public override bool SupportsTupleElementAccess => true;
 }

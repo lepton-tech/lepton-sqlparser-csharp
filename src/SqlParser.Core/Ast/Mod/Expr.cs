@@ -190,17 +190,19 @@ public abstract partial record Expr : IDisplay
     /// <param name="Negated"><c>true</c> when <c>NOT</c> is present.</param>
     public sealed record IsNormalized(Expr Expr, NormalizationForm? Form, bool Negated) : Expr;
 
-    /// <summary><c>[ NOT ] IN (val1, val2, ...)</c></summary>
+    /// <summary><c>[ GLOBAL ] [ NOT ] IN (val1, val2, ...)</c></summary>
     /// <param name="Expr">Left-hand expression to test for membership.</param>
     /// <param name="List">Literal list of expressions to check against.</param>
     /// <param name="Negated"><c>true</c> when the <c>NOT</c> modifier is present.</param>
-    public sealed record InList(Expr Expr, Sequence<Expr> List, bool Negated) : Expr;
+    /// <param name="Global"><c>true</c> when the ClickHouse <c>GLOBAL</c> modifier is present.</param>
+    public sealed record InList(Expr Expr, Sequence<Expr> List, bool Negated, bool Global) : Expr;
 
-    /// <summary><c>[ NOT ] IN (SELECT ...)</c></summary>
+    /// <summary><c>[ GLOBAL ] [ NOT ] IN (SELECT ...)</c></summary>
     /// <param name="Expr">Left-hand expression to test for membership.</param>
     /// <param name="Subquery">The subquery providing the candidate values.</param>
     /// <param name="Negated"><c>true</c> when the <c>NOT</c> modifier is present.</param>
-    public sealed record InSubquery(Expr Expr, Query Subquery, bool Negated) : Expr
+    /// <param name="Global"><c>true</c> when the ClickHouse <c>GLOBAL</c> modifier is present.</param>
+    public sealed record InSubquery(Expr Expr, Query Subquery, bool Negated, bool Global) : Expr
     {
         /// <summary>The subquery providing the candidate values.</summary>
         public new Query Subquery { get; init; } = Subquery;

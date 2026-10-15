@@ -22,11 +22,10 @@ namespace SqlParser.Core.Ast;
 
 /// <summary>
 /// A <see href="https://www.postgresql.org/docs/current/sql-select.html#SQL-TABLE"><c>TABLE</c> command</see>
-/// A (possibly schema-qualified) table reference used in <c>FROM</c> clauses.
 /// </summary>
 /// <param name="TableName">Optional table name (absent for e.g. <c>TABLE</c> command without argument).</param>
 /// <param name="SchemaName">Optional schema/catalog name qualifying the table.</param>
-public sealed partial record Table(string? TableName, string? SchemaName) : IDisplay
+public sealed partial record Table(Ident? TableName, Ident? SchemaName) : IDisplay
 {
     public void Fmt(Formatter f)
     {

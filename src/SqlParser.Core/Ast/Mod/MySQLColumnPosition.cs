@@ -37,12 +37,9 @@ public abstract partial record MySQLColumnPosition : IDisplay
             case First:
                 f.Write($"FIRST");
                 break;
-            case After ident:
-            {
-                var columnName = ident.Value.Value;
-                f.Write($"AFTER {columnName}");
+            case After { Value: var ident }:
+                f.Write($"AFTER {ident}");
                 break;
-            }
             default:
                 throw new InvalidOperationException($"Variante de MySQLColumnPosition não tratada: {GetType().Name}");
         }

@@ -49,6 +49,9 @@ public abstract partial record RepetitionQuantifier : IDisplay
     // Max: Rust: campo `.1` (o `m`; nomes.md).
     public sealed record Range(uint Min, uint Max) : RepetitionQuantifier;
 
+    /// <summary>A reluctant (non-greedy) quantifier, for example <c>*?</c> or <c>{n,m}?</c>.</summary>
+    public sealed record Reluctant(RepetitionQuantifier Value) : RepetitionQuantifier;
+
     public void Fmt(Formatter f)
     {
         switch (this)
@@ -73,6 +76,9 @@ public abstract partial record RepetitionQuantifier : IDisplay
                 break;
             case Range { Min: var n, Max: var m }:
                 f.Write($"{{{n},{m}}}");
+                break;
+            case Reluctant { Value: var quantifier }:
+                f.Write($"{quantifier}?");
                 break;
             default:
                 throw new InvalidOperationException($"Variante de RepetitionQuantifier não tratada: {GetType().Name}");

@@ -40,19 +40,8 @@ public sealed partial record Word(string Value, char? QuoteStyle, Keyword Keywor
     /// <inheritdoc/>
     public void Fmt(Formatter f)
     {
-        switch (QuoteStyle)
-        {
-            case char s when s == '"' || s == '[' || s == '`':
-                f.WriteChar(s);
-                f.WriteStr(Value);
-                f.WriteChar(MatchingEndQuote(s));
-                break;
-            case null:
-                f.WriteStr(Value);
-                break;
-            default:
-                throw new InvalidOperationException("Unexpected quote_style!");
-        }
+        // Rust: crate::ast::fmt_ident(f, &self.value, self.quote_style)
+        Ast.AstModule.FmtIdent(f, Value, QuoteStyle);
     }
 
     // Rust: `impl fmt::Display for Word`.

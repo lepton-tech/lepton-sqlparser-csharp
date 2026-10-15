@@ -2095,4 +2095,70 @@ public class SqlParserMySqlTests2
                         new Value.SingleQuotedString("k").WithEmptySpan()))),
             MysqlAndGeneric().VerifiedExpr("a IS NOT DISTINCT FROM b ->> 'k'"));
     }
+
+    [Fact]
+    public void parse_bitstring_literal_escaping()
+    {
+        MysqlAndGeneric().VerifiedStmt("SELECT B''''");
+        MysqlAndGeneric().VerifiedStmt("SELECT B'it''s'");
+    }
+
+    [Fact]
+    public void parse_alter_table_column_position()
+    {
+        // MySQL makes the COLUMN keyword optional for ADD, CHANGE and MODIFY.
+        switch (TestUtils.AlterTableOp(MysqlAndGeneric().VerifiedStmt("ALTER TABLE tab ADD c INT AFTER b")))
+        {
+            case AlterTableOperation.AddColumn { ColumnKeyword: var columnKeyword, ColumnPosition: var columnPosition }:
+                Assert.False(columnKeyword);
+                Assert.Equal<MySQLColumnPosition?>(
+                    columnPosition,
+                    new MySQLColumnPosition.After(new Ident("b")));
+                break;
+            default:
+                throw new InvalidOperationException(Unreachable);
+        }
+        MysqlAndGeneric().VerifiedStmt("ALTER TABLE tab ADD c INT FIRST");
+        MysqlAndGeneric().OneStatementParsesTo(
+            "ALTER TABLE tab CHANGE a b INT FIRST",
+            "ALTER TABLE tab CHANGE COLUMN a b INT FIRST");
+        MysqlAndGeneric().OneStatementParsesTo(
+            "ALTER TABLE tab MODIFY c INT AFTER b",
+            "ALTER TABLE tab MODIFY COLUMN c INT AFTER b");
+
+        // The position follows the full column definition, options included.
+        MysqlAndGeneric().VerifiedStmt(
+            "ALTER TABLE tab ADD COLUMN c VARCHAR(255) NOT NULL DEFAULT 'x' COMMENT 'c' AFTER b");
+        MysqlAndGeneric().VerifiedStmt(
+            "ALTER TABLE tab MODIFY COLUMN c INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY FIRST");
+
+        // The AFTER target is an identifier, so it may be quoted.
+        switch (TestUtils.AlterTableOp(
+            MysqlAndGeneric().VerifiedStmt("ALTER TABLE tab ADD COLUMN c INT AFTER `order`")))
+        {
+            case AlterTableOperation.AddColumn { ColumnPosition: var columnPosition }:
+                Assert.Equal<MySQLColumnPosition?>(
+                    columnPosition,
+                    new MySQLColumnPosition.After(Ident.WithQuote('`', "order")));
+                break;
+            default:
+                throw new InvalidOperationException(Unreachable);
+        }
+
+        MysqlAndGeneric().VerifiedStmt("ALTER TABLE tab ADD COLUMN a INT FIRST, CHANGE COLUMN b c INT AFTER a, MODIFY COLUMN d INT AFTER c");
+
+        // FIRST and AFTER are mutually exclusive, and AFTER needs a target.
+        foreach (var sql in new[]
+        {
+            "ALTER TABLE tab ADD COLUMN c INT FIRST AFTER b",
+            "ALTER TABLE tab ADD COLUMN c INT AFTER b FIRST",
+            "ALTER TABLE tab ADD COLUMN c INT AFTER",
+            "ALTER TABLE tab CHANGE COLUMN a b INT AFTER",
+            "ALTER TABLE tab MODIFY COLUMN c INT AFTER",
+        })
+        {
+            // assert!(mysql_and_generic().parse_sql_statements(sql).is_err(), "{sql}")
+            Assert.Throws<ParserException>(() => MysqlAndGeneric().ParseSqlStatements(sql));
+        }
+    }
 }

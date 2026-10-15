@@ -362,6 +362,11 @@ public sealed partial class Parser
                 Options: options.ToSequence(),
                 ColumnPosition: columnPosition);
         }
+        else if (ParseKeywords(Keyword.MODIFY, Keyword.ORDER, Keyword.BY))
+        {
+            operation = new AlterTableOperation.ModifyOrderBy(
+                OrderBy: ParseSortingKey());
+        }
         else if (ParseKeyword(Keyword.MODIFY))
         {
             _ = ParseKeyword(Keyword.COLUMN); // [ COLUMN ]

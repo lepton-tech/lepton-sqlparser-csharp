@@ -187,8 +187,10 @@ public sealed partial class Parser
             var table = ParseKeyword(Keyword.TABLE);
             var tableObject = ParseTableObject();
 
+            // `BY NAME` is an INSERT clause, not a table alias.
             TableAliasWithoutColumns? tableAlias;
             if (_dialect.SupportsInsertTableAlias
+                && !PeekKeywords(Keyword.BY, Keyword.NAME)
                 && !PeekSubQuery()
                 && PeekOneOfKeywords(Keyword.DEFAULT, Keyword.VALUES) is null)
             {
@@ -214,6 +216,7 @@ public sealed partial class Parser
 
             var isMysql = _dialect is MySqlDialect;
 
+            var byName = false;
             // Rust: `let (columns, partitioned, after_columns, output, source, assignments) = if .. { .. } else { .. };`
             // Locais declarados antes e atribuídos em cada ramo (decisão 7 da B2). A tupla interna
             // `(columns, partitioned, after_columns)` do ramo `else` tem os mesmos nomes e é atribuída direto.
@@ -240,6 +243,7 @@ public sealed partial class Parser
                         ParseParenthesizedQualifiedColumnList(IsOptional.Optional, isMysql);
 
                     partitioned = ParseInsertPartition();
+                    byName = ParseKeywords(Keyword.BY, Keyword.NAME);
                     // Hive allows you to specify columns after partitions as well if you want.
                     if (_dialect is HiveDialect)
                     {
@@ -401,6 +405,7 @@ public sealed partial class Parser
                 Ignore: ignore,
                 Into: @into,
                 Overwrite: overwrite,
+                ByName: byName,
                 Partitioned: partitioned,
                 Columns: columns,
                 AfterColumns: afterColumns,
@@ -628,7 +633,17 @@ public sealed partial class Parser
     public Assignment ParseAssignment()
     {
         var target = ParseAssignmentTarget();
-        ExpectToken(new Token.Eq());
+        if (_dialect.SupportsDoubleEqAssignment)
+        {
+            if (!ConsumeToken(new Token.Eq()) && !ConsumeToken(new Token.DoubleEq()))
+            {
+                return Expected<Assignment>("= or == (for assignment)", PeekToken());
+            }
+        }
+        else
+        {
+            ExpectToken(new Token.Eq());
+        }
         var value = ParseExpr();
         return new Assignment(Target: target, Value: value);
     }
@@ -1008,6 +1023,14 @@ public sealed partial class Parser
                 when _dialect.SupportsEqAliasAssignment
                     && left is Expr.Identifier:
             {
+                // PORT-DEVIATION DIV-001: `to_lowercase()` → `ToLowerInvariant()` (mapeamento simples). Sem efeito
+                // aqui, em todos os alvos, pelo mesmo motivo do braço `Expr.Identifier` acima.
+                if (right is Expr.Identifier { Value: var v } && v.Value.ToLowerInvariant() == "from" && v.QuoteStyle is null)
+                {
+                    throw ParserErr(
+                        $"Expected an expression, found: {right}",
+                        PeekTokenRef().Span.Start);
+                }
                 if (left is not Expr.Identifier { Value: var alias })
                 {
                     throw ParserErr(

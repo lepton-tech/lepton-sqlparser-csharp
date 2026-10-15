@@ -38,6 +38,20 @@ namespace SqlParser.Core.Ast;
 /// <param name="Table">TABLE</param>
 /// <param name="TableAlias"><c>table_name as foo</c> (for PostgreSQL) <c>table_name foo</c> (for Oracle)</param>
 /// <param name="Columns">COLUMNS</param>
+/// <param name="ByName">
+/// <c>BY NAME</c> clause used by Databricks SQL.
+/// <para>
+/// When present, columns from the source query are matched to columns in
+/// the target table by name instead of by position. The syntax is:
+/// </para>
+/// <code>
+/// INSERT INTO [TABLE] table_name
+///     [PARTITION (...)]
+///     [(column_name [, ...]) | BY NAME]
+///     query
+/// </code>
+/// <para>See <see href="https://docs.databricks.com/gcp/en/sql/language-manual/sql-ref-syntax-dml-insert-into"/>.</para>
+/// </param>
 /// <param name="Overwrite">Overwrite (Hive)</param>
 /// <param name="Source">A SQL query that specifies what to insert</param>
 /// <param name="Assignments">
@@ -99,6 +113,7 @@ public sealed partial record Insert(
     TableObject Table,
     TableAliasWithoutColumns? TableAlias,
     Sequence<ObjectName> Columns,
+    bool ByName,
     bool Overwrite,
     Query? Source,
     Sequence<Assignment> Assignments,
@@ -199,6 +214,12 @@ public sealed partial record Insert(
                 f.Write($"PARTITION ({DisplayCommaSeparated(parts)})");
                 SpaceOrNewline.Instance.Fmt(f);
             }
+        }
+
+        if (ByName)
+        {
+            f.Write($"BY NAME");
+            SpaceOrNewline.Instance.Fmt(f);
         }
 
         if (!AfterColumns.IsEmpty)

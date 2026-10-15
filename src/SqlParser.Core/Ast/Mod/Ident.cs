@@ -97,25 +97,11 @@ public sealed record Ident(string Value, char? QuoteStyle, Span Span) : IDisplay
         return ordering != 0 ? ordering : Nullable.Compare(QuoteStyle, other.QuoteStyle);
     }
 
+    // Rust: `pub(crate) fn fmt_ident` fica entre `impl From<&str> for Ident` e este `impl Display`;
+    // no C#, está em AstModule.cs (convencoes.md §13, caso 135).
     public void Fmt(Formatter f)
     {
-        switch (QuoteStyle)
-        {
-            case { } q when q == '"' || q == '\'' || q == '`':
-            {
-                var escaped = Ast.Value.EscapeQuotedString(Value, q);
-                f.Write($"{q}{escaped}{q}");
-                break;
-            }
-            case '[':
-                f.Write($"[{Value}]");
-                break;
-            case null:
-                f.WriteStr(Value);
-                break;
-            default:
-                throw new InvalidOperationException("unexpected quote style");
-        }
+        AstModule.FmtIdent(f, Value, QuoteStyle);
     }
 
     public override string ToString() => Formatter.Format(this);

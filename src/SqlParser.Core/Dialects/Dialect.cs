@@ -157,6 +157,15 @@ public abstract partial class Dialect
     public virtual bool SupportsStringLiteralBackslashEscape => false;
 
     /// <summary>
+    /// Does the dialect tokenize <c>N'...'</c> as a national string literal?
+    /// <para>
+    /// Dialects such as SQLite treat <c>N</c> as a plain identifier, so <c>N'foo'</c> is
+    /// the identifier <c>N</c> followed by a string literal, not a national string.
+    /// </para>
+    /// </summary>
+    public virtual bool SupportsNationalStringLiteral => true;
+
+    /// <summary>
     /// Determine whether the dialect strips the backslash when escaping LIKE wildcards (%, _).
     /// <para>
     /// [MySQL] has a special case when escaping single quoted strings which leaves these unescaped
@@ -344,6 +353,9 @@ public abstract partial class Dialect
     /// </summary>
     public virtual bool SupportsInUnparenthesizedExpr => false;
 
+    /// <summary>Returns true if the dialect supports <c>GLOBAL IN</c> and <c>GLOBAL NOT IN</c>.</summary>
+    public virtual bool SupportsGlobalIn => false;
+
     /// <summary>
     /// Returns true if the dialect supports <c>BEGIN {DEFERRED | IMMEDIATE | EXCLUSIVE | TRY | CATCH} [TRANSACTION]</c> statements
     /// </summary>
@@ -389,6 +401,12 @@ public abstract partial class Dialect
     public virtual bool SupportsNumericPrefix => false;
 
     /// <summary>
+    /// Returns true if a period directly after an identifier starts a tuple
+    /// element access such as <c>t.1</c>, instead of the number <c>.1</c>.
+    /// </summary>
+    public virtual bool SupportsTupleElementAccess => false;
+
+    /// <summary>
     /// Returns true if the dialect supports numbers containing underscores, e.g. <c>10_000_000</c>
     /// </summary>
     public virtual bool SupportsNumericLiteralUnderscores => false;
@@ -429,8 +447,35 @@ public abstract partial class Dialect
     /// <code>
     /// SELECT transform(array(1, 2, 3), x -&gt; x + 1); -- returns [2,3,4]
     /// </code>
+    /// <para>
+    /// This enables both the <c>-&gt;</c> spelling above and the <c>LAMBDA</c> keyword
+    /// spelling gated by <see cref="SupportsLambdaKeywordSyntax"/>. A dialect
+    /// that uses <c>-&gt;</c> as a binary operator should override only the latter.
+    /// </para>
     /// </summary>
     public virtual bool SupportsLambdaFunctions => false;
+
+    /// <summary>
+    /// Returns true if the dialect supports the <c>LAMBDA</c> keyword spelling of
+    /// lambda functions, for example:
+    /// <code>
+    /// SELECT list_transform([1, 2, 3], lambda x : x + 1); -- returns [2, 3, 4]
+    /// </code>
+    /// <para>
+    /// This spelling does not claim the <c>-&gt;</c> token, so it can be enabled by
+    /// dialects that already give <c>-&gt;</c> a different meaning, such as JSON
+    /// member access.
+    /// </para>
+    /// <para>
+    /// Defaults to <see cref="SupportsLambdaFunctions"/>, so dialects supporting
+    /// the <c>-&gt;</c> spelling accept the <c>LAMBDA</c> spelling too unless they say
+    /// otherwise.
+    /// </para>
+    /// <para>
+    /// See <see href="https://duckdb.org/docs/stable/sql/functions/lambda"/>
+    /// </para>
+    /// </summary>
+    public virtual bool SupportsLambdaKeywordSyntax => SupportsLambdaFunctions;
 
     /// <summary>
     /// Returns true if the dialect supports multiple variable assignment
@@ -493,6 +538,12 @@ public abstract partial class Dialect
         // return None to fall back to the default behavior
         return null;
     }
+
+    /// <summary>
+    /// Does the dialect support the <c>APPROXIMATE PERCENTILE_DISC</c> function syntax?
+    /// See <see href="https://docs.aws.amazon.com/redshift/latest/dg/r_APPROXIMATE_PERCENTILE_DISC.html"/>
+    /// </summary>
+    public virtual bool SupportsApproximatePercentileDisc => false;
 
     /// <summary>
     /// Does the dialect support trailing commas around the query?
@@ -781,6 +832,18 @@ public abstract partial class Dialect
                 return PrecValue(Precedence.Is);
             case Token.Word { Value: var w } when w.Keyword == Keyword.IS:
                 return PrecValue(Precedence.Is);
+            case Token.Word { Value: var w } when w.Keyword == Keyword.GLOBAL && SupportsGlobalIn:
+                // Rust: o `w` do padrão interno sombreia o externo: `w1` (caso 72), como no braço `AT`.
+                switch ((parser.PeekNthTokenRef(1).Token, parser.PeekNthTokenRef(2).Token))
+                {
+                    case (Token.Word { Value: var w1 }, _) when w1.Keyword == Keyword.IN:
+                        return PrecValue(Precedence.Between);
+                    case (Token.Word { Value: var w1 }, Token.Word { Value: var w2 })
+                        when w1.Keyword == Keyword.NOT && w2.Keyword == Keyword.IN:
+                        return PrecValue(Precedence.Between);
+                    default:
+                        return PrecUnknown;
+                }
             case Token.Word { Value: var w } when w.Keyword == Keyword.IN:
                 return PrecValue(Precedence.Between);
             case Token.Word { Value: var w } when w.Keyword == Keyword.BETWEEN:
@@ -1018,6 +1081,12 @@ public abstract partial class Dialect
     public virtual bool SupportsCreateViewCommentSyntax => false;
 
     /// <summary>
+    /// Returns true if a data type can carry a collation, including inside a
+    /// nested type such as <c>MAP&lt;STRING COLLATE UTF8_BINARY, STRING&gt;</c>.
+    /// </summary>
+    public virtual bool SupportsDataTypeCollation => false;
+
+    /// <summary>
     /// Returns true if this dialect supports the <c>ARRAY</c> type without
     /// specifying an element type.
     /// <para>
@@ -1031,6 +1100,34 @@ public abstract partial class Dialect
     /// </para>
     /// </summary>
     public virtual bool SupportsArrayTypedefWithoutElementType => false;
+
+    /// <summary>
+    /// Returns true if this dialect supports the <c>ARRAY(element_type)</c> syntax.
+    /// <para>
+    /// Example:
+    /// </para>
+    /// <code>
+    /// CREATE TABLE t (a ARRAY(VARCHAR));
+    /// </code>
+    /// </summary>
+    public virtual bool SupportsArrayTypedefWithParentheses => false;
+
+    /// <summary>
+    /// Returns true if this dialect supports <c>NOT NULL</c> on an element type in
+    /// an <c>ARRAY(element_type)</c> definition.
+    /// </summary>
+    public virtual bool SupportsArrayElementNotNull => false;
+
+    /// <summary>
+    /// Returns true if this dialect supports the <c>MAP(key_type, value_type)</c> syntax.
+    /// </summary>
+    public virtual bool SupportsMapTypedefWithParentheses => false;
+
+    /// <summary>
+    /// Returns true if this dialect supports <c>NOT NULL</c> on the value type in
+    /// a <c>MAP(key_type, value_type)</c> definition.
+    /// </summary>
+    public virtual bool SupportsMapValueNotNull => false;
 
     /// <summary>
     /// Returns true if this dialect supports extra parentheses around
@@ -1119,6 +1216,12 @@ public abstract partial class Dialect
     /// e.g. <c>CREATE TABLE t (a INT ASC, b INT DESC);</c>
     /// </summary>
     public virtual bool SupportsAscDescInColumnDefinition => false;
+
+    /// <summary>
+    /// Returns true if the dialect allows string literals as column names in <c>CREATE TABLE</c>.
+    /// SQLite's grammar rule <c>nm ::= id | STRING | JOIN_KW</c> permits this.
+    /// </summary>
+    public virtual bool SupportsStringLiteralColumnNames => false;
 
     /// <summary>
     /// Returns true if the dialect supports <c>a!</c> expressions
@@ -1212,6 +1315,12 @@ public abstract partial class Dialect
     /// Returns true if the dialect supports the <c>CREATE TABLE SELECT</c> statement
     /// </summary>
     public virtual bool SupportsCreateTableSelect => false;
+
+    /// <summary>
+    /// Returns true if this dialect supports <c>PROC</c> as an abbreviation for
+    /// <c>PROCEDURE</c> in a <c>CREATE</c> statement.
+    /// </summary>
+    public virtual bool SupportsCreateProcSyntax => false;
 
     /// <summary>
     /// Returns true if the dialect accepts a comma-separated list of table-level
@@ -1466,6 +1575,16 @@ public abstract partial class Dialect
     public virtual bool SupportsCommaSeparatedDropColumnList => false;
 
     /// <summary>
+    /// Returns true if the dialect supports a <c>FIRST</c> or <c>AFTER col</c> column
+    /// position in <c>ALTER TABLE ... ADD | CHANGE | MODIFY COLUMN</c>.
+    /// Example:
+    /// <code>
+    ///  ALTER TABLE tbl ADD COLUMN c INT AFTER b
+    /// </code>
+    /// </summary>
+    public virtual bool SupportsAlterColumnPosition => false;
+
+    /// <summary>
     /// Returns true if the dialect considers the specified ident as a function
     /// that returns an identifier. Typically used to generate identifiers
     /// programmatically.
@@ -1544,6 +1663,14 @@ public abstract partial class Dialect
     /// </code>
     /// </summary>
     public virtual bool SupportsSemanticViewTableFactor => false;
+
+    /// <summary>
+    /// Returns true if this dialect supports Snowflake-style stages in table factors (e.g. <c>@stage</c>).
+    /// <para>
+    /// <see href="https://docs.snowflake.com/en/user-guide/querying-stage">Snowflake</see>
+    /// </para>
+    /// </summary>
+    public virtual bool SupportsStages => false;
 
     /// <summary>
     /// Support quote delimited string literals, e.g. <c>Q'{...}'</c>
@@ -1751,6 +1878,21 @@ public abstract partial class Dialect
     public virtual bool SupportsSettings => false;
 
     /// <summary>
+    /// Returns true if this dialect supports the <c>PARTITION</c> clause on a table factor,
+    /// restricting a query to an explicit list of partitions.
+    /// <para>
+    /// Example:
+    /// </para>
+    /// <code>
+    /// SELECT * FROM employees PARTITION (p0, p1)
+    /// </code>
+    /// <para>
+    /// <see href="https://dev.mysql.com/doc/refman/8.4/en/partitioning-selection.html">MySQL</see>
+    /// </para>
+    /// </summary>
+    public virtual bool SupportsTablePartitions => false;
+
+    /// <summary>
     /// Returns true if this dialect supports the <c>FORMAT</c> clause in <c>SELECT</c> statements.
     /// <para>
     /// Example:
@@ -1854,6 +1996,28 @@ public abstract partial class Dialect
     /// </para>
     /// </summary>
     public virtual bool SupportsMapLiteralWithAngleBrackets => false;
+
+    /// <summary>
+    /// Returns true if the dialect accepts <c>==</c> as an alternative to <c>=</c> in <c>UPDATE SET</c> assignments.
+    /// <para>
+    /// See <see href="https://www.sqlite.org/lang_update.html"/>
+    /// </para>
+    /// </summary>
+    public virtual bool SupportsDoubleEqAssignment => false;
+
+    /// <summary>
+    /// Returns true if the dialect supports <c>CAST(expr AS)</c> with an empty type name.
+    /// <para>
+    /// Example:
+    /// </para>
+    /// <code>
+    /// SELECT CAST(a AS)
+    /// </code>
+    /// <para>
+    /// <see href="https://www.sqlite.org/lang_expr.html">SQLite</see>
+    /// </para>
+    /// </summary>
+    public virtual bool SupportsCastEmptyDataTypeToUnspecified => false;
 
     // Rust: `pub fn dialect_from_str` é função livre do módulo `dialect`; vira membro estático de
     // Dialect (convencoes.md §13, caso 5). Fica no fim, como no arquivo Rust.

@@ -688,6 +688,15 @@ public class SqlParserClickHouseTests
     }
 
     [Fact]
+    public void reject_angle_bracket_array_type()
+    {
+        Assert.Equal<ParserError>(
+            Assert.Throws<ParserException>(() => Clickhouse()
+                .ParseSqlStatements("CREATE TABLE t (a ARRAY<INT>)")).Error,
+            new ParserError.ParserErrorValue("Expected: (, found: <"));
+    }
+
+    [Fact]
     public void parse_create_table_with_primary_key()
     {
         static bool AssertFunction(Function actual, string name, string arg)
@@ -1757,6 +1766,327 @@ public class SqlParserClickHouseTests
         Clickhouse().VerifiedExpr("x IN ({ids: Array(UInt64)})");
         // Precedence: the trailing `AND` is not swallowed.
         Clickhouse().VerifiedExpr("x IN ({p: Array(UInt64)}) AND y = 1");
+    }
+
+    [Fact]
+    public void parse_alter_table_column_position()
+    {
+        Clickhouse().VerifiedStmt("ALTER TABLE t ADD COLUMN c Nullable(UInt8) FIRST");
+        Clickhouse().VerifiedStmt("ALTER TABLE t ADD COLUMN c UInt8 DEFAULT 0 AFTER a");
+        Clickhouse().VerifiedStmt("ALTER TABLE t ON CLUSTER cl ADD COLUMN c UInt8 AFTER a");
+        Clickhouse().VerifiedStmt("ALTER TABLE t MODIFY COLUMN c UInt16 FIRST");
+        Clickhouse().VerifiedStmt("ALTER TABLE t ADD COLUMN c UInt8 AFTER `order`");
+        Clickhouse().VerifiedStmt("ALTER TABLE t ADD COLUMN c UInt8 AFTER \"order\"");
+
+        switch (Clickhouse()
+            .VerifiedStmt("ALTER TABLE t ADD COLUMN c UInt8 FIRST, ADD COLUMN d UInt8 AFTER c"))
+        {
+            case Statement.AlterTable { Value.Operations: var operations }:
+            {
+                var positions = operations
+                    .Select(op => op switch
+                    {
+                        AlterTableOperation.AddColumn { ColumnPosition: var columnPosition } => columnPosition,
+                        _ => throw new InvalidOperationException(Unreachable),
+                    })
+                    .ToList();
+                Assert.Equal(
+                    positions,
+                    new List<MySQLColumnPosition?>
+                    {
+                        new MySQLColumnPosition.First(),
+                        new MySQLColumnPosition.After(new Ident("c")),
+                    });
+                break;
+            }
+            default:
+                throw new InvalidOperationException(Unreachable);
+        }
+
+        // assert!(..parse_sql_statements(..).is_err())
+        Assert.Throws<ParserException>(() => Clickhouse()
+            .ParseSqlStatements("ALTER TABLE t ADD COLUMN c UInt8 AFTER"));
+    }
+
+    [Fact]
+    public void parse_alter_table_modify_order_by()
+    {
+        Clickhouse().VerifiedStmt("ALTER TABLE events MODIFY ORDER BY (region, user.id)");
+        ClickhouseAndGeneric().VerifiedStmt("ALTER TABLE events MODIFY ORDER BY region");
+        ClickhouseAndGeneric().VerifiedStmt("ALTER TABLE events MODIFY ORDER BY ()");
+        ClickhouseAndGeneric().VerifiedStmt("ALTER TABLE events MODIFY ORDER BY tuple()");
+        ClickhouseAndGeneric()
+            .VerifiedStmt("ALTER TABLE events ON CLUSTER c MODIFY ORDER BY (a, toDate(ts))");
+        ClickhouseAndGeneric()
+            .VerifiedStmt("ALTER TABLE events ADD COLUMN b UInt8, MODIFY ORDER BY (a, b)");
+        // A column named `order` is still handled by MODIFY COLUMN.
+        ClickhouseAndGeneric().VerifiedStmt("ALTER TABLE events MODIFY COLUMN `order` UInt8");
+
+        switch (ClickhouseAndGeneric().VerifiedStmt("ALTER TABLE events MODIFY ORDER BY (a)"))
+        {
+            case Statement.AlterTable { Value.Operations: var operations }:
+                Assert.Equal(
+                    operations,
+                    Sequence.Of<AlterTableOperation>(new AlterTableOperation.ModifyOrderBy(
+                        OrderBy: new OneOrManyWithParens<Expr>.Many(
+                            Sequence.Of<Expr>(new Expr.Identifier(new Ident("a")))))));
+                break;
+            default:
+                throw new InvalidOperationException(Unreachable);
+        }
+
+        foreach (var sql in new[]
+        {
+            "ALTER TABLE events MODIFY ORDER BY",
+            "ALTER TABLE events MODIFY ORDER BY (a",
+            "ALTER TABLE events MODIFY ORDER BY (,)",
+            "ALTER TABLE events MODIFY ORDER BY (a) b",
+            "CREATE TABLE events (a UInt8) ENGINE = MergeTree ORDER BY (a",
+        })
+        {
+            // assert!(clickhouse_and_generic().parse_sql_statements(sql).is_err(), "{sql}")
+            Assert.Throws<ParserException>(() => ClickhouseAndGeneric().ParseSqlStatements(sql));
+        }
+    }
+
+    [Fact]
+    public void parse_object_type_parameter()
+    {
+        foreach (var dialects in new[]
+        {
+            Clickhouse(),
+            new TestedDialects(new List<Dialect> { new GenericDialect() }),
+        })
+        {
+            var statements = dialects
+                .ParseSqlStatements("CREATE TABLE t (o Object('json'))");
+            if (statements is not [Statement.CreateTable { Value.Columns: var columns }])
+            {
+                throw new InvalidOperationException(Unreachable);
+            }
+
+            Assert.Equal<DataType>(
+                columns[0].DataType,
+                new DataType.Custom(
+                    ObjectName.From(Sequence.Of(new Ident("Object"))),
+                    Sequence.Of("json")));
+
+            var formatted = statements[0].ToString();
+            Assert.Equal(
+                dialects.ParseSqlStatements(formatted),
+                statements);
+        }
+
+        ClickhouseAndGeneric().VerifiedStmt("CREATE TABLE t (o OBJECT())");
+        ClickhouseAndGeneric().VerifiedStmt("CREATE TABLE t (o OBJECT(city VARCHAR NOT NULL))");
+
+        foreach (var (sql, modifiers) in new (string, string[])[]
+        {
+            ("CREATE TABLE t (o OBJECT(10))", new[] { "10" }),
+            ("CREATE TABLE t (o OBJECT(foo))", new[] { "foo" }),
+            ("CREATE TABLE t (o OBJECT(foo, bar))", new[] { "foo", "bar" }),
+        })
+        {
+            foreach (var dialects in new[]
+            {
+                Clickhouse(),
+                new TestedDialects(new List<Dialect> { new GenericDialect() }),
+            })
+            {
+                var statements = dialects.ParseSqlStatements(sql);
+                if (statements is not [Statement.CreateTable { Value.Columns: var columns }])
+                {
+                    throw new InvalidOperationException(Unreachable);
+                }
+
+                Assert.Equal<DataType>(
+                    columns[0].DataType,
+                    new DataType.Custom(
+                        ObjectName.From(Sequence.Of(new Ident("OBJECT"))),
+                        modifiers
+                            .Select(modifier => modifier)
+                            .ToSequence()));
+
+                var formatted = statements[0].ToString();
+                Assert.Equal(
+                    dialects.ParseSqlStatements(formatted),
+                    statements);
+            }
+        }
+    }
+
+    // O upstream roda os testes com `--all-features`: `SELECT .5, 1e3` → `SELECT 0.5, 1000` é a
+    // normalização do `BigDecimal`. Sem a feature (no Rust e aqui), sai `SELECT .5, 1e3`. As demais
+    // asserções passam (conferido na Rodada 1, lote 5).
+    [Fact(Skip = "DIV-006: a asserção `SELECT .5, 1e3` → `SELECT 0.5, 1000` exige a feature `bigdecimal`")]
+    public void parse_tuple_element_access()
+    {
+        foreach (var (sql, canonical) in new[]
+        {
+            ("SELECT t.1 FROM t", "SELECT t . 1 FROM t"),
+            (
+                "SELECT t.1 AS a, t.2 AS b FROM (SELECT (1, 'x') AS t)",
+                "SELECT t . 1 AS a, t . 2 AS b FROM (SELECT (1, 'x') AS t)"
+            ),
+            ("SELECT (1, 'a').1", "SELECT (1, 'a') . 1"),
+            ("SELECT tuple(1, 'a').2", "SELECT tuple(1, 'a') . 2"),
+            ("SELECT arr[1].1 FROM t", "SELECT arr[1] . 1 FROM t"),
+            ("SELECT `t`.1 FROM t", "SELECT `t` . 1 FROM t"),
+            ("SELECT t.1 + 1 FROM t", "SELECT t . 1 + 1 FROM t"),
+            (
+                "SELECT * FROM t WHERE t.1 = 1",
+                "SELECT * FROM t WHERE t . 1 = 1"
+            ),
+            ("SELECT t.1.2 FROM t", "SELECT t . 1 . 2 FROM t"),
+            (
+                "SELECT ((1, 2), 3).1.2, tuple(1, (2, 3)).2.1",
+                "SELECT ((1, 2), 3) . 1 . 2, tuple(1, (2, 3)) . 2 . 1"
+            ),
+        })
+        {
+            Clickhouse().OneStatementParsesTo(sql, canonical);
+        }
+
+        var select = Clickhouse().VerifiedOnlySelect("SELECT t . 1 FROM t");
+        Assert.Equal<SelectItem>(
+            select.Projection[0],
+            new SelectItem.UnnamedExpr(new Expr.CompoundFieldAccess(
+                Root: new Expr.Identifier(new Ident("t")),
+                AccessChain: Sequence.Of<AccessExpr>(
+                    new AccessExpr.Dot(new Expr.Value(TestUtils.Number("1").WithEmptySpan()))))));
+
+        select = Clickhouse().VerifiedOnlySelect("SELECT t . 1 . 2 FROM t");
+        Assert.Equal<SelectItem>(
+            select.Projection[0],
+            new SelectItem.UnnamedExpr(new Expr.CompoundFieldAccess(
+                Root: new Expr.Identifier(new Ident("t")),
+                AccessChain: Sequence.Of<AccessExpr>(
+                    new AccessExpr.Dot(new Expr.Value(TestUtils.Number("1").WithEmptySpan())),
+                    new AccessExpr.Dot(new Expr.Value(TestUtils.Number("2").WithEmptySpan()))))));
+
+        Clickhouse().VerifiedStmt("SELECT 1.5, 1 + 0.5");
+        Clickhouse().OneStatementParsesTo("SELECT .5, 1e3", "SELECT 0.5, 1000");
+
+        // assert!(..parse_sql_statements(..).is_err())
+        Assert.Throws<ParserException>(() => Clickhouse().ParseSqlStatements("SELECT t."));
+        Assert.Throws<ParserException>(() => Clickhouse().ParseSqlStatements("SELECT t.1."));
+
+        var unsupported = TestUtils.AllDialectsWhere(d => !d.SupportsTupleElementAccess);
+        unsupported.VerifiedStmt("SELECT (1, 'a') . 1");
+        foreach (var dialect in unsupported.Dialects)
+        {
+            // assert!(TestedDialects::new(vec![dialect]).parse_sql_statements(..).is_err())
+            Assert.Throws<ParserException>(() => new TestedDialects(new List<Dialect> { dialect })
+                .ParseSqlStatements("SELECT t.1 FROM t"));
+        }
+    }
+
+    [Fact]
+    public void parse_global_in()
+    {
+        var select = Clickhouse().VerifiedOnlySelect("SELECT * FROM t WHERE x GLOBAL IN (1, 2)");
+        Assert.Equal<Expr>(
+            select.Selection!,
+            new Expr.InList(
+                Expr: new Expr.Identifier(new Ident("x")),
+                List: Sequence.Of<Expr>(
+                    new Expr.Value(TestUtils.Number("1").WithEmptySpan()),
+                    new Expr.Value(TestUtils.Number("2").WithEmptySpan())),
+                Negated: false,
+                Global: true));
+
+        select = Clickhouse()
+            .VerifiedOnlySelect("SELECT * FROM t WHERE x GLOBAL NOT IN (SELECT y FROM t2)");
+        Assert.Equal<Expr>(
+            select.Selection!,
+            new Expr.InSubquery(
+                Expr: new Expr.Identifier(new Ident("x")),
+                Subquery: Clickhouse().VerifiedQuery("SELECT y FROM t2"),
+                Negated: true,
+                Global: true));
+
+        Clickhouse().OneStatementParsesTo(
+            "SELECT * FROM t WHERE x GLOBAL IN t2",
+            "SELECT * FROM t WHERE x GLOBAL IN (t2)");
+
+        select =
+            Clickhouse().VerifiedOnlySelect("SELECT * FROM t WHERE x GLOBAL IN (1) AND y = 2");
+        Assert.True(select.Selection! is Expr.BinaryOp { Op: BinaryOperator.And });
+
+        // assert!(..parse_sql_statements(..).is_err())
+        Assert.Throws<ParserException>(() => Clickhouse()
+            .ParseSqlStatements("SELECT * FROM t WHERE x GLOBAL y"));
+
+        foreach (var dialect in TestUtils.AllDialectsWhere(d => !d.SupportsGlobalIn).Dialects)
+        {
+            // assert!(TestedDialects::new(vec![dialect]).parse_sql_statements(..).is_err())
+            Assert.Throws<ParserException>(() => new TestedDialects(new List<Dialect> { dialect })
+                .ParseSqlStatements("SELECT * FROM t WHERE x GLOBAL IN (1)"));
+        }
+    }
+
+    [Fact]
+    public void parse_in_unparenthesized_expr_precedence()
+    {
+        foreach (var (sql, canonical, op) in new (string, string, BinaryOperator)[]
+        {
+            (
+                "SELECT * FROM t WHERE x IN t2 AND y = 2",
+                "SELECT * FROM t WHERE x IN (t2) AND y = 2",
+                new BinaryOperator.And()
+            ),
+            (
+                "SELECT * FROM t WHERE x GLOBAL IN t2 AND y = 2",
+                "SELECT * FROM t WHERE x GLOBAL IN (t2) AND y = 2",
+                new BinaryOperator.And()
+            ),
+            (
+                "SELECT * FROM t WHERE x GLOBAL NOT IN t2 OR y = 2",
+                "SELECT * FROM t WHERE x GLOBAL NOT IN (t2) OR y = 2",
+                new BinaryOperator.Or()
+            ),
+            (
+                "SELECT * FROM t WHERE x IN t2 = 1",
+                "SELECT * FROM t WHERE x IN (t2) = 1",
+                new BinaryOperator.Eq()
+            ),
+        })
+        {
+            var select = Clickhouse().VerifiedOnlySelectWithCanonical(sql, canonical);
+            switch (select.Selection!)
+            {
+                case Expr.BinaryOp { Op: var got }:
+                    TestUtils.AssertEqualWithMessage(got, op, sql);
+                    break;
+                case var other:
+                    Assert.Fail($"{sql}: expected BinaryOp, got {other}");
+                    break;
+            }
+        }
+
+        // Higher-precedence operators still belong to the IN operand.
+        Clickhouse().OneStatementParsesTo(
+            "SELECT * FROM t WHERE x IN 1 + 2",
+            "SELECT * FROM t WHERE x IN (1 + 2)");
+    }
+
+    [Fact]
+    public void global_in_bare_table_binds_before_and()
+    {
+        var expr =
+            Clickhouse().ExprParsesTo("x GLOBAL IN t2 AND y = 2", "x GLOBAL IN (t2) AND y = 2");
+        Assert.True(
+            expr is Expr.BinaryOp { Left: var left, Op: BinaryOperator.And }
+            && left is Expr.InList { Global: true });
+    }
+
+    [Fact]
+    public void global_in_bare_table_binds_before_equality()
+    {
+        var expr = Clickhouse().ExprParsesTo("x GLOBAL IN t2 = 1", "x GLOBAL IN (t2) = 1");
+        Assert.True(
+            expr is Expr.BinaryOp { Left: var left, Op: BinaryOperator.Eq }
+            && left is Expr.InList { Global: true });
     }
 
     private static TestedDialects Clickhouse() =>

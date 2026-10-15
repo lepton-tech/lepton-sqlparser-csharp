@@ -575,4 +575,44 @@ public class SpansTests
             stmtSpan,
             new Span(new Location(2, 8), new Location(4, 52)));
     }
+
+    [Fact]
+    public void test_create_foreign_table_option_spans()
+    {
+        var dialect = new PostgreSqlDialect();
+        var sql = """CREATE FOREIGN TABLE ft (a INT) SERVER s OPTIONS ("schema_name" 'public')""";
+        var test = new SpanTest(dialect, sql);
+
+        Sequence<CreateServerOption> options;
+        switch (test.Parser.ParseStatement())
+        {
+            case Statement.CreateForeignTable { Value: var stmt }:
+                options = stmt.Options!.Value;
+                break;
+            case var stmt:
+                Assert.Fail($"expected CREATE FOREIGN TABLE, got {stmt}");
+                return;
+        }
+        Assert.Equal("\"schema_name\"", test.GetSource(options[0].Key.Span));
+        Assert.Equal("'public'", test.GetSource(options[0].Value.Span));
+    }
+
+    [Fact]
+    public void test_alter_table_modify_order_by_span()
+    {
+        var dialect = new ClickHouseDialect();
+        var sql = "ALTER TABLE t MODIFY ORDER BY (a, b.c)";
+        var test = new SpanTest(dialect, sql);
+        var r = Parser.ParseSql(dialect, sql);
+        switch (r[0])
+        {
+            case Statement.AlterTable { Value: var alter }:
+                var opSpan = alter.Operations[0].Span();
+                Assert.Equal("a, b.c", test.GetSource(opSpan));
+                break;
+            case var stmt:
+                Assert.Fail($"expected ALTER TABLE; got {stmt}");
+                break;
+        }
+    }
 }

@@ -18,6 +18,8 @@
 // Portado para C# a partir de sqlparser-rs v0.63.0, src/ast/value.rs (teste).
 // Modificado: tradução de Rust para C#.
 
+using SqlParser.Core.Ast;
+
 namespace SqlParser.Core.Tests;
 
 public class ValueTests
@@ -29,5 +31,45 @@ public class ValueTests
     [Fact(Skip = "DIV-003: aspa fora do BMP não cabe em char (escape_quoted_string com '\U0001F980')")]
     public void test_escape_quoted_string_with_multibyte_quote_char()
     {
+    }
+
+    [Fact]
+    public void test_hex_string_literal_display_escaping()
+    {
+        Assert.Equal(
+            "X''''",
+            new Value.HexStringLiteral("'").ToString());
+        Assert.Equal(
+            "X'it''s'",
+            new Value.HexStringLiteral("it's").ToString());
+    }
+
+    [Fact]
+    public void test_byte_and_raw_string_literal_display_escaping()
+    {
+        Assert.Equal(
+            "B''''",
+            new Value.SingleQuotedByteStringLiteral("'").ToString());
+        Assert.Equal(
+            "B'it''s'",
+            new Value.SingleQuotedByteStringLiteral("it's").ToString());
+        Assert.Equal(
+            "B\"\"\"\"",
+            new Value.DoubleQuotedByteStringLiteral("\"").ToString());
+        Assert.Equal(
+            "B\"it\"\"s\"",
+            new Value.DoubleQuotedByteStringLiteral("it\"s").ToString());
+        Assert.Equal(
+            "R''''",
+            new Value.SingleQuotedRawStringLiteral("'").ToString());
+        Assert.Equal(
+            "R'it''s'",
+            new Value.SingleQuotedRawStringLiteral("it's").ToString());
+        Assert.Equal(
+            "R\"\"\"\"",
+            new Value.DoubleQuotedRawStringLiteral("\"").ToString());
+        Assert.Equal(
+            "R\"it\"\"s\"",
+            new Value.DoubleQuotedRawStringLiteral("it\"s").ToString());
     }
 }

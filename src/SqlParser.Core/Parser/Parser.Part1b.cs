@@ -131,7 +131,18 @@ public sealed partial class Parser
             }
             case Keyword.MAP when PeekTokenRef().Equals(new Token.LBrace()) && _dialect.SupportMapLiteralSyntax:
                 return ParseDuckdbMapLiteral();
-            case Keyword.LAMBDA when _dialect.SupportsLambdaFunctions:
+            case Keyword.APPROXIMATE
+                when _dialect.SupportsApproximatePercentileDisc
+                    && PeekKeyword(Keyword.PERCENTILE_DISC):
+                return MaybeParse<Expr>(parser =>
+                {
+                    var functionName = parser.ParseObjectName(false);
+                    var function = parser.ParseFunction(functionName);
+                    return new Expr.Prefixed(
+                        Prefix: w.ToIdent(wSpan),
+                        Value: function);
+                });
+            case Keyword.LAMBDA when _dialect.SupportsLambdaKeywordSyntax:
                 return ParseLambdaExpr();
             case var _ when _dialect.SupportsGeometricTypes:
                 switch (w.Keyword)

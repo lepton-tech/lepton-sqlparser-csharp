@@ -84,6 +84,7 @@ public sealed partial class Parser
     /// <summary>Parse a SQL CREATE statement</summary>
     public Statement ParseCreate()
     {
+        var modifierLoc = PeekTokenRef().Span.Start;
         var orReplace = ParseKeywords(Keyword.OR, Keyword.REPLACE);
         var orAlter = ParseKeywords(Keyword.OR, Keyword.ALTER);
         var multiset = MaybeParseMultiset();
@@ -220,7 +221,8 @@ public sealed partial class Parser
         {
             return ParseCreateType();
         }
-        else if (ParseKeyword(Keyword.PROCEDURE))
+        else if (ParseKeyword(Keyword.PROCEDURE)
+            || _dialect.SupportsCreateProcSyntax && ParseKeyword(Keyword.PROC))
         {
             return ParseCreateProcedure(orAlter);
         }
@@ -247,6 +249,26 @@ public sealed partial class Parser
         else if (ParseKeyword(Keyword.SERVER))
         {
             return ParsePgCreateServer();
+        }
+        else if (ParseKeywords(Keyword.FOREIGN, Keyword.TABLE))
+        {
+            // `or_replace` cannot reach here today, since the arm above catches it.
+            // It stays so that reordering the arms cannot make it fall through.
+            if (orReplace
+                || orAlter
+                || temporary
+                || globalOption is not null
+                || transient
+                || @volatile
+                || multiset is not null
+                || persistent
+                || createViewParams is not null)
+            {
+                throw ParserErr(
+                    "CREATE FOREIGN TABLE does not accept this modifier",
+                    modifierLoc);
+            }
+            return Statement.From(ParseCreateForeignTable());
         }
         else
         {
