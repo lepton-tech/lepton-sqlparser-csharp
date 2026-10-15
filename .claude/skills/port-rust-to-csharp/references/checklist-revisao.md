@@ -24,7 +24,7 @@ Os itens abaixo derivam dessa taxonomia, adaptada para Rust → C#. Ver `docs/po
 - [ ] Nenhum índice de byte UTF-8 do Rust usado como índice de `char` C#.
 - [ ] `char` fora do BMP: `Location.Column` avança 1 por *scalar value*, ou então há `DIV-NNN` registrada.
 - [ ] Classificação de caracteres conforme §10. Em especial `is_ascii_digit` ≠ `char.IsDigit`, e `is_alphabetic` = `char.IsLetter`.
-- [ ] `to_uppercase/to_lowercase` → `*Invariant()`. Números → `CultureInfo.InvariantCulture`.
+- [ ] `to_uppercase/to_lowercase` → `RustString.ToUppercase/ToLowercase` (`char`: `RustChar.ToUppercase/ToLowercase`), nunca `*Invariant()` (§10; caso 139). Números → `CultureInfo.InvariantCulture`.
 - [ ] Escapes de strings literais traduzidos corretamente (`\u{..}`, `\x..`, `r#"..."#`).
 
 ## 4. Semântica de API

@@ -10,7 +10,7 @@ TestResults/
 *.snupkg
 
 # Código-fonte de referência baixado por tools/upstream/Get-Upstream.ps1 (não versionar)
-upstream/
+/upstream/
 
 # Artefatos locais do Claude Code
 .claude/settings.local.json

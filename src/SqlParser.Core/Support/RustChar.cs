@@ -33,6 +33,30 @@ internal static class RustChar
     public static char ToAsciiUppercase(char c) => IsAsciiLowercase(c) ? (char)(c - ('a' - 'A')) : c;
 
     /// <summary>
+    /// Rust: <c>char::to_lowercase</c> com o iterador (1 a 3 <c>char</c>s) reunido numa <c>string</c>: o
+    /// mapeamento completo do scalar value <paramref name="c"/> para minúsculas (RustCaseMapping). Sem regra
+    /// de contexto: U+03A3 vira sempre U+03C3 (o sigma final só existe em <c>str::to_lowercase</c>,
+    /// <see cref="RustString.ToLowercase"/>).
+    /// </summary>
+    public static string ToLowercase(int c)
+    {
+        var s = new StringBuilder(3);
+        RustString.Push(s, RustCaseMapping.ToLower(c));
+        return s.ToString();
+    }
+
+    /// <summary>
+    /// Rust: <c>char::to_uppercase</c> com o iterador (1 a 3 <c>char</c>s) reunido numa <c>string</c>: o
+    /// mapeamento completo do scalar value <paramref name="c"/> para maiúsculas (RustCaseMapping).
+    /// </summary>
+    public static string ToUppercase(int c)
+    {
+        var s = new StringBuilder(3);
+        RustString.Push(s, RustCaseMapping.ToUpper(c));
+        return s.ToString();
+    }
+
+    /// <summary>
     /// Rust: <c>str::eq_ignore_ascii_case</c>: igualdade que ignora maiúsculas/minúsculas só em
     /// <c>a-z</c>/<c>A-Z</c>; os demais caracteres precisam ser idênticos (diferente de
     /// <c>StringComparison.OrdinalIgnoreCase</c>, que também dobra letras fora do ASCII).

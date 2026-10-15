@@ -573,7 +573,8 @@ public class VisitMutTests
     {
         public override ControlFlow<ValueTuple> PreVisitIdent(ref Ident ident)
         {
-            ident = ident with { Value = ident.Value.ToUpperInvariant() };
+            // Rust: `ident.value = ident.value.to_uppercase();` (convencoes.md §10).
+            ident = ident with { Value = RustString.ToUppercase(ident.Value) };
             return ControlFlow<ValueTuple>.Continue;
         }
     }

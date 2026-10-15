@@ -2030,11 +2030,8 @@ public abstract partial class Dialect
     /// </summary>
     public static Dialect? DialectFromStr(string dialectName)
     {
-        // PORT-DEVIATION DIV-001: `to_lowercase()` (mapeamento completo) → `ToLowerInvariant()` (mapeamento
-        // simples, tabela do runtime). Os nomes são ASCII, e fora do ASCII só o sinal de Kelvin (U+212A, que
-        // vira `k`) minusculiza para ASCII. O .NET 8/10 faz o mesmo que o Rust; o .NET Framework 4.8 mantém o
-        // U+212A, e um nome com ele no lugar do `K` dá `null` (ex.: "SNOWFLAKE").
-        switch (dialectName.ToLowerInvariant())
+        // Rust: `dialect_name.to_lowercase()` → RustString.ToLowercase (convencoes.md §10; DIV-001, resolvida).
+        switch (RustString.ToLowercase(dialectName))
         {
             case "generic":
                 return new GenericDialect();

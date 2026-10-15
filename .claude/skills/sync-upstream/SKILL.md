@@ -71,6 +71,7 @@ Quando todos os PRs até a tag-alvo estiverem `portado` ou `não-aplicável`:
 2. Atualize a versão nos cabeçalhos dos arquivos tocados (`Portado para C# a partir de sqlparser-rs vX.Y.Z, ...`).
 3. Atualize `docs/port/progresso.md` (diário) e `docs/port/divergencias.md` (algo resolvido ou novo).
 4. Rode `pwsh tools/upstream/Get-Upstream.ps1` para confirmar que o clone de referência está no commit registrado.
+5. Confira o `char::UNICODE_VERSION` da toolchain estável do Rust (página `std::char::UNICODE_VERSION` da documentação). Se mudou desde a última geração (`RustCaseMapping.UnicodeVersion`), regenere as tabelas de maiúsculas/minúsculas com `pwsh tools/codegen/Generate-CaseMapping.ps1 -UnicodeVersion X.Y.Z -RustToolchain 1.NN.0` e rode os testes (`docs/port/onda-d/D6.md`; convencoes.md §13, caso 139).
 
 ## Relatório "quão defasado estamos?"
 

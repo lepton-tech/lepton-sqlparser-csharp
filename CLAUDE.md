@@ -16,6 +16,7 @@ Port em C# (`netstandard2.0`) do parser SQL **apache/datafusion-sqlparser-rs** (
 - **`SqlParser.Core` = port fiel do Rust:** nomes, estrutura, ordem e comportamento iguais aos do Rust. Regras normativas em `docs/port/convencoes.md`. Adaptações e conveniências vão para o projeto **`SqlParser`** (API pública). Ver `docs/adr/0002-arquitetura-em-camadas-e-api.md`.
 - O código Rust de referência fica em `upstream/sqlparser-rs`, na versão de `UPSTREAM.json`. Se não existir, rode `pwsh tools/upstream/Get-Upstream.ps1`. **Não edite nada em `upstream/`.**
 - `src/SqlParser.Core/Keywords.g.cs` é gerado: rode `pwsh tools/codegen/Generate-Keywords.ps1`, nunca edite à mão.
+- `src/SqlParser.Core/Support/RustCaseMapping.g.cs` (tabelas de `to_uppercase`/`to_lowercase` do Rust) é gerado: rode `pwsh tools/codegen/Generate-CaseMapping.ps1`, nunca edite à mão (`docs/port/onda-d/D6.md`).
 - `src/SqlParser.Core/Ast/Visitor/Generated/*.g.cs` (o derive `Visit`/`VisitMut`) é gerado: todo tipo da AST é `partial`; depois de mudar a AST, rode `pwsh tools/codegen/Generate-Visitor.ps1` (`docs/adr/0007-visitor.md`).
 - Testes portados do Rust **nunca** são editados para passar. Use `Skip = "DIV-NNN: ..."` (divergência registrada em `docs/port/divergencias.md`) ou `Skip = "PENDENTE: ..."`.
 - Decisão de tradução nova → registrar em `docs/port/convencoes.md` §13 ou `docs/port/nomes.md` **na mesma mudança**.
@@ -31,6 +32,7 @@ pwsh tools/upstream/Get-Upstream.ps1                                           #
 pwsh tools/codegen/Generate-Keywords.ps1                                       # regenera keywords
 pwsh tools/codegen/Generate-Visitor.ps1                                        # regenera o visitor (Ast/Visitor/Generated) após mudar a AST
 pwsh tools/codegen/Generate-Visitor.ps1 -Check                                 # só confere se o visitor gerado está atualizado
+pwsh tools/codegen/Generate-CaseMapping.ps1                                    # regenera as tabelas de maiúsculas/minúsculas do Rust (Unicode do char::UNICODE_VERSION)
 pwsh tools/check/Find-SuspiciousChars.ps1                                      # escapes \uXXXX viraram caractere literal?
 ```
 

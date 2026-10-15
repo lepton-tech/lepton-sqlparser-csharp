@@ -1271,10 +1271,8 @@ public sealed partial class Parser
                     switch (storageToken.Token)
                     {
                         case Token.Word { Value: var w }:
-                            // PORT-DEVIATION DIV-001: `to_uppercase()` → `ToUpperInvariant()` (mapeamento simples).
-                            // O Rust aceita `DISK` escrito com U+0131 no lugar do `i` ou com U+017F no lugar do
-                            // `s`; o .NET recusa o U+0131 em todos os alvos e o U+017F no .NET Framework 4.8.
-                            switch (w.Value.ToUpperInvariant())
+                            // Rust: `w.value.to_uppercase()` → RustString.ToUppercase (convencoes.md §10).
+                            switch (RustString.ToUppercase(w.Value))
                             {
                                 case "DISK":
                                     storage = StorageType.Disk;
