@@ -1,0 +1,14 @@
+<Project>
+  <!--
+    Isola o benchmark do Directory.Build.props da raiz (que liga TreatWarningsAsErrors): este arquivo
+    vale para tools/bench/** e também para os projetos que o BenchmarkDotNet gera em bin/ ao rodar.
+    Os projetos referenciados em src/ continuam usando o Directory.Build.props da raiz.
+  -->
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+</Project>
