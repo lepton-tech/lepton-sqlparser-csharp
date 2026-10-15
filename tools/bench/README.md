@@ -90,7 +90,7 @@ Valores em média por execução da carga inteira.
 | Where200 | 839 | 480 | 0 |
 | Insert1000 | 6.000 | 6.000 | 0 |
 
-A maior parte vem de uma única especulação, em `Parser.ParsePrefixInner`: a tentativa de ler um literal tipado (`DATE '...'`, `INTERVAL ...`), que falha em quase toda expressão. É a primeira candidata a otimização. A troca da exceção por um retorno sem exceção mantém o comportamento igual ao do Rust, desde que preserve a mesma restauração de posição e a mesma precedência de erros (`convencoes.md` §13, casos 81 e 124).
+A maior parte vem de uma única especulação, em `Parser.ParsePrefixInner`: a tentativa de ler um literal tipado (`DATE '...'`, `INTERVAL ...`), que falha em quase toda expressão. É a primeira candidata a otimização. A troca da exceção por um retorno sem exceção mantém o comportamento igual ao do Rust, desde que preserve a mesma restauração de posição e a mesma precedência de erros (`convencoes.md` §13, casos 81 e 124). **Tratado na P2:** ver [Depois da P2](#depois-da-p2).
 
 **Comparação de `ToString()` (`--crosscheck`).** Nas 22 consultas TPC-H, 26 instruções saem idênticas nas duas bibliotecas. As diferenças estão nas consultas 7, 8, 13 e 21 e vêm de correções do sqlparser-rs que o SqlParser-cs (de 2025) ainda não tem:
 - o alias de tabela sem `AS` é preservado (`nation n1`);
@@ -99,3 +99,25 @@ A maior parte vem de uma única especulação, em `Parser.ParsePrefixInner`: a t
 Nos dois casos, o nosso parser segue o Rust atual.
 
 **Limite de recursão.** Subconsultas aninhadas a partir de 30 níveis dão `recursion limit exceeded` no nosso parser, com o limite padrão de 50. O SqlParser-cs não tem essa proteção. É o comportamento do Rust: cada nível de subconsulta consome mais de uma unidade do limite.
+
+## Depois da P2
+
+A unidade P2 ([`docs/port/onda-d/P2.md`](../../docs/port/onda-d/P2.md)) tirou as exceções das especulações quentes: o `Err` que o `maybe_parse` descarta na especulação de literal tipado (`parse_prefix_inner`) e na de argumento nomeado (`parse_function_args`) passou a ser sinalizado por `null`, e o `MaybeParse` relança uma vez só. O comportamento é idêntico (`convencoes.md` §13, caso 140): 17,6 milhões de comparações entre o Core antigo e o novo, sem nenhuma diferença.
+
+**Como foi medido.** Não com o BenchmarkDotNet, mas com um harness próprio da P2 (fora do repositório): o Core antigo e o novo no mesmo processo (`extern alias`), Release, `GenericDialect`, `Stopwatch`, mediana de 15 amostras de ~150 ms alternando os dois, média de duas rodadas, processo fixado no processador lógico 2 com prioridade alta, máquina sem outra carga. Ambiente da seção [Ambiente](#ambiente). Cargas: as cinco acima, mais `In10000` (`WHERE id IN (1, ..., 10000)`) e `Funcs100` (100 chamadas de função de formas comuns, como `COUNT(*)`, `SUM(a * b)`, `COALESCE(d, 0)`, `ROUND(e, 2)`).
+
+| Carga | Exceções antes → depois | net8.0 antes | net8.0 depois | net48 antes | net48 depois |
+|---|---:|---:|---:|---:|---:|
+| Oltp | 4 → 0 | 51,7 µs | 3,7 µs | 61,5 µs | 6,5 µs |
+| Tpch22 | 688 → 35 | 9,55 ms | 1,28 ms | 11,49 ms | 2,34 ms |
+| Select300 | 300 → 0 | 3,82 ms | 0,31 ms | 4,66 ms | 0,59 ms |
+| Where200 | 480 → 40 | 6,67 ms | 0,62 ms | 7,45 ms | 0,81 ms |
+| Insert1000 | 6.000 → 0 | 91,1 ms | 2,31 ms | 100,6 ms | 5,44 ms |
+| In10000 | 10.002 → 1 | 148,9 ms | 3,01 ms | 169,4 ms | 9,97 ms |
+| Funcs100 | 361 → 20 | 4,90 ms | 0,41 ms | 5,41 ms | 0,56 ms |
+
+"Exceções" são as exceções distintas por parse da carga inteira. Antes, cada uma era lançada duas vezes (o `TryParse` relançava); depois, uma. As que sobram vêm de especulações que falham fundo na pilha, onde evitar a exceção exigiria mudar a forma de funções grandes do port: `IN (lista)` (uma por lista: o `maybe_parse(parse_query)` falha), chamadas de função cujo primeiro argumento não é um literal ou identificador simples (`COUNT(*)`, `SUM(a * b)`: os modificadores de tipo do literal tipado) e uma cauda longa de DDL e dialetos.
+
+**Cuidado ao medir no .NET 8 com um processador só.** Fixar o processo num processador lógico **e** subir a thread de medição para `ThreadPriority.Highest` deixa sem CPU a thread de fundo da compilação em camadas, e o código fica no tier-0 (no harness da P2: o Core novo dava 20 µs no `Oltp` assim, 3,7 µs sem a prioridade `Highest` e 5,6 µs com `DOTNET_TieredCompilation=0`). O BenchmarkDotNet também roda as medições com prioridade alta, e o `--pin 4` deste benchmark usa um processador só: é uma explicação provável para o net8.0 aparecer mais lento que o net48 nos [Resultados parciais](#resultados-parciais) (não confirmada). Ao refazer, prefira `-Pin 12` (os dois processadores lógicos do mesmo núcleo P) ou confira com `DOTNET_TieredCompilation=0`.
+
+**SqlParser-cs.** A comparação com ele não foi refeita na P2. Os números de parse dele nos resultados parciais (por exemplo, TPC-H em 13 ms no net8.0 e 5,1 ms no net48) vêm de outro método e talvez tenham o viés acima; servem só de ordem de grandeza. Para números finais, rode o `Run-Bench.ps1` completo.

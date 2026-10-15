@@ -676,7 +676,9 @@ public sealed partial class Parser
             // A wildcard is never a named-arg name; only the unnamed form applies.
             if (expr is not (Expr.Wildcard or Expr.QualifiedWildcard))
             {
-                if (MaybeParse(p => p.ParseFunctionNamedArgOperator()) is { } @operator)
+                // PORT-PERF (caso 140): `self.maybe_parse(|p| p.parse_function_named_arg_operator())?`, com o
+                // `Err` descartado sinalizado sem exceção.
+                if (MaybeParseNoMatch(p => p.ParseFunctionNamedArgOperatorNoMatch()) is { } @operator)
                 {
                     var namedArg = FunctionArgExpr.From(ParseWildcardExpr());
                     return new FunctionArg.ExprNamed(
@@ -690,10 +692,18 @@ public sealed partial class Parser
                 MaybeParseAliasedFunctionArg(exprArgExpr));
         }
 
-        var arg = MaybeParse<FunctionArg>(p =>
+        // PORT-PERF (caso 140): MaybeParseNoMatch; os dois `?` que falham em quase todo argumento sem nome
+        // (`p.parse_identifier()?` e `p.parse_function_named_arg_operator()?`) viram `return null`, sem exceção.
+        var arg = MaybeParseNoMatch<FunctionArg>(p =>
         {
-            var name = p.ParseIdentifier();
-            var @operator = p.ParseFunctionNamedArgOperator();
+            if (p.ParseIdentifierNoMatch() is not { } name)
+            {
+                return null;
+            }
+            if (p.ParseFunctionNamedArgOperatorNoMatch() is not { } @operator)
+            {
+                return null;
+            }
             var arg = FunctionArgExpr.From(p.ParseWildcardExpr());
             return new FunctionArg.Named(
                 Name: name,
@@ -780,8 +790,39 @@ public sealed partial class Parser
             case Token.Colon when _dialect.SupportsNamedFnArgsWithColonOperator:
                 return new FunctionArgOperator.Colon();
             default:
+                // PORT-PERF (caso 140): ParseFunctionNamedArgOperatorNoMatch (abaixo) é uma cópia desta função
+                // com este braço sem exceção; toda mudança aqui vale também lá.
                 PrevToken();
                 return Expected<FunctionArgOperator>("argument operator", tok);
+        }
+    }
+
+    // PORT-PERF (caso 140): cópia linha a linha de ParseFunctionNamedArgOperator (acima) para as especulações
+    // de ParseFunctionArgs (MaybeParseNoMatch). Só o braço `_ => { self.prev_token(); self.expected(..) }`
+    // muda: devolve null, sem exceção (o maybe_parse descarta esse `Err`). Mantenha as duas em sincronia.
+    internal FunctionArgOperator? ParseFunctionNamedArgOperatorNoMatch()
+    {
+        if (ParseKeyword(Keyword.VALUE))
+        {
+            return new FunctionArgOperator.Value();
+        }
+        var tok = NextToken();
+        switch (tok.Token)
+        {
+            case Token.RArrow when _dialect.SupportsNamedFnArgsWithRarrowOperator:
+                return new FunctionArgOperator.RightArrow();
+            case Token.Eq when _dialect.SupportsNamedFnArgsWithEqOperator:
+                return new FunctionArgOperator.EqualsVariant();
+            case Token.Assignment
+                when _dialect
+                    .SupportsNamedFnArgsWithAssignmentOperator:
+                return new FunctionArgOperator.Assignment();
+            case Token.Colon when _dialect.SupportsNamedFnArgsWithColonOperator:
+                return new FunctionArgOperator.Colon();
+            default:
+                PrevToken();
+                // self.expected("argument operator", tok), descartado pelo maybe_parse.
+                return null;
         }
     }
 

@@ -42,6 +42,14 @@ public sealed partial record Query : ISpanned
 {
     public Span Span()
     {
+        // PORT-DEVIATION DIV-005: o Rust não marca este método com #[recursive::recursive], mas aqui cada nível
+        // de subconsulta aninhada (`SELECT * FROM (SELECT * FROM (...) x) x`, possível com o limite de recursão
+        // elevado) gasta KBs de pilha; recebe a mesma proteção do Span() de Expr (convencoes.md §13, caso 123).
+        if (StackGuard.IsStackLow())
+        {
+            return StackGuard.Grow(this, static query => query.Span());
+        }
+
         // let Query {
         //     with,
         //     body,
@@ -153,8 +161,17 @@ public abstract partial record SetExpr : ISpanned
     /// <para><b>partial span</b></para>
     /// <para><c>SetExpr::Table</c> is not implemented.</para>
     /// </remarks>
-    public Span Span() =>
-        this switch
+    public Span Span()
+    {
+        // PORT-DEVIATION DIV-005: o Rust não marca este método com #[recursive::recursive], mas aqui cada
+        // operação de uma cadeia `SELECT 1 UNION ALL SELECT 2 ...` (não limitada pelo contador de recursão)
+        // gasta KBs de pilha; recebe a mesma proteção do Span() de Expr (convencoes.md §13, caso 123).
+        if (StackGuard.IsStackLow())
+        {
+            return StackGuard.Grow(this, static setExpr => setExpr.Span());
+        }
+
+        return this switch
         {
             Select select => select.Value.Span(),
             Query query => query.Value.Span(),
@@ -167,6 +184,7 @@ public abstract partial record SetExpr : ISpanned
             Merge statement => statement.Value.Span(),
             _ => throw new InvalidOperationException($"Variante de SetExpr não tratada: {GetType().Name}"),
         };
+    }
 }
 
 // impl Spanned for Values (spans.rs:240)

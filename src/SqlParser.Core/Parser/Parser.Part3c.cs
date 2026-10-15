@@ -1146,6 +1146,22 @@ public sealed partial class Parser
         return ty;
     }
 
+    // PORT-PERF (caso 140): ParseDataType para a especulação de literal tipado de ParsePrefixInner
+    // (MaybeParseNoMatch). Devolve null, sem exceção, quando parse_data_type devolveria `Err` já no primeiro
+    // token: o braço `_ => self.expected_at("a data type name", ..)` de parse_data_type_helper (o token não é
+    // Token::Word). Antes desse braço, parse_data_type_helper só faz o `try_decrease`, que pode falhar com
+    // RecursionLimitExceeded, e o avanço de um token, que o maybe_parse desfaz; aqui o `try_decrease` é o mesmo.
+    // Nos demais casos, é o próprio ParseDataType. Mantenha em sincronia com o início de ParseDataTypeHelper.
+    internal DataType? ParseDataTypeNoMatch()
+    {
+        if (PeekTokenRef().Token is not Token.Word)
+        {
+            using var _guard = _recursionCounter.TryDecrease();
+            return null;
+        }
+        return ParseDataType();
+    }
+
     internal (DataType DataType, MatchedTrailingBracket TrailingBracket) ParseDataTypeHelper()
     {
         // Rust: #[cfg_attr(feature = "recursive-protection", recursive::recursive)] (convencoes.md §13, caso 123).
@@ -1910,6 +1926,8 @@ public sealed partial class Parser
                 }
                 break;
             default:
+                // PORT-PERF (caso 140): ParseDataTypeNoMatch reproduz este braço sem exceção; se mudar o início
+                // desta função (antes do switch) ou os braços de primeiro token, revise-o.
                 data = ExpectedAt<DataType>("a data type name", nextTokenIndex);
                 break;
         }

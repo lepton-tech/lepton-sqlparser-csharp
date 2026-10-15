@@ -115,6 +115,49 @@ public class StackGuardTests
     }
 
     [Fact]
+    public void Span_de_80_subconsultas_aninhadas_numa_pilha_pequena()
+    {
+        // Query.Span() e TableFactor.Span() não têm #[recursive::recursive] no Rust; aqui recebem a proteção
+        // (DIV-005; unidade P2, tarefa 0). Antes, este Span() estourava a thread de 256 KB.
+        var sql = string.Concat(Enumerable.Repeat("SELECT * FROM (", 80)) + "SELECT 1"
+            + string.Concat(Enumerable.Repeat(") AS x", 80));
+        var statement = Parse(sql, 200)[0];
+
+        var esperado = RodarNumaThread(64 * 1024 * 1024, statement.Span);
+        var obtido = RodarNumaThread(PilhaPequena, statement.Span);
+
+        Assert.Equal(esperado, obtido);
+        Assert.Equal(sql.Length + 1, (int)obtido.End.Column);
+    }
+
+    [Fact]
+    public void Span_de_5000_UNION_ALL_numa_pilha_pequena()
+    {
+        // SetExpr.Span(): a cadeia de operações de conjunto não é limitada pelo contador de recursão (DIV-005).
+        var sql = string.Join(" UNION ALL ", Enumerable.Range(0, 5000).Select(i => $"SELECT {i}"));
+        var statement = Parser.ParseSql(new GenericDialect(), sql)[0];
+
+        var esperado = RodarNumaThread(64 * 1024 * 1024, statement.Span);
+        var obtido = RodarNumaThread(PilhaPequena, statement.Span);
+
+        Assert.Equal(esperado, obtido);
+        Assert.Equal(sql.Length + 1, (int)obtido.End.Column);
+    }
+
+    [Fact]
+    public void Span_de_200_juncoes_entre_parenteses_numa_pilha_pequena()
+    {
+        // TableFactor.Span(): os níveis de NestedJoin não passam por Query.Span() nem por Expr.Span() (DIV-005).
+        var sql = "SELECT * FROM " + new string('(', 200) + "a JOIN b ON a.id = b.id" + new string(')', 200);
+        var statement = Parse(sql, 1000)[0];
+
+        var esperado = RodarNumaThread(64 * 1024 * 1024, statement.Span);
+        var obtido = RodarNumaThread(PilhaPequena, statement.Span);
+
+        Assert.Equal(esperado, obtido);
+    }
+
+    [Fact]
     public void Erro_de_sintaxe_a_500_niveis_vira_ParserException()
     {
         // O erro sobe por centenas de quadros (e por várias trocas de pilha) até o chamador.

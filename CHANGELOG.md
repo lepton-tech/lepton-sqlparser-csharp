@@ -6,7 +6,7 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). A
 
 ## [Não lançado]
 
-Correções da revisão R4 da API pública e do pacote (unidade F1; [`docs/port/onda-d/R4.md`](docs/port/onda-d/R4.md)).
+Correções da revisão R4 da API pública e do pacote (unidade F1; [`docs/port/onda-d/R4.md`](docs/port/onda-d/R4.md)) e desempenho do parser (unidade P2; [`docs/port/onda-d/P2.md`](docs/port/onda-d/P2.md)).
 
 ### Adicionado
 
@@ -14,6 +14,7 @@ Correções da revisão R4 da API pública e do pacote (unidade F1; [`docs/port/
 
 ### Alterado
 
+- **Desempenho do parser (`SqlParser.Core`):** as tentativas especulativas mais frequentes (o literal tipado, como `DATE '...'`, testado em quase toda expressão, e o argumento nomeado, em quase todo argumento de função) deixaram de lançar e capturar exceções quando falham, e as demais lançam uma vez, não duas. O resultado é o mesmo (mesma AST, mesmo SQL gerado, mesmos erros e posições). Nas cargas do `tools/bench`, as exceções por parse caíram de 4–10.002 para 0–40, e o parse ficou de 4,9 a 18 vezes mais rápido no .NET Framework 4.8 e de 7,5 a 49 vezes no .NET 8 (por exemplo, um `INSERT` de 1.000 linhas: de 100 ms para 5,4 ms no net48). O depurador também deixa de parar em milhares de exceções de primeira chance.
 - **`GetStatementKind`:** um bloco `BEGIN ... END` passa a ser `Block`, e não `Transaction`. `BEGIN`/`START TRANSACTION` sem bloco continuam `Transaction`.
 - **`GetReferencedTables` e `GetReferencedColumns`:** o alvo de `SELECT ... INTO t` e de `OUTPUT ... INTO t` (SQL Server) passa a ser tabela e sai das colunas (antes, `SELECT * INTO #tmp FROM t` dava as tabelas `[t]` e as colunas `[#tmp]`).
 - **`GetReferencedTables`:** dentro da definição de uma CTE, o próprio nome só conta como a CTE quando ela pode ser recursiva (`WITH RECURSIVE`, ou a definição é uma operação de conjunto como `UNION ALL`). Antes contava sempre, e `WITH orders AS (SELECT * FROM orders WHERE x = 1) SELECT * FROM orders` dava uma lista vazia; agora dá `orders`.
@@ -25,6 +26,7 @@ Correções da revisão R4 da API pública e do pacote (unidade F1; [`docs/port/
 ### Corrigido
 
 - `ToSql()`/`ToString()` de subconsultas aninhadas e de junções entre parênteses (possíveis com limite de recursão elevado) e de cadeias longas de `UNION ALL` (5.000 termos, com o limite padrão) estouravam a pilha e derrubavam o processo; o `Display` de `Query`, `SetExpr` e `TableFactor` ganhou a mesma proteção do de `Expr` (desvio registrado na DIV-005).
+- `Span()` dos mesmos casos (subconsultas e junções aninhadas, cadeias longas de `UNION ALL`) também estourava a pilha; o `Span()` de `Query`, `SetExpr` e `TableFactor` ganhou a mesma proteção (P2, DIV-005).
 
 ### Documentação
 

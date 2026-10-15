@@ -326,8 +326,17 @@ public abstract partial record TableFactor : ISpanned
     /// <item><c>TableFactor::JsonTable</c></item>
     /// </list>
     /// </remarks>
-    public Span Span() =>
-        this switch
+    public Span Span()
+    {
+        // PORT-DEVIATION DIV-005: o Rust não marca este método com #[recursive::recursive], mas aqui cada nível
+        // de junções entre parênteses ou de tabelas derivadas aninhadas (possível com o limite de recursão
+        // elevado) gasta KBs de pilha; recebe a mesma proteção do Span() de Expr (convencoes.md §13, caso 123).
+        if (StackGuard.IsStackLow())
+        {
+            return StackGuard.Grow(this, static tableFactor => tableFactor.Span());
+        }
+
+        return this switch
         {
             // TableFactor::Table { name, alias, args: _, with_hints: _, version: _, with_ordinality: _,
             //     partitions: _, json_path: _, sample: _, index_hints: _ }
@@ -406,6 +415,7 @@ public abstract partial record TableFactor : ISpanned
             OpenJsonTable => Core.Span.Empty(),
             _ => throw new InvalidOperationException($"Variante de TableFactor não tratada: {GetType().Name}"),
         };
+    }
 }
 
 // impl Spanned for PivotValueSource (spans.rs:2116)

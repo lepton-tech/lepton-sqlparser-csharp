@@ -789,8 +789,24 @@ public sealed partial class Parser
             case Token.DoubleQuotedString { Value: var s }:
                 return Ident.WithQuoteAndSpan('"', nextToken.Span, s);
             default:
+                // PORT-PERF (caso 140): ParseIdentifierNoMatch reproduz este braço sem exceção; se mudarem os
+                // braços acima, revise-o.
                 return Expected<Ident>("identifier", nextToken);
         }
+    }
+
+    // PORT-PERF (caso 140): ParseIdentifier para a especulação de argumento nomeado de ParseFunctionArgs
+    // (MaybeParseNoMatch). Devolve null, sem exceção, quando parse_identifier devolveria `Err`: o braço
+    // `_ => self.expected("identifier", next_token)` (o token não é Word nem string entre aspas simples ou
+    // duplas); o maybe_parse desfaz o avanço do token. Nos demais casos, é o próprio ParseIdentifier.
+    // Mantenha os tipos de token em sincronia com os braços de ParseIdentifier.
+    internal Ident? ParseIdentifierNoMatch()
+    {
+        if (PeekTokenRef().Token is not (Token.Word or Token.SingleQuotedString or Token.DoubleQuotedString))
+        {
+            return null;
+        }
+        return ParseIdentifier();
     }
 
     /// <summary>

@@ -52,7 +52,7 @@ git -C upstream/sqlparser-rs show --stat --format="%h %s" <hash>
 Para cada commit, **em ordem cronológica**:
 
 1. `git -C upstream/sqlparser-rs show <hash>`: leia o diff inteiro, código **e testes**.
-2. Porte com a skill `port-rust-to-csharp`, aplicando o diff no arquivo C# correspondente. A estrutura 1:1 é o que torna isso direto.
+2. Porte com a skill `port-rust-to-csharp`, aplicando o diff no arquivo C# correspondente. A estrutura 1:1 é o que torna isso direto. Se o trecho tem a marca `// PORT-PERF` (ou o diff mexe em `parse_prefix_inner`, `parse_data_type_helper`, `parse_identifier`, `parse_function_args` ou `parse_function_named_arg_operator`), siga a receita do caso 140 da `convencoes.md` §13: a mesma mudança vale para a variante `...NoMatch`, e `SpeculationNoMatchTests` precisa continuar verde.
 3. Porte os testes do commit (skill `port-rust-tests`). Eles entram no fim do arquivo de teste, como no Rust.
 4. Build e testes verdes em net48/net8.0/net10.0.
 5. Registre no ledger, `docs/port/upstream-ledger.md`, com uma linha por PR:

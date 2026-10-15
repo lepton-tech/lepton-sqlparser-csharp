@@ -832,14 +832,28 @@ public sealed partial class Parser
     public T? MaybeParse<T>(Func<Parser, T> f)
         where T : class
     {
+        // match self.try_parse(f) { Ok(t) => Ok(Some(t)), Err(RecursionLimitExceeded) => Err(..), _ => Ok(None) }
+        // PORT-PERF (caso 140): o try_parse está expandido aqui (mesmos passos do TryParse abaixo), para que uma
+        // tentativa que falha custe um lançamento de exceção, e não dois (o TryParse relança o erro).
+        var index = _index;
+        ParserException e;
         try
         {
-            return TryParse(f);
+            return f(this);
         }
-        catch (ParserException e) when (e.Error is not ParserError.RecursionLimitExceeded)
+        catch (ParserException error)
         {
-            return null;
+            // Tratado fora do catch (convencoes.md §13, caso 124).
+            e = error;
         }
+
+        // Unwind stack if limit exceeded
+        _index = index;
+        if (e.Error is ParserError.RecursionLimitExceeded)
+        {
+            throw StackGuard.Rethrow(e);
+        }
+        return null;
     }
 
     /// <summary>
@@ -849,14 +863,58 @@ public sealed partial class Parser
     public T? MaybeParseValue<T>(Func<Parser, T> f)
         where T : struct
     {
+        // PORT-PERF (caso 140): try_parse expandido, como no MaybeParse.
+        var index = _index;
+        ParserException e;
         try
         {
-            return TryParse(f);
+            return f(this);
         }
-        catch (ParserException e) when (e.Error is not ParserError.RecursionLimitExceeded)
+        catch (ParserException error)
         {
+            e = error;
+        }
+
+        // Unwind stack if limit exceeded
+        _index = index;
+        if (e.Error is ParserError.RecursionLimitExceeded)
+        {
+            throw StackGuard.Rethrow(e);
+        }
+        return null;
+    }
+
+    // PORT-PERF (caso 140): maybe_parse cuja closure sinaliza "sem correspondência" devolvendo null, sem exceção,
+    // no lugar de um `Err` que o maybe_parse descartaria (qualquer erro, menos RecursionLimitExceeded). O null
+    // tem o efeito do braço `_ => Ok(None)`: volta a posição e devolve null. Uma exceção da closure segue o
+    // caminho do MaybeParse. Só para os pontos registrados no caso 140.
+    internal T? MaybeParseNoMatch<T>(Func<Parser, T?> f)
+        where T : class
+    {
+        var index = _index;
+        ParserException e;
+        try
+        {
+            if (f(this) is { } t)
+            {
+                return t;
+            }
+            // Err descartado, sinalizado sem exceção.
+            _index = index;
             return null;
         }
+        catch (ParserException error)
+        {
+            e = error;
+        }
+
+        // Unwind stack if limit exceeded
+        _index = index;
+        if (e.Error is ParserError.RecursionLimitExceeded)
+        {
+            throw StackGuard.Rethrow(e);
+        }
+        return null;
     }
 
     /// <summary>Run a parser method <c>f</c>, reverting back to the current position if unsuccessful.</summary>

@@ -313,11 +313,18 @@ public sealed partial class Parser
         // Note also that naively `SELECT date` looks like a syntax error because the `date` type
         // name is not followed by a string literal, but in fact in PostgreSQL it is a valid
         // expression that should parse as the column name "date".
+        // (`loc` só servia ao `parser_err!("dummy", loc)`, que aqui virou `return null`: caso 140.)
         var loc = PeekTokenRef().Span.Start;
-        var optExpr = MaybeParse<Expr>(parser =>
+        // PORT-PERF (caso 140): MaybeParseNoMatch e ParseDataTypeNoMatch. Os dois `Err` que este maybe_parse
+        // descarta em quase toda expressão (`parse_data_type()?` no primeiro token e `parser_err!("dummy", loc)`)
+        // viram `return null`, sem exceção; os demais erros seguem como exceção.
+        var optExpr = MaybeParseNoMatch<Expr>(parser =>
         {
-            switch (parser.ParseDataType())
+            switch (parser.ParseDataTypeNoMatch())
             {
+                // PORT-PERF (caso 140): `parser.parse_data_type()?` com `Err` no primeiro token.
+                case null:
+                    return null;
                 case DataType.Interval:
                     return parser.ParseInterval();
                 // PostgreSQL allows almost any identifier to be used as custom data type name,
@@ -339,7 +346,8 @@ public sealed partial class Parser
                         Value: parser.ParseValue(),
                         UsesOdbcSyntax: false));
                 case DataType.Custom:
-                    throw ParserErr("dummy", loc);
+                    // PORT-PERF (caso 140): parser_err!("dummy", loc), descartado pelo maybe_parse.
+                    return null;
                 // MySQL supports using the `BINARY` keyword as a cast to binary type.
                 case DataType.Binary when _dialect.SupportsBinaryKwAsCast:
                     return new Expr.Cast(

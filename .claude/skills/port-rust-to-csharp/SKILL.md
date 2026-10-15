@@ -67,7 +67,7 @@ dotnet test SqlParser.sln -nologo -v q
 - Um teste portado que falha **não** pode ser apagado nem "ajustado" para passar. Ou o código está errado (corrija), ou é divergência registrada (`Skip = "DIV-NNN: ..."`).
 - **Limite de tentativas.** Se duas correções seguidas da mesma unidade não resolverem, pare de remendar. Releia o Rust e **retraduza a unidade do zero**: estudos de tradução por LLM mostram que regenerar funciona melhor que remendar. Se ainda falhar, registre no diário e siga para outra unidade.
 - **Revisão linha a linha.** Ao fim de cada unidade relevante (tipo grande, função de parse, arquivo de dialeto), peça a um **subagente com contexto limpo** que compare o C# com o Rust usando [references/checklist-revisao.md](references/checklist-revisao.md). Passe a ele só o trecho Rust, o arquivo C# e o checklist. Corrija o que ele apontar.
-- **Desvios no código.** Toda divergência deliberada leva um comentário buscável na linha: `// PORT-DEVIATION DIV-NNN: <motivo>`. Pendências levam `// PORT-TODO: <o quê>`. Ver `convencoes.md` §12.
+- **Desvios no código.** Toda divergência deliberada leva um comentário buscável na linha: `// PORT-DEVIATION DIV-NNN: <motivo>`. Pendências levam `// PORT-TODO: <o quê>`. Pontos em que só o mecanismo de falha muda, por desempenho, levam `// PORT-PERF (caso N): <motivo>`; ao portar uma mudança do Rust num deles, siga a receita do caso citado (hoje, o 140: variantes `...NoMatch`). Ver `convencoes.md` §12.
 
 ## 6. Fechar a sessão (handoff)
 
