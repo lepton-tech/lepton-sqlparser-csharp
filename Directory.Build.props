@@ -19,7 +19,7 @@
   -->
   <PropertyGroup>
     <VersionPrefix>0.63.1</VersionPrefix>
-    <VersionSuffix>preview.1</VersionSuffix>
+    <VersionSuffix>preview.2</VersionSuffix>
     <AssemblyVersion>$(VersionPrefix).0</AssemblyVersion>
     <FileVersion>$(VersionPrefix).0</FileVersion>
     <Authors>Lepton TI</Authors>

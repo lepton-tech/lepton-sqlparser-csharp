@@ -45,7 +45,7 @@ Metadados: `PackageId` `LeptonTI.SqlParser`, `Authors`/`Company` "Lepton TI", `P
 
 | Propriedade | Valor | Regra |
 |---|---|---|
-| `VersionPrefix` / `VersionSuffix` | `0.63.1` / `preview.1` | Versão do pacote; a única coisa a mudar a cada versão (com o `CHANGELOG.md`) |
+| `VersionPrefix` / `VersionSuffix` | `0.63.1` / `preview.2` (atual; a primeira foi `preview.1`) | Versão do pacote; a única coisa a mudar a cada versão (com o `CHANGELOG.md`) |
 | `AssemblyVersion` e `FileVersion` | `0.63.1.0` | `<VersionPrefix>.0`, sem o sufixo. Sem assinatura forte, o .NET Framework não usa a `AssemblyVersion` na vinculação. Se a assinatura forte for adotada, rever (ex.: fixar `0.<minor>.0.0` para reduzir *binding redirects*) |
 | `InformationalVersion` | `0.63.1-preview.1+sqlparser-rs.dacdbc9.<commit deste repositório>` | `$(Version)+sqlparser-rs.<commit curto>`, com o commit lido do `UPSTREAM.json` (`portedThroughCommit`); o SDK acrescenta o commit do Git deste repositório (`SourceRevisionId`). Com alterações não commitadas, esse commit não identificaria o conteúdo: o `Pack.ps1` recusa empacotar, e com `-AllowDirty` a versão termina em `.dirty` (`SqlParserDirtyBuild=true`, alvo `_SqlParserMarkDirtyBuild` em `Directory.Build.targets`) |
 | `AssemblyMetadata` | `SqlParserRsBaselineTag`, `SqlParserRsCommit` | Tag-base e commit completo do Rust, também lidos do `UPSTREAM.json` |

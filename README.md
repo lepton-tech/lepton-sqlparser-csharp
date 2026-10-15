@@ -4,7 +4,7 @@ Parser SQL para .NET: port em C# do [sqlparser-rs](https://github.com/apache/dat
 
 - **`netstandard2.0`**: roda no .NET Framework 4.8 e no .NET 8/10, sem Rust, sem DLLs nativas e sem pacotes de runtime.
 - **16 dialetos**, AST completa, SQL de volta como texto (inclusive formatado), visitors, reescrita e análise sintática.
-- **Versão atual:** `0.63.1-preview.1` (pré-lançamento), com o Rust até o commit `dacdbc9`, depois da `v0.63.0` ([`CHANGELOG.md`](CHANGELOG.md)).
+- **Versão atual:** `0.63.1-preview.2` (pré-lançamento), com o Rust até o commit `dacdbc9`, depois da `v0.63.0` ([`CHANGELOG.md`](CHANGELOG.md)).
 
 O pacote `LeptonTI.SqlParser` traz duas DLLs: `SqlParser.Core.dll`, o port fiel (namespaces `SqlParser.Core*`), e `SqlParser.dll`, a API pública (namespace `SqlParser`), no estilo do [SqlParser-cs](https://github.com/TylerBrinks/SqlParser-cs).
 
@@ -15,7 +15,7 @@ Por enquanto o pacote só existe localmente: nada é publicado em feed ([ADR-001
 ```bash
 pwsh tools/pack/Pack.ps1        # compila, roda os testes e gera artifacts/LeptonTI.SqlParser.<versão>.nupkg
 dotnet nuget add source "<caminho do repositório>/artifacts" --name leptonti-local
-dotnet add package LeptonTI.SqlParser --version 0.63.1-preview.1
+dotnet add package LeptonTI.SqlParser --version 0.63.1-preview.2
 ```
 
 O `Pack.ps1` só empacota com a árvore do Git limpa (tudo commitado), para que o commit gravado nas DLLs identifique o conteúdo; `-AllowDirty` empacota assim mesmo, para teste, com `.dirty` no fim da `InformationalVersion`. Os símbolos de depuração (PDB) vão embutidos nas DLLs, então a depuração funciona a partir de qualquer feed, sem `.snupkg`.

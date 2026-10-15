@@ -4,7 +4,7 @@ Parser SQL para .NET: port em C# do [sqlparser-rs](https://github.com/apache/dat
 
 - `netstandard2.0`: roda no .NET Framework 4.8 e no .NET 8/10, sem dependências nativas nem pacotes de runtime.
 - Duas DLLs no mesmo pacote: `SqlParser.Core.dll` (port fiel do Rust: tokenizer, dialetos, parser, AST) e `SqlParser.dll` (API pública: `SqlQueryParser`, `ToSql`, visitors, análise).
-- A versão acompanha o sqlparser-rs: `0.63.x` corresponde ao Rust `v0.63`. A `0.63.1-preview.1` inclui o `main` do Rust até o commit `dacdbc9`.
+- A versão acompanha o sqlparser-rs: `0.63.x` corresponde ao Rust `v0.63`. A `0.63.1-preview.2` inclui o `main` do Rust até o commit `dacdbc9`.
 
 ## Exemplo
 

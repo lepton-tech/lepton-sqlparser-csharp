@@ -6,6 +6,8 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). A
 
 ## [Não lançado]
 
+## [0.63.1-preview.2] - 2026-10-15
+
 Correções da revisão R4 da API pública e do pacote (unidade F1; [`docs/port/onda-d/R4.md`](docs/port/onda-d/R4.md)) e desempenho do parser (unidade P2; [`docs/port/onda-d/P2.md`](docs/port/onda-d/P2.md)).
 
 ### Adicionado
