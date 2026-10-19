@@ -1,0 +1,16 @@
+{
+  "$comment": "Fonte da verdade sobre QUAL versão do Rust está sendo portada. Ver docs/adr/0004-baseline-e-sincronizacao.md e a skill sync-upstream.",
+  "sqlparser-rs": {
+    "repository": "https://github.com/apache/datafusion-sqlparser-rs.git",
+    "baselineTag": "v0.63.0",
+    "baselineCommit": "85b1a6f2223bf95d98cf1bc504971abd191dc869",
+    "portedThroughCommit": "dacdbc99cd16c335fccd353ba41f6c18a7cd73b8",
+    "localPath": "upstream/sqlparser-rs"
+  },
+  "SqlParser-cs": {
+    "$comment": "Somente referência de API/estilo (MIT). Não é fonte de verdade de comportamento.",
+    "repository": "https://github.com/TylerBrinks/SqlParser-cs.git",
+    "commit": "e1929977a96290f937e9a2a67e3c823b7dc25cd2",
+    "localPath": "upstream/SqlParser-cs"
+  }
+}

@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Gerador do visitor (port do derive Visit/VisitMut de sqlparser-rs, derive/src/visit.rs).
+    Ferramenta de desenvolvimento: NÃO faz parte da solução nem é distribuída.
+    Uso: pwsh tools/codegen/Generate-Visitor.ps1 (ver docs/adr/0007-visitor.md).
+    Lê por reflexão o Lepton.SqlParser.Core.dll compilado SEM o código gerado (-p:SqlParserVisitorCodegen=true)
+    e escreve src/Lepton.SqlParser.Core/Ast/Visitor/Generated/*.g.cs.
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>VisitorGen</RootNamespace>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+</Project>

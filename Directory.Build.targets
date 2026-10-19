@@ -1,0 +1,24 @@
+<Project>
+  <!--
+    Importado depois do projeto e depois de o SDK calcular a $(Version) (VersionPrefix/VersionSuffix ou -p:Version).
+    InformationalVersion = <versão do pacote>+sqlparser-rs.<commit do Rust portado>; o SDK acrescenta
+    ".<commit deste repositório>" (SourceRevisionId). Ver docs/adr/0010-empacotamento.md.
+  -->
+  <PropertyGroup>
+    <InformationalVersion Condition="'$(InformationalVersion)' == ''">$(Version)+sqlparser-rs.$(SqlParserRsShortCommit)</InformationalVersion>
+  </PropertyGroup>
+
+  <!--
+    Build com alterações não commitadas (tools/pack/Pack.ps1 -AllowDirty passa -p:SqlParserDirtyBuild=true): o commit
+    acrescentado pelo SDK não identifica o conteúdo, então a InformationalVersion termina em ".dirty". Roda depois de
+    AddSourceRevisionToInformationalVersion (que acrescenta o commit) e antes de GetAssemblyAttributes (que grava o
+    atributo), mesmo quando aquele alvo é pulado por falta de commit.
+  -->
+  <Target Name="_SqlParserMarkDirtyBuild"
+          AfterTargets="AddSourceRevisionToInformationalVersion"
+          Condition="'$(SqlParserDirtyBuild)' == 'true'">
+    <PropertyGroup>
+      <InformationalVersion>$(InformationalVersion).dirty</InformationalVersion>
+    </PropertyGroup>
+  </Target>
+</Project>
