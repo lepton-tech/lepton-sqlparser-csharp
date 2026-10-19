@@ -1,0 +1,66 @@
+<Project>
+  <!-- Configuração comum a todos os projetos da solução. Ver docs/adr/0002-arquitetura-em-camadas-e-api.md. -->
+  <PropertyGroup>
+    <LangVersion>14.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+
+  <!--
+    Versão e identificação do pacote LeptonTI.SqlParser (docs/adr/0010-empacotamento.md).
+    - Versão do pacote: alinhada ao sqlparser-rs (0.63.x). Mudanças só nossas avançam o último número ou o sufixo.
+    - AssemblyVersion e FileVersion: <VersionPrefix>.0 (ex.: 0.63.1.0), sem o sufixo de pré-lançamento.
+      As DLLs não têm assinatura forte, então o .NET Framework não usa a AssemblyVersion na vinculação.
+    - InformationalVersion: <versão do pacote>+sqlparser-rs.<commit do Rust portado>, e o SDK acrescenta
+      ".<commit deste repositório>" (SourceRevisionId, lido do Git). Com SqlParserDirtyBuild=true (passado por
+      tools/pack/Pack.ps1 -AllowDirty quando há alterações não commitadas), termina em ".dirty" (Directory.Build.targets).
+  -->
+  <PropertyGroup>
+    <VersionPrefix>0.63.1</VersionPrefix>
+    <VersionSuffix>preview.2</VersionSuffix>
+    <AssemblyVersion>$(VersionPrefix).0</AssemblyVersion>
+    <FileVersion>$(VersionPrefix).0</FileVersion>
+    <Authors>Lepton TI</Authors>
+    <Company>Lepton TI</Company>
+    <Product>LeptonTI.SqlParser</Product>
+    <Copyright>Copyright (c) 2026 Lepton TI. Contains code ported from sqlparser-rs (Apache-2.0, The Apache Software Foundation); see NOTICE.</Copyright>
+  </PropertyGroup>
+
+  <!-- Commit do Rust portado, lido do UPSTREAM.json (fonte da verdade; docs/adr/0004-baseline-e-sincronizacao.md). -->
+  <PropertyGroup>
+    <_UpstreamJson>$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)UPSTREAM.json'))</_UpstreamJson>
+    <SqlParserRsCommit>$([System.Text.RegularExpressions.Regex]::Match($(_UpstreamJson), '(?&lt;="portedThroughCommit"\s*:\s*")[0-9a-f]{40}').Value)</SqlParserRsCommit>
+    <SqlParserRsBaselineTag>$([System.Text.RegularExpressions.Regex]::Match($(_UpstreamJson), '(?&lt;="baselineTag"\s*:\s*")[^"]+').Value)</SqlParserRsBaselineTag>
+    <SqlParserRsShortCommit>$(SqlParserRsCommit.Substring(0, 7))</SqlParserRsShortCommit>
+    <!-- A InformationalVersion é montada em Directory.Build.targets, onde a $(Version) final já existe. -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AssemblyMetadata Include="SqlParserRsBaselineTag" Value="$(SqlParserRsBaselineTag)" />
+    <AssemblyMetadata Include="SqlParserRsCommit" Value="$(SqlParserRsCommit)" />
+  </ItemGroup>
+
+  <!--
+    Build reproduzível. Deterministic vale sempre; ContinuousIntegrationBuild (caminhos normalizados para /_/ nos PDBs)
+    vale em servidores de CI (CI, TF_BUILD, BITBUCKET_BUILD_NUMBER) ou quando passado explicitamente
+    (tools/pack/Pack.ps1 usa -p:ContinuousIntegrationBuild=true). EmbedUntrackedSources embute nos PDBs os fontes que
+    o Git não rastreia (ex.: os gerados em obj/).
+    Símbolos: os PDBs são portáteis. Nas duas DLLs do pacote (SqlParser e SqlParser.Core), o PDB vai EMBUTIDO na DLL
+    (DebugType=embedded): o depurador e os rastros de pilha acham os símbolos em qualquer feed (local, interno ou
+    nuget.org) sem servidor de símbolos, e não há .snupkg. Os demais projetos (testes) mantêm o PDB em arquivo.
+    Ver docs/adr/0010-empacotamento.md.
+    TODO (SourceLink): o repositório ainda não tem remoto. Quando for para o Bitbucket, definir RepositoryUrl e
+    PublishRepositoryUrl; o SourceLink embutido no SDK (8 ou superior) passa a gerar os links. Para Bitbucket Server,
+    declarar também o item SourceLinkBitbucketGitHost. Os marcadores ficam comentados em src/SqlParser/SqlParser.csproj.
+  -->
+  <PropertyGroup>
+    <DebugType>portable</DebugType>
+    <DebugType Condition="'$(MSBuildProjectName)' == 'SqlParser' or '$(MSBuildProjectName)' == 'SqlParser.Core'">embedded</DebugType>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(ContinuousIntegrationBuild)' == '' and ('$(CI)' == 'true' or '$(TF_BUILD)' == 'true' or '$(BITBUCKET_BUILD_NUMBER)' != '')">
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+</Project>

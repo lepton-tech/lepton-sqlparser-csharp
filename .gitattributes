@@ -1,0 +1,9 @@
+# Normaliza finais de linha no repositório (LF no índice, conversão no checkout conforme a plataforma).
+* text=auto
+
+# Scripts PowerShell e arquivos de solução do Visual Studio ficam em CRLF.
+*.ps1 text eol=crlf
+*.sln text eol=crlf
+
+# Patches do Plano B precisam ser aplicados byte a byte: sem conversão de finais de linha.
+*.patch -text

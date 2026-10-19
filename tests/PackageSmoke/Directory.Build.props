@@ -1,0 +1,11 @@
+<Project>
+  <!--
+    Teste do pacote FORA da solução: os apps daqui se comportam como um consumidor externo do pacote
+    LeptonTI.SqlParser. Este arquivo existe para NÃO herdar o Directory.Build.props da raiz (LangVersion 14,
+    TreatWarningsAsErrors, versão do pacote etc.). Rodado por tools/pack/Test-Package.ps1.
+  -->
+  <PropertyGroup>
+    <!-- Versão do pacote a testar; o Test-Package.ps1 passa a versão do .nupkg mais recente de artifacts/. -->
+    <LeptonTISqlParserVersion Condition="'$(LeptonTISqlParserVersion)' == ''">*-*</LeptonTISqlParserVersion>
+  </PropertyGroup>
+</Project>

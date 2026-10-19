@@ -1,0 +1,18 @@
+SqlParser (port C# do sqlparser-rs)
+
+Este produto contém código traduzido para C# a partir do projeto
+Apache DataFusion sqlparser-rs (https://github.com/apache/datafusion-sqlparser-rs),
+licenciado sob a Apache License, Version 2.0 (ver licenses/sqlparser-rs-LICENSE.txt).
+
+Aviso original do sqlparser-rs (NOTICE.TXT):
+
+    Apache DataFusion sqlparser-rs
+    Copyright 2024-2026 The Apache Software Foundation
+
+    This product includes software developed at
+    The Apache Software Foundation (http://www.apache.org/).
+
+Os arquivos portados mantêm o cabeçalho de licença original e indicam o arquivo
+de origem e a versão do sqlparser-rs da qual foram traduzidos.
+
+Componentes de terceiros adicionais: ver THIRD-PARTY-NOTICES.md.
