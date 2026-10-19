@@ -14,18 +14,18 @@
 Dois projetos, com dependência em um só sentido:
 
 ```
-SqlParser (API pública)  ──depende de──►  SqlParser.Core (port fiel)
+Lepton.SqlParser (API pública)  ──depende de──►  Lepton.SqlParser.Core (port fiel)
 ```
 
-| | `SqlParser.Core` | `SqlParser` |
+| | `Lepton.SqlParser.Core` | `Lepton.SqlParser` |
 |---|---|---|
 | **Conteúdo** | Tradução 1:1 do sqlparser-rs: tokenizer, keywords, dialetos, parser, AST, `Display`, spans, visitor | Código nosso: ponto de entrada (`SqlQueryParser`), `ToSql()`/`ToSql(pretty)`, `TryParse`, visitors no estilo SqlParser-cs, utilitários de análise, customizações |
 | **Nomes** | Os do Rust, por regra mecânica (`Expr`, `SetExpr`, `Statement.Query`). Sem exceções "de gosto" | Livres, no estilo do SqlParser-cs (`SqlQueryParser`, `ToSql`…) |
 | **Regras** | `docs/port/convencoes.md` (normativo) | Boas práticas .NET (Framework Design Guidelines) |
 | **Cabeçalho ASF** | Sim (código derivado) | Não (código próprio), salvo se algo for derivado |
 | **Muda quando** | O upstream muda | Nós decidimos |
-| **Testes** | `SqlParser.Core.Tests` (portados do Rust) | `SqlParser.Tests` (nossos) |
-| **Namespaces** | `SqlParser.Core`, `SqlParser.Core.Ast`, `SqlParser.Core.Dialects` | `SqlParser`, e outros a definir |
+| **Testes** | `Lepton.SqlParser.Core.Tests` (portados do Rust) | `Lepton.SqlParser.Tests` (nossos) |
+| **Namespaces** | `Lepton.SqlParser.Core`, `Lepton.SqlParser.Core.Ast`, `Lepton.SqlParser.Core.Dialects` | `Lepton.SqlParser`, e outros a definir |
 
 **AST exposta pela API pública:**
 - Inicialmente, a camada pública **reexpõe os tipos de AST do Core**, sem duplicar a AST.
@@ -42,4 +42,4 @@ SqlParser (API pública)  ──depende de──►  SqlParser.Core (port fiel)
 
 - O Core segue regras mecânicas sem exceções. Isso reduz decisões por sessão e, com elas, o risco de traduções inconsistentes.
 - Mudanças de API vindas do upstream (frequentes) chegam ao Core. A camada pública é onde se pode amortecê-las.
-- **Empacotamento** (um pacote com as duas DLLs ou dois pacotes NuGet): decidido no [ADR-0010](0010-empacotamento.md): um pacote só, `LeptonTI.SqlParser`, com as duas DLLs.
+- **Empacotamento** (um pacote com as duas DLLs ou dois pacotes NuGet): decidido no [ADR-0010](0010-empacotamento.md): um pacote só, com as duas DLLs. O nome (`Lepton.SqlParser`, também dos assemblies e namespaces) está no [ADR-0011](0011-renome-lepton-sqlparser.md); até a `0.63.1-preview.2`, o pacote era `LeptonTI.SqlParser` e os namespaces, `SqlParser` e `SqlParser.Core`.

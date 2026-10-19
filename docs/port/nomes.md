@@ -9,7 +9,7 @@ Este glossário lista **só o que a regra mecânica de [`convencoes.md`](convenc
 
 Formato: `Rust` → `C#` — motivo — arquivo onde foi definido.
 
-## Core (`SqlParser.Core`)
+## Core (`Lepton.SqlParser.Core`)
 
 ### Variantes-tupla com 2+ campos
 
@@ -32,7 +32,7 @@ Formato: `Rust` → `C#` — motivo — arquivo onde foi definido.
 | `Unescape::unescape(self)` | `Unescape.DoUnescape()` | CS0542: método com o nome do tipo que o contém | `Tokenizer/Unescape.cs` |
 | `Tokenizer::tokenizer_error<R>(..)` | `Tokenizer.TokenizerErrorAt<T>(..)` | Dentro de `Tokenizer`, um método `TokenizerError` esconderia o tipo `TokenizerError` em expressões | `Tokenizer/Tokenizer.cs` |
 | `Span::EMPTY` (const privado, "for pattern matching") | não portado; as comparações usam `Span.Empty()` | CS0102: o campo `Empty` colidiria com `fn empty()` → `Empty()` | `Tokenizer/Span.cs` |
-| `core::iter::Once<T>` (std) | `OnceIter<T>` (`internal`) | `Once` já é o método `RustIter.Once` (`core::iter::once`); um tipo genérico homônimo no mesmo namespace tornaria `Once<T>(x)` ambíguo nos arquivos com `using static SqlParser.Core.RustIter` | `Support/OnceIter.cs` |
+| `core::iter::Once<T>` (std) | `OnceIter<T>` (`internal`) | `Once` já é o método `RustIter.Once` (`core::iter::once`); um tipo genérico homônimo no mesmo namespace tornaria `Once<T>(x)` ambíguo nos arquivos com `using static Lepton.SqlParser.Core.RustIter` | `Support/OnceIter.cs` |
 | `alloc::vec::IntoIter<T>` (std) | `VecIntoIter<T>` (`internal`) | `IntoIter` sozinho não diz de qual coleção é e colidiria com os métodos `IntoIter()` (`into_iter`) | `Support/VecIntoIter.cs` |
 
 ### Exceções de tipo/valor
@@ -144,7 +144,7 @@ Consolidado das notas em `onda-b/` (seção "Nomes" de cada unidade, com o motiv
 
 **Variáveis locais:** as renomeações por sombreamento (caso 72 e caso 94) e os nomes com `@` (casos 56 e 95) de cada unidade estão listados nas notas `onda-b/B1.md`–`B7.md` (seção "Nomes"). Não são API; não precisam ser repetidos em outros arquivos.
 
-## Testes (`SqlParser.Core.Tests`)
+## Testes (`Lepton.SqlParser.Core.Tests`)
 
 Auxiliares **inventados** nos testes portados (não existem no Rust). Antes de criar outro com o mesmo papel, reutilize o nome daqui. Os auxiliares que vêm do Rust seguem o nome mecânico (`pg()` → `Pg()`, `mysql_and_generic()` → `MysqlAndGeneric()`) e não estão listados.
 
@@ -185,7 +185,7 @@ Regras em `convencoes.md` §13, casos 125–134, e `docs/adr/0007-visitor.md`.
 | Testes (`mod tests`/`mod visit_mut_tests`): campos `visited`, `idents`, `relations` (privados) | propriedades `Visited`, `Idents`, `Relations` | Lidos pelo teste fora da classe aninhada | `tests/.../Ast/VisitorTests.cs` |
 | Testes: `do_visit`, `do_visit_mut` | `DoVisit`, `DoVisitMut` (`private static`) | Regra mecânica (skill `port-rust-tests`) | idem |
 
-## Camada pública (`SqlParser`)
+## Camada pública (`Lepton.SqlParser`)
 
 Nomes "amigáveis" herdados do SqlParser-cs, aplicáveis **somente** à API pública ([ADR-0002](../adr/0002-arquitetura-em-camadas-e-api.md)). Decisões da fase 1 em [ADR-0008](../adr/0008-api-publica-fase-1.md) e da fase 2 em [ADR-0009](../adr/0009-api-publica-fase-2.md).
 

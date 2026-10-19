@@ -1,12 +1,12 @@
 # Geradores de código (`tools/codegen/`)
 
-Três partes do `SqlParser.Core` não são traduzidas à mão: são **geradas** a partir de fontes oficiais. Assim, uma mudança no upstream nunca é "esquecida" e o resultado não depende de quem portou.
+Três partes do `Lepton.SqlParser.Core` não são traduzidas à mão: são **geradas** a partir de fontes oficiais. Assim, uma mudança no upstream nunca é "esquecida" e o resultado não depende de quem portou.
 
 | Script | Gera | A partir de | Quando rodar |
 |---|---|---|---|
-| [`Generate-Keywords.ps1`](Generate-Keywords.ps1) | `src/SqlParser.Core/Keywords.g.cs` (enum `Keyword`, `ALL_KEYWORDS`, listas `RESERVED_*`) | `upstream/sqlparser-rs/src/keywords.rs` | Quando o `keywords.rs` do Rust mudar (keyword nova ou lista reservada alterada) |
-| [`Generate-Visitor.ps1`](Generate-Visitor.ps1) + [`VisitorGen/`](VisitorGen/) | `src/SqlParser.Core/Ast/Visitor/Generated/*.g.cs` (o equivalente do `derive(Visit, VisitMut)`) | Os tipos da AST do próprio Core, conferidos contra `upstream/sqlparser-rs` | Sempre que um tipo da AST mudar (campo novo, tipo novo, `visit(with = ...)`) |
-| [`Generate-CaseMapping.ps1`](Generate-CaseMapping.ps1) | `src/SqlParser.Core/Support/RustCaseMapping.g.cs` (tabelas de `to_uppercase`/`to_lowercase` do Rust) | Unicode Character Database, na versão do `char::UNICODE_VERSION` do Rust | Quando a toolchain estável do Rust mudar a versão do Unicode |
+| [`Generate-Keywords.ps1`](Generate-Keywords.ps1) | `src/Lepton.SqlParser.Core/Keywords.g.cs` (enum `Keyword`, `ALL_KEYWORDS`, listas `RESERVED_*`) | `upstream/sqlparser-rs/src/keywords.rs` | Quando o `keywords.rs` do Rust mudar (keyword nova ou lista reservada alterada) |
+| [`Generate-Visitor.ps1`](Generate-Visitor.ps1) + [`VisitorGen/`](VisitorGen/) | `src/Lepton.SqlParser.Core/Ast/Visitor/Generated/*.g.cs` (o equivalente do `derive(Visit, VisitMut)`) | Os tipos da AST do próprio Core, conferidos contra `upstream/sqlparser-rs` | Sempre que um tipo da AST mudar (campo novo, tipo novo, `visit(with = ...)`) |
+| [`Generate-CaseMapping.ps1`](Generate-CaseMapping.ps1) | `src/Lepton.SqlParser.Core/Support/RustCaseMapping.g.cs` (tabelas de `to_uppercase`/`to_lowercase` do Rust) | Unicode Character Database, na versão do `char::UNICODE_VERSION` do Rust | Quando a toolchain estável do Rust mudar a versão do Unicode |
 
 Execute os comandos na raiz do repositório:
 
@@ -25,8 +25,8 @@ Requisitos: PowerShell 7 e .NET SDK 10 (o do `global.json`). O `Generate-CaseMap
 - **Depois de gerar:** compile, rode os testes e revise o diff do gerado antes do commit:
 
   ```powershell
-  dotnet build SqlParser.sln -nologo -v q
-  dotnet test SqlParser.sln -nologo -v q
+  dotnet build Lepton.SqlParser.sln -nologo -v q
+  dotnet test Lepton.SqlParser.sln -nologo -v q
   ```
 
 - **O clone de referência precisa estar na versão certa.** Os geradores de keywords e do visitor leem `upstream/sqlparser-rs`, que o [`Get-Upstream.ps1`](../upstream/Get-Upstream.ps1) posiciona no commit `portedThroughCommit` do [`UPSTREAM.json`](../../UPSTREAM.json). Se o clone estiver em outra versão, aponte o gerador para uma extração do commit certo (`-Source` no de keywords, `-Upstream` no do visitor), sem fazer checkout no clone compartilhado.
@@ -39,7 +39,7 @@ O `keywords.rs` do Rust é declarativo (macro `define_keywords!` + listas `RESER
 | Parâmetro | Padrão | Uso |
 |---|---|---|
 | `-Source` | `upstream/sqlparser-rs/src/keywords.rs` | Outro `keywords.rs`, por exemplo extraído de um commit específico com `git show <commit>:src/keywords.rs` |
-| `-Output` | `src/SqlParser.Core/Keywords.g.cs` | Arquivo de saída |
+| `-Output` | `src/Lepton.SqlParser.Core/Keywords.g.cs` | Arquivo de saída |
 
 Uma keyword nova renumera o enum `Keyword`. O código-fonte não muda, mas código já compilado contra a versão anterior do pacote precisa ser recompilado; registre isso no `CHANGELOG.md`.
 
@@ -48,7 +48,7 @@ Uma keyword nova renumera o enum `Keyword`. O código-fonte não muda, mas códi
 No Rust, cada tipo da AST tem `derive(Visit, VisitMut)`, e a macro gera a travessia: campos na ordem da declaração e ganchos `pre_`/`post_` de `visit(with = "...")`. Aqui, essa macro é o gerador. Decisão e formato: [ADR-0007](../../docs/adr/0007-visitor.md).
 
 Como funciona:
-1. Compila o `SqlParser.Core` **sem** o código gerado (`-p:SqlParserVisitorCodegen=true`), numa pasta temporária. Por isso o gerador funciona mesmo quando o gerado está desatualizado ou não compila.
+1. Compila o `Lepton.SqlParser.Core` **sem** o código gerado (`-p:SqlParserVisitorCodegen=true`), numa pasta temporária. Por isso o gerador funciona mesmo quando o gerado está desatualizado ou não compila.
 2. Roda o `VisitorGen` (console .NET fora da solução):
    - lê a AST por reflexão: a ordem dos campos é a do construtor primário e os ganchos vêm do atributo `[VisitWith]`;
    - confere tudo contra o código Rust: tipos com derive, nomes e ordem dos campos, anotações `visit(with)` e o `impl Visit` manual de `Ident`;
@@ -79,6 +79,6 @@ Reproduz as tabelas de maiúsculas e minúsculas da biblioteca padrão do Rust, 
 | `-UnicodeVersion` | `17.0.0` | Versão do UCD (a do `char::UNICODE_VERSION` da toolchain estável do Rust) |
 | `-RustToolchain` | `1.99.0` | Só para o cabeçalho do gerado: a toolchain correspondente |
 | `-UcdDir` | pasta temporária `sqlparser-ucd/<versão>` | Onde os arquivos do UCD ficam (baixados se não existirem) |
-| `-Output` | `src/SqlParser.Core/Support/RustCaseMapping.g.cs` | Arquivo de saída |
+| `-Output` | `src/Lepton.SqlParser.Core/Support/RustCaseMapping.g.cs` | Arquivo de saída |
 
 O gerado contém só números (code points em hexadecimal), sem caracteres literais nem sequências de escape. O próprio script confere a consistência das tabelas, e os testes `Div001Tests` confirmam o comportamento. Os dados do Unicode são distribuídos sob a licença em [`licenses/Unicode-LICENSE.txt`](../../licenses/Unicode-LICENSE.txt).

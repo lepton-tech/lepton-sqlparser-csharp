@@ -1,6 +1,6 @@
 ---
 name: port-rust-tests
-description: "Como portar testes do sqlparser-rs (Rust: atributos de teste, verified_stmt, one_statement_parses_to, TestedDialects, assert_eq!) para testes xUnit no SqlParser.Core.Tests, mantendo nomes e casos idênticos. Use sempre que portar código do parser/tokenizer/dialetos (todo código portado precisa dos testes correspondentes), ao portar arquivos tests/sqlparser_*.rs ou blocos de teste cfg(test) mod tests, ou quando um teste portado falhar e for preciso decidir entre corrigir o código ou registrar divergência."
+description: "Como portar testes do sqlparser-rs (Rust: atributos de teste, verified_stmt, one_statement_parses_to, TestedDialects, assert_eq!) para testes xUnit no Lepton.SqlParser.Core.Tests, mantendo nomes e casos idênticos. Use sempre que portar código do parser/tokenizer/dialetos (todo código portado precisa dos testes correspondentes), ao portar arquivos tests/sqlparser_*.rs ou blocos de teste cfg(test) mod tests, ou quando um teste portado falhar e for preciso decidir entre corrigir o código ou registrar divergência."
 ---
 
 # Portar testes Rust → xUnit
@@ -9,7 +9,7 @@ Os testes portados do Rust são a **especificação executável** do Core. A reg
 
 ## Onde colocar
 
-| Rust | C# (`tests/SqlParser.Core.Tests/`) |
+| Rust | C# (`tests/Lepton.SqlParser.Core.Tests/`) |
 |---|---|
 | `#[cfg(test)] mod tests` em `src/tokenizer.rs` | `Tokenizer/TokenizerTests.cs` (classe `TokenizerTests`) |
 | `#[cfg(test)] mod tests` em `src/<x>.rs` | `<Area>/<X>Tests.cs` |
@@ -39,7 +39,7 @@ Mantenha a **ordem** dos testes igual à do arquivo Rust. O upstream acrescenta 
 
 ### Padrões dos testes de integração (`tests/sqlparser_*.rs`)
 
-A API de teste já portada fica em `tests/SqlParser.Core.Tests/TestUtils/` (`TestedDialects`, `TestUtils`). Use-a sempre.
+A API de teste já portada fica em `tests/Lepton.SqlParser.Core.Tests/TestUtils/` (`TestedDialects`, `TestUtils`). Use-a sempre.
 
 As tabelas abaixo consolidam as decisões de tradução de testes das ondas B e C (notas `docs/port/onda-b/B7.md` e `docs/port/onda-c/C*.md`). Linhas marcadas **CONFLITO — decidir** registram práticas divergentes entre unidades e aguardam decisão do responsável; até lá, siga a forma já usada no arquivo em que estiver trabalhando. Auxiliares inventados nos testes (`Unreachable`, `Unwrap`, `SpawnAndRecvTimeout`...) estão em `docs/port/nomes.md`, seção "Testes": reutilize os nomes.
 
@@ -203,5 +203,5 @@ grep -c "#\[test\]" upstream/sqlparser-rs/src/tokenizer.rs
 Para rodar só uma classe de teste:
 
 ```bash
-dotnet test SqlParser.sln --filter "FullyQualifiedName~TokenizerTests" -nologo -v q
+dotnet test Lepton.SqlParser.sln --filter "FullyQualifiedName~TokenizerTests" -nologo -v q
 ```

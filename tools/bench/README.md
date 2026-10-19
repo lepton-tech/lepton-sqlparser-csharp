@@ -1,8 +1,8 @@
-# Benchmark: SqlParser.Core × SqlParser-cs
+# Benchmark: Lepton.SqlParser.Core × SqlParser-cs
 
-Mede o desempenho do nosso parser (`src/SqlParser.Core`, port fiel do sqlparser-rs, e a API pública `src/SqlParser`) e o compara com o [SqlParser-cs](https://github.com/TylerBrinks/SqlParser-cs) (MIT), com o mesmo texto SQL nas duas bibliotecas. Também confere se as duas geram o mesmo SQL no `ToString()`/`ToSql()`.
+Mede o desempenho do nosso parser (`src/Lepton.SqlParser.Core`, port fiel do sqlparser-rs, e a API pública `src/Lepton.SqlParser`) e o compara com o [SqlParser-cs](https://github.com/TylerBrinks/SqlParser-cs) (MIT), com o mesmo texto SQL nas duas bibliotecas. Também confere se as duas geram o mesmo SQL no `ToString()`/`ToSql()`.
 
-O projeto `SqlParser.Bench` fica **fora** da solução (`SqlParser.sln`) e não é compilado nem testado pelo CI. Ele não altera nada em `src/`, `tests/` nem `upstream/`.
+O projeto `Lepton.SqlParser.Bench` fica **fora** da solução (`Lepton.SqlParser.sln`) e não é compilado nem testado pelo CI. Ele não altera nada em `src/`, `tests/` nem `upstream/`.
 
 > **Status: parcial.** A execução foi interrompida em 2026-10-15, por decisão do responsável (prioridade para deixar a biblioteca publicável), depois de medir net8.0 e parte do net48. Os números em [Resultados parciais](#resultados-parciais) são indicativos: a medição foi curta (`ShortRun`) e rodou com outro agente usando a máquina, então as margens de erro são grandes. Para números finais, rode o `Run-Bench.ps1` completo com a máquina livre.
 
@@ -19,15 +19,15 @@ pwsh tools/bench/Run-Bench.ps1 -Pin 4
 pwsh tools/bench/Run-Bench.ps1 -SkipPrepare -SkipNet48 -Pin 4 -Filter '*PipelineBenchmarks*'
 ```
 
-Resultados: `$env:TEMP/SqlParser.Bench/artifacts` (mude com `-Artifacts`): `analyze-<alvo>.md`, `crosscheck-<alvo>.md` e os relatórios do BenchmarkDotNet em `<alvo>/results/` (Markdown, CSV e HTML). A execução completa leva cerca de 25 minutos.
+Resultados: `$env:TEMP/Lepton.SqlParser.Bench/artifacts` (mude com `-Artifacts`): `analyze-<alvo>.md`, `crosscheck-<alvo>.md` e os relatórios do BenchmarkDotNet em `<alvo>/results/` (Markdown, CSV e HTML). A execução completa leva cerca de 25 minutos.
 
 Passo a passo, sem o script:
 
 ```powershell
-pwsh tools/bench/Prepare-SqlParserCs.ps1                       # cópias em $env:TEMP/SqlParser.Bench/sqlparser-cs
-$env:SqlParserCsDir = "$env:TEMP/SqlParser.Bench/sqlparser-cs"  # lido pelo .csproj (também nos projetos gerados pelo BenchmarkDotNet)
-dotnet build tools/bench/SqlParser.Bench -c Release
-$exe = 'tools/bench/SqlParser.Bench/bin/Release/net8.0/SqlParser.Bench.exe'   # ou .../net48/SqlParser.Bench.exe
+pwsh tools/bench/Prepare-SqlParserCs.ps1                       # cópias em $env:TEMP/Lepton.SqlParser.Bench/sqlparser-cs
+$env:SqlParserCsDir = "$env:TEMP/Lepton.SqlParser.Bench/sqlparser-cs"  # lido pelo .csproj (também nos projetos gerados pelo BenchmarkDotNet)
+dotnet build tools/bench/Lepton.SqlParser.Bench -c Release
+$exe = 'tools/bench/Lepton.SqlParser.Bench/bin/Release/net8.0/Lepton.SqlParser.Bench.exe'   # ou .../net48/Lepton.SqlParser.Bench.exe
 & $exe --pin 4 --analyze      # aceitação, tokens, nós Expr e exceções por parse
 & $exe --pin 4 --crosscheck   # compara o SQL gerado pelas duas bibliotecas
 & $exe --pin 4 --filter '*'   # BenchmarkDotNet (aceita os argumentos normais: --filter, --list flat, --artifacts...)
@@ -35,10 +35,10 @@ $exe = 'tools/bench/SqlParser.Bench/bin/Release/net8.0/SqlParser.Bench.exe'   # 
 
 ### Por que cópias do SqlParser-cs
 
-- **Pacote NuGet:** nenhuma versão publicada corresponde ao clone de referência (`upstream/SqlParser-cs`, commit `e1929977`, sem release): o `SqlParserCS` 0.6.5 é do commit `d95fb53` (2025) e o 0.6.6-release0000, do `34214fd`. Além disso, o pacote traz um `SqlParser.dll`, o mesmo nome de arquivo do assembly da nossa API pública.
+- **Pacote NuGet:** nenhuma versão publicada corresponde ao clone de referência (`upstream/SqlParser-cs`, commit `e1929977`, sem release): o `SqlParserCS` 0.6.5 é do commit `d95fb53` (2025) e o 0.6.6-release0000, do `34214fd`. Além disso, o pacote traz um `SqlParser.dll`, que até a `0.63.1-preview.2` tinha o mesmo nome de arquivo do assembly da nossa API pública (hoje `Lepton.SqlParser.dll`).
 - **Clone intocado:** o clone não pode ser alterado (nem com `bin/`/`obj/`). O `Prepare-SqlParserCs.ps1` copia `upstream/SqlParser-cs/src/SqlParser` para fora do repositório e acrescenta, na cópia, um `Directory.Build.props` (assembly `SqlParserCs.dll`), um `Directory.Build.targets` (`PackageId` próprio) e renomeia o `.csproj` (`SqlParserCs.Net8.csproj`/`SqlParserCs.Ns20.csproj`): o restore do NuGet funde referências com o mesmo `PackageId`, e o BenchmarkDotNet põe o `obj/` de cada projeto em `obj/<nome do projeto>`. Nenhum `.cs` da cópia `net8` é alterado.
 - **net48:** o SqlParser-cs só compila para net8+. Para o .NET Framework, a cópia `ns20` recebe o patch do Plano B (`docs/plano-b/sqlparser-cs-netstandard20.patch`, validado no mesmo commit), que a recompila para `netstandard2.0`.
-- O código do benchmark referencia o SqlParser-cs pelo `extern alias SqlParserCs` (os dois projetos usam o namespace `SqlParser`).
+- O código do benchmark referencia o SqlParser-cs pelo `extern alias SqlParserCs`: vários tipos têm o mesmo nome nas duas bibliotecas (`Parser`, `Dialect`, `Statement`...), e até a `0.63.1-preview.2` os namespaces também eram iguais (`SqlParser`).
 
 ## Ambiente
 

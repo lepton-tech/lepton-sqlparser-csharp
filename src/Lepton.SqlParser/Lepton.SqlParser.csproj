@@ -1,0 +1,88 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Lepton.SqlParser: API PÚBLICA do produto. Código nosso (não portado), no estilo do SqlParser-cs:
+    ponto de entrada (SqlQueryParser), geração de SQL (ToSql), visitors, utilitários de análise
+    e customizações. Depende do Lepton.SqlParser.Core; o Core nunca depende deste projeto.
+    Ver docs/adr/0002-arquitetura-em-camadas-e-api.md.
+
+    Este projeto gera o pacote Lepton.SqlParser, que leva as DUAS DLLs (Lepton.SqlParser.dll e Lepton.SqlParser.Core.dll)
+    em lib/netstandard2.0. Ver docs/adr/0010-empacotamento.md.
+  -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>Lepton.SqlParser</RootNamespace>
+    <AssemblyName>Lepton.SqlParser</AssemblyName>
+    <Description>API pública do parser SQL (camada sobre o Lepton.SqlParser.Core).</Description>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <!-- Metadados do pacote (versão, autores e copyright em Directory.Build.props). -->
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <PackageId>Lepton.SqlParser</PackageId>
+    <Title>Lepton.SqlParser</Title>
+    <PackageDescription>Unofficial C# (netstandard2.0) port of sqlparser-rs, the extensible SQL lexer and parser of the Apache DataFusion project. Tokenizer, parser and AST for 16 SQL dialects (generic, ANSI, PostgreSQL, MySQL, MS SQL Server, SQLite, Snowflake, BigQuery, ClickHouse, DuckDB, Databricks, Hive, Redshift, Spark SQL, Oracle, Teradata), SQL generation with pretty printing, visitors, rewriting and syntactic analysis. Runs on .NET Framework 4.8 and .NET 8/10 without native dependencies. Contains Lepton.SqlParser.Core.dll (faithful port, sqlparser-rs commit $(SqlParserRsShortCommit)) and Lepton.SqlParser.dll (public API). Not affiliated with or endorsed by The Apache Software Foundation.</PackageDescription>
+    <PackageTags>sql;parser;sql-parser;sqlparser;sqlparser-rs;ast;lexer;tokenizer;postgresql;mysql;mssql;sqlite;snowflake;bigquery;clickhouse;duckdb;databricks;hive;redshift;spark;oracle;teradata;netstandard</PackageTags>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageReleaseNotes>Port of sqlparser-rs through commit $(SqlParserRsShortCommit) (after $(SqlParserRsBaselineTag)); public API phases 1 and 2. See CHANGELOG.md in the source repository.</PackageReleaseNotes>
+    <!-- Símbolos: PDB portátil embutido nas duas DLLs (DebugType=embedded em Directory.Build.props); sem .snupkg. -->
+    <IncludeSymbols>false</IncludeSymbols>
+    <!--
+      Endereços do projeto (ADR-0011). Vão para o .nuspec (projectUrl e repository); o SourceLink embutido no SDK
+      (8 ou superior) gera os links dos fontes nos PDBs a partir do remoto do Git (GitHub).
+    -->
+    <PackageProjectUrl>https://github.com/lepton-tech/lepton-sqlparser-csharp</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/lepton-tech/lepton-sqlparser-csharp</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <!-- O Lepton.SqlParser.Core entra como arquivo do pacote (alvo abaixo), não como dependência. -->
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);_IncludeSqlParserCoreInPackage</TargetsForTfmSpecificBuildOutput>
+    <!-- No pack sem compilação (opção no-build), o alvo abaixo só lê a saída já compilada do Core. -->
+    <BuildProjectReferences Condition="'$(NoBuild)' == 'true'">false</BuildProjectReferences>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="PolySharp" Version="1.15.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- PrivateAssets=all: o Core não vira dependência do pacote; a DLL vai dentro dele. -->
+    <ProjectReference Include="..\Lepton.SqlParser.Core\Lepton.SqlParser.Core.csproj" PrivateAssets="all" />
+  </ItemGroup>
+
+  <!-- Mantido no pacote: o Pack.ps1 roda os testes em Release contra as mesmas DLLs que empacota (ADR-0010). -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="Lepton.SqlParser.Tests" />
+  </ItemGroup>
+
+  <!-- Arquivos na raiz do pacote: README do pacote, avisos de atribuição e licenças (ADR-0003 e ADR-0010). -->
+  <ItemGroup>
+    <None Include="PACKAGE-README.md" Pack="true" PackagePath="README.md" />
+    <None Include="..\..\NOTICE" Pack="true" PackagePath="\" Visible="false" />
+    <None Include="..\..\THIRD-PARTY-NOTICES.md" Pack="true" PackagePath="\" Visible="false" />
+    <None Include="..\..\licenses\*.txt" Pack="true" PackagePath="licenses" Visible="false" />
+  </ItemGroup>
+
+  <!-- Arquivos do Lepton.SqlParser.Core (projeto referenciado), lidos da saída já compilada. -->
+  <Target Name="_GetSqlParserCoreFiles" DependsOnTargets="ResolveReferences">
+    <ItemGroup>
+      <_SqlParserCoreAssembly Include="@(ReferenceCopyLocalPaths)"
+                              Condition="'%(ReferenceCopyLocalPaths.ReferenceSourceTarget)' == 'ProjectReference' and '%(ReferenceCopyLocalPaths.Extension)' == '.dll'" />
+    </ItemGroup>
+    <Error Condition="'@(_SqlParserCoreAssembly)' == ''" Text="Lepton.SqlParser.Core.dll não foi encontrada entre as referências de projeto." />
+  </Target>
+
+  <!-- Lepton.SqlParser.Core.dll (com o PDB embutido) e Lepton.SqlParser.Core.xml em lib/netstandard2.0, ao lado de Lepton.SqlParser.dll e Lepton.SqlParser.xml. -->
+  <Target Name="_IncludeSqlParserCoreInPackage" DependsOnTargets="_GetSqlParserCoreFiles">
+    <ItemGroup>
+      <BuildOutputInPackage Include="@(_SqlParserCoreAssembly->'%(FullPath)')" />
+      <BuildOutputInPackage Include="@(_SqlParserCoreAssembly->'%(RootDir)%(Directory)%(Filename).xml')" />
+    </ItemGroup>
+  </Target>
+
+</Project>

@@ -2,10 +2,12 @@
 
 **Leia este arquivo no início de cada sessão** e **atualize-o ao final**. É o "estado salvo" do projeto: diz o que já foi portado, de qual versão do upstream e o que vem em seguida. Assim nenhuma sessão precisa reconstruir o contexto do zero.
 
+> **Nomes antigos nas notas.** Desde 2026-10-19, o pacote, os projetos, os assemblies e os namespaces se chamam `Lepton.SqlParser` e `Lepton.SqlParser.Core` ([ADR-0011](../adr/0011-renome-lepton-sqlparser.md)). As entradas do diário e as notas (`onda-*/`, `sync/`, `../plano-b/`) anteriores a essa data usam os nomes antigos: `SqlParser`, `SqlParser.Core`, `SqlParser.Tests`, `SqlParser.Core.Tests`, `SqlParser.sln` e o pacote `LeptonTI.SqlParser`.
+
 - **Baseline do upstream:** `v0.63.0` (`85b1a6f`). Ver `UPSTREAM.json`.
 - **Sincronização com o upstream:** Rodada 1 (`v0.63.0` → `dacdbc9`) **concluída**: os 63 PRs têm status final (41 `portado`, 22 `não-aplicável`); `portedThroughCommit` = `dacdbc9`. Não há tag nova: o baseline e os cabeçalhos continuam `v0.63.0` (`upstream-ledger.md`).
 - **Fase atual:** 2, AST e parser portados (ondas A e B); testes de integração portados (onda C, todos passando); visitor (C18) e onda D (correções, lista em "Pendências para a onda D") em andamento; API pública fases 1 (E1) e 2 (E2: visitors e análise) prontas. Plano em [`../analise-tecnica-e-plano.md`](../analise-tecnica-e-plano.md) §8.
-- **Pacote:** `LeptonTI.SqlParser` `0.63.1-preview.1`, gerado localmente por `tools/pack/Pack.ps1` em `artifacts/` (só com a árvore do Git limpa, ou com `-AllowDirty`, que marca `.dirty`) e conferido por `tools/pack/Test-Package.ps1` ([ADR-0010](../adr/0010-empacotamento.md), [`CHANGELOG.md`](../../CHANGELOG.md)). PDBs embutidos nas DLLs, sem `.snupkg` (F1). Nada publicado.
+- **Pacote:** `Lepton.SqlParser` `0.63.1-preview.3` (até a `0.63.1-preview.2`, `LeptonTI.SqlParser`; ADR-0011), gerado localmente por `tools/pack/Pack.ps1` em `artifacts/` (só com a árvore do Git limpa, ou com `-AllowDirty`, que marca `.dirty`) e conferido por `tools/pack/Test-Package.ps1` ([ADR-0010](../adr/0010-empacotamento.md), [`CHANGELOG.md`](../../CHANGELOG.md)). PDBs embutidos nas DLLs, sem `.snupkg` (F1). Nada publicado.
 
 ## Estado por arquivo Rust
 
@@ -100,7 +102,7 @@ Cada item tem, no arquivo C#, um comentário `// PENDENTE (...)` na posição ex
 
 ### Pendências de `test_utils.rs` (dependem do Parser/AST, Fase 2)
 
-**Concluídas** no commit `1776531` (não há mais `// PENDENTE` em `tests/SqlParser.Core.Tests/TestUtils/`). Lista original, mantida como histórico:
+**Concluídas** no commit `1776531` (não há mais `// PENDENTE` em `tests/Lepton.SqlParser.Core.Tests/TestUtils/`). Lista original, mantida como histórico:
 - `TestedDialects`: campos `options: Option<ParserOptions>` e `recursion_limit: Option<usize>`; `new_with_options`, `with_recursion_limit`, `new_parser`, `one_of_identical_results`, `run_parser_method`, `parse_sql_statements`, `one_statement_parses_to`, `statements_parse_to`, `expr_parses_to`, `verified_stmt`, `verified_query`, `verified_query_with_canonical`, `verified_only_select`, `verified_only_select_with_canonical`, `verified_expr`.
 - `TestedDialects.TokenizesTo`: o ramo `if let Some(options) = &self.options { tokenizer = tokenizer.with_unescape(options.unescape) }` (hoje `options` é sempre `None`, então o comportamento é o mesmo).
 - Funções livres: `all_dialects_with_options`, `expr_from_projection`, `alter_table_op_with_name`, `alter_table_op`, `number`, `single_quoted_string`, `table_alias`, `table`, `table_from_name`, `table_with_alias`, `join`, `call`, `index_column`.
@@ -154,6 +156,17 @@ Levantadas nas notas das ondas B e C e nas revisões R1–R3 (consolidação de 
 ## Diário de sessões
 
 Registre ao fim de cada sessão: data, o que foi feito, decisões tomadas e próximo passo. Entradas mais recentes no topo.
+
+### 2026-10-19 (renome para `Lepton.SqlParser`, versão `0.63.1-preview.3`; worktree isolado, a integrar)
+- **Feito** (decisão e tabela de nomes antigos e novos no [ADR-0011](../adr/0011-renome-lepton-sqlparser.md)):
+  - **Projetos e pastas:** `src/SqlParser` → `src/Lepton.SqlParser`, `src/SqlParser.Core` → `src/Lepton.SqlParser.Core`, `tests/SqlParser.Tests` → `tests/Lepton.SqlParser.Tests`, `tests/SqlParser.Core.Tests` → `tests/Lepton.SqlParser.Core.Tests`, `SqlParser.sln` → `Lepton.SqlParser.sln` e `tools/bench/SqlParser.Bench` → `tools/bench/Lepton.SqlParser.Bench`. Os `.csproj`, os assemblies, o `RootNamespace` e o `InternalsVisibleTo` acompanham.
+  - **Código:** namespaces `SqlParser*` → `Lepton.SqlParser*` em todos os `.cs` (inclusive `global::` e `using static`), por script com expressões regulares restritas a namespace, caminho e nome de projeto. Nenhum tipo mudou de nome. Ficam como estavam as propriedades e os alvos do MSBuild com prefixo `SqlParser` (`SqlParserRs*`, `SqlParserDirtyBuild`, `SqlParserVisitorCodegen`, `_IncludeSqlParserCoreInPackage`), as classes de teste `SqlParser<Dialeto>Tests*` e tudo o que é do SqlParser-cs.
+  - **Geradores:** `Generate-Keywords.ps1`, `Generate-CaseMapping.ps1` e o `VisitorGen` (`CsModel.cs`, `Emitter.cs`, `Program.cs`) emitem o namespace novo e apontam para `src/Lepton.SqlParser.Core/`. Os três rodaram de novo (o UCD 17.0.0 foi baixado): o conteúdo gerado é igual ao anterior com os nomes antigos trocados pelos novos (conferido arquivo a arquivo, nos 14 arquivos gerados), e `Generate-Visitor.ps1 -Check` diz que está atualizado.
+  - **Pacote:** `Lepton.SqlParser` `0.63.1-preview.3`; `PackageProjectUrl` e `RepositoryUrl` `https://github.com/lepton-tech/lepton-sqlparser-csharp`, `RepositoryType` `git` e `PublishRepositoryUrl` (a pendência de SourceLink do ADR-0010 ficou resolvida). `tests/PackageSmoke`: `Lepton.*` só do feed `lepton-local`; propriedade `LeptonSqlParserVersion`.
+  - **Documentação:** ADR-0011 novo; READMEs, `CLAUDE.md`, `CHANGELOG.md` (entrada `0.63.1-preview.3`), ADRs 0001–0003 e 0007–0010, `convencoes.md` (§1, §2 e casos que citam namespaces), `nomes.md`, `divergencias.md`, skills e READMEs de `tools/` com os nomes novos. As notas históricas ficaram como estavam (aviso no topo deste arquivo).
+- **Resultado:** build com 0 avisos; `Lepton.SqlParser.Core.Tests` 1.715 aprovados e 10 ignorados e `Lepton.SqlParser.Tests` 279, em net48, net8.0 e net10.0 (Debug e Release), os mesmos números de antes do renome. `Pack.ps1 -AllowDirty` gerou `Lepton.SqlParser.0.63.1-preview.3.nupkg` (1.931.410 bytes), com `Lepton.SqlParser.dll`, `Lepton.SqlParser.Core.dll` e os XMLs em `lib/netstandard2.0`, `projectUrl` e `repository` no `.nuspec` e o SourceLink apontando para `raw.githubusercontent.com/lepton-tech/lepton-sqlparser-csharp`; `Test-Package.ps1` passando (net48 e net8.0). O benchmark compila (net8.0 e net48) e roda `--crosscheck`. `Find-SuspiciousChars.ps1`: as mesmas 62 linhas de antes.
+- **Para o responsável:** quem usou o pacote local troca o `PackageReference` (`LeptonTI.SqlParser` → `Lepton.SqlParser`) e os `using`, e recompila; nos clones existentes, apagar os `bin/` e `obj/` das pastas antigas.
+- **Próximo:** integrar no `develop`; depois do commit, gerar o pacote de novo sem `-AllowDirty`.
 
 ### 2026-10-15 (P2: exceções no caminho comum do parser e `Span()` profundo; worktree isolado, a integrar)
 - **Feito** (detalhes, medições e prova de equivalência em [`onda-d/P2.md`](onda-d/P2.md)):

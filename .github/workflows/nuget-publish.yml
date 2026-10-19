@@ -1,0 +1,95 @@
+# Publicação do pacote Lepton.SqlParser no nuget.org por Trusted Publishing
+# (https://learn.microsoft.com/nuget/nuget-org/trusted-publishing): sem chave de API guardada e sem secret.
+# O GitHub emite um token OIDC de curta duração; o NuGet/login o troca no nuget.org por uma chave de API
+# temporária (válida por 1 hora, uma por token), e o push usa essa chave.
+#
+# Disparo: push de uma tag "v<versão do pacote>" (ex.: v0.63.1-preview.3).
+#   1. build (Windows, por causa dos testes em net48): confere tag × versão, roda tools/pack/Pack.ps1 (build em
+#      Release, testes em net48, net8.0 e net10.0, pacote em artifacts/) e tools/pack/Test-Package.ps1 (instala o
+#      pacote em apps net48 e net8.0);
+#   2. publish: NuGet/login (OIDC → chave temporária) e dotnet nuget push.
+#
+# Política no nuget.org (já cadastrada; docs/adr/0010-empacotamento.md, "Publicação"): dono do pacote lepton-tech;
+# Repository Owner "lepton-tech"; Repository "lepton-sqlparser-csharp"; Workflow File "nuget-publish.yml" (o nome
+# deste arquivo: renomeá-lo quebra a publicação); Environment "production" (o job publish declara esse ambiente).
+name: Publicação no nuget.org
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build, testes e pacote
+    runs-on: windows-latest
+    timeout-minutes: 45
+    outputs:
+      version: ${{ steps.versao.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: .NET SDK (global.json) e runtime do .NET 8
+        uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+          dotnet-version: 8.0.x
+
+      - name: Tag × versão do pacote
+        id: versao
+        shell: pwsh
+        run: |
+          $version = (dotnet msbuild src/Lepton.SqlParser/Lepton.SqlParser.csproj -nologo -getProperty:PackageVersion -p:Configuration=Release).Trim()
+          if ($LASTEXITCODE -ne 0 -or -not $version) { throw 'Não foi possível ler a PackageVersion do projeto.' }
+          if ($env:GITHUB_REF_NAME -ne "v$version") {
+            throw "A tag '$env:GITHUB_REF_NAME' não corresponde à versão do pacote em Directory.Build.props ('v$version')."
+          }
+          "version=$version" >> $env:GITHUB_OUTPUT
+
+      - name: Build, testes (net48, net8.0, net10.0) e pacote
+        shell: pwsh
+        run: ./tools/pack/Pack.ps1
+
+      - name: Pacote instalado em apps net48 e net8.0
+        shell: pwsh
+        env:
+          PACKAGE_VERSION: ${{ steps.versao.outputs.version }}
+        run: ./tools/pack/Test-Package.ps1 -Version $env:PACKAGE_VERSION
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: nupkg
+          path: artifacts/Lepton.SqlParser.${{ steps.versao.outputs.version }}.nupkg
+          if-no-files-found: error
+
+  publish:
+    name: Publicar no nuget.org
+    needs: build
+    runs-on: ubuntu-latest
+    environment: production # tem de ser igual ao Environment da política no nuget.org
+    permissions:
+      id-token: write # permite ao GitHub emitir o token OIDC deste job
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: nupkg
+          path: artifacts
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+
+      # A chave temporária vale 1 hora: é pedida logo antes do push.
+      - name: NuGet login (OIDC → chave de API temporária)
+        uses: NuGet/login@v1
+        id: login
+        with:
+          # Nome de perfil no nuget.org (não o e-mail) do usuário que criou a política (confirmado pelo responsável: lepton.tech),
+          # e não o da organização dona da política (lepton-tech). Fonte: NuGet/login, src/index.ts ("use the username of
+          # the policy creator, not the policy owner").
+          user: lepton.tech
+
+      - name: NuGet push
+        run: dotnet nuget push artifacts/*.nupkg --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json

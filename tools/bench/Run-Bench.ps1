@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Compila e roda o benchmark SqlParser.Core/SqlParser × SqlParser-cs (tools/bench/SqlParser.Bench).
+    Compila e roda o benchmark Lepton.SqlParser.Core/Lepton.SqlParser × SqlParser-cs (tools/bench/Lepton.SqlParser.Bench).
 
 .DESCRIPTION
     1. Prepara as cópias do SqlParser-cs (Prepare-SqlParserCs.ps1), a menos que -SkipPrepare.
@@ -26,8 +26,8 @@
 #>
 [CmdletBinding()]
 param(
-    [string]$SqlParserCsDir = (Join-Path ([IO.Path]::GetTempPath()) 'SqlParser.Bench/sqlparser-cs'),
-    [string]$Artifacts = (Join-Path ([IO.Path]::GetTempPath()) 'SqlParser.Bench/artifacts'),
+    [string]$SqlParserCsDir = (Join-Path ([IO.Path]::GetTempPath()) 'Lepton.SqlParser.Bench/sqlparser-cs'),
+    [string]$Artifacts = (Join-Path ([IO.Path]::GetTempPath()) 'Lepton.SqlParser.Bench/artifacts'),
     [string[]]$Filter = @('*'),
     [switch]$SkipPrepare,
     [switch]$SkipNet48,
@@ -36,8 +36,8 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$project = Join-Path $PSScriptRoot 'SqlParser.Bench/SqlParser.Bench.csproj'
-$bin = Join-Path $PSScriptRoot 'SqlParser.Bench/bin/Release'
+$project = Join-Path $PSScriptRoot 'Lepton.SqlParser.Bench/Lepton.SqlParser.Bench.csproj'
+$bin = Join-Path $PSScriptRoot 'Lepton.SqlParser.Bench/bin/Release'
 
 if (-not $SkipPrepare) {
     & (Join-Path $PSScriptRoot 'Prepare-SqlParserCs.ps1') -Destination $SqlParserCsDir
@@ -57,7 +57,7 @@ $pinArgs = if ($Pin -ne 0) { @("--pin", "$Pin") } else { @() }
 [Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
 $targets = @('net8.0') + $(if ($SkipNet48) { @() } else { @('net48') })
 foreach ($tfm in $targets) {
-    $exe = Join-Path $bin "$tfm/SqlParser.Bench.exe"
+    $exe = Join-Path $bin "$tfm/Lepton.SqlParser.Bench.exe"
     & $exe @pinArgs --analyze | Set-Content -Encoding utf8NoBOM (Join-Path $Artifacts "analyze-$tfm.md")
     & $exe @pinArgs --crosscheck | Set-Content -Encoding utf8NoBOM (Join-Path $Artifacts "crosscheck-$tfm.md")
 }
@@ -67,7 +67,7 @@ if ($SkipBenchmarks) {
 }
 
 foreach ($tfm in $targets) {
-    $exe = Join-Path $bin "$tfm/SqlParser.Bench.exe"
+    $exe = Join-Path $bin "$tfm/Lepton.SqlParser.Bench.exe"
     $filters = $Filter
     if ($tfm -eq 'net48' -and $Filter.Count -eq 1 -and $Filter[0] -eq '*') {
         # Por consulta só em net8.0, para a execução completa caber em ~30 minutos.

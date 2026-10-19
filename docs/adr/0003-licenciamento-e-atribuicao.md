@@ -6,7 +6,7 @@
 
 ## Contexto
 
-- O `SqlParser.Core` é uma **tradução** do sqlparser-rs, licenciado sob Apache-2.0. Pela própria licença (§1, "Derivative Works"), é obra derivada.
+- O `Lepton.SqlParser.Core` é uma **tradução** do sqlparser-rs, licenciado sob Apache-2.0. Pela própria licença (§1, "Derivative Works"), é obra derivada.
 - O SqlParser-cs (MIT) pode fornecer trechos à camada pública.
 - O projeto ainda não decidiu se será aberto ou fechado, nem onde ficará hospedado (Bitbucket em avaliação).
 

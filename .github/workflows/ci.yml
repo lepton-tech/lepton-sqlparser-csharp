@@ -1,0 +1,56 @@
+# Integração contínua: build sem avisos e a suíte inteira (net48, net8.0 e net10.0) a cada push e pull
+# request nas branches principais. Roda no Windows porque os testes de .NET Framework 4.8 só rodam lá.
+name: CI
+
+on:
+  push:
+    branches: [develop, main]
+  pull_request:
+    branches: [develop, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    name: Build e testes (net48, net8.0, net10.0)
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: .NET SDK (global.json) e runtime do .NET 8
+        uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+          dotnet-version: 8.0.x
+
+      - name: Restore
+        run: dotnet restore Lepton.SqlParser.sln
+
+      - name: Build (TreatWarningsAsErrors)
+        run: dotnet build Lepton.SqlParser.sln -c Release --no-restore -nologo
+
+      - name: Testes
+        run: dotnet test Lepton.SqlParser.sln -c Release --no-build -nologo --logger trx --results-directory TestResults
+
+      - name: Resultados dos testes
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: resultados-testes
+          path: TestResults
+          if-no-files-found: ignore
+
+      # O visitor gerado precisa estar em dia com a AST (docs/adr/0007-visitor.md). O gerador confere a AST
+      # contra o código Rust de referência, que o Get-Upstream.ps1 baixa na versão do UPSTREAM.json.
+      - name: Visitor gerado em dia com a AST
+        shell: pwsh
+        run: |
+          ./tools/upstream/Get-Upstream.ps1
+          ./tools/codegen/Generate-Visitor.ps1 -Check
