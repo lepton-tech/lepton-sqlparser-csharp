@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Lepton.SqlParser.Core: port FIEL (1:1) do sqlparser-rs. Nomes, estrutura e comportamento seguem o Rust.
+    Não contém adaptações nem customizações: essas vão para o projeto Lepton.SqlParser (API pública).
+    Ver docs/adr/0002-arquitetura-em-camadas-e-api.md e docs/port/convencoes.md.
+  -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>Lepton.SqlParser.Core</RootNamespace>
+    <AssemblyName>Lepton.SqlParser.Core</AssemblyName>
+    <Description>Port fiel em C# (netstandard2.0) do parser SQL apache/datafusion-sqlparser-rs.</Description>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- CS1591 (membro público sem comentário XML) fica suprimido só no Core: a documentação do Core é a doc do
+         Rust, verbatim (convencoes.md §12), e itens sem doc no Rust não ganham texto inventado (cerca de 1.500
+         membros públicos ficam sem <summary>). Os demais avisos de XML doc continuam valendo. Ver ADR-0010. -->
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <!-- Não vira pacote próprio: a DLL (com o PDB embutido) e o XML entram no pacote Lepton.SqlParser, junto com a API
+         (src/Lepton.SqlParser/Lepton.SqlParser.csproj; docs/adr/0010-empacotamento.md). -->
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Polyfills de recursos de linguagem (records, init, etc.) gerados em tempo de compilação.
+         Não é dependência de runtime (PrivateAssets=all). -->
+    <PackageReference Include="PolySharp" Version="1.15.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <!-- Mantido no pacote: o Pack.ps1 roda os testes em Release contra as mesmas DLLs que empacota (ADR-0010). -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="Lepton.SqlParser.Core.Tests" />
+  </ItemGroup>
+
+  <!-- Geração do visitor (tools/codegen/Generate-Visitor.ps1): compila o Core SEM o código gerado, para que o
+       gerador leia a AST por reflexão mesmo quando o código gerado estiver desatualizado (docs/adr/0007-visitor.md). -->
+  <ItemGroup Condition="'$(SqlParserVisitorCodegen)' == 'true'">
+    <Compile Remove="Ast\Visitor\Generated\**" />
+  </ItemGroup>
+
+</Project>

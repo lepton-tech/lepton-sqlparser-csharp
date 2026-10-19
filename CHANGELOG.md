@@ -1,10 +1,34 @@
 # Changelog
 
-Mudanças relevantes do pacote `LeptonTI.SqlParser`.
+Mudanças relevantes do pacote `Lepton.SqlParser` (até a `0.63.1-preview.2`, `LeptonTI.SqlParser`; [ADR-0011](docs/adr/0011-renome-lepton-sqlparser.md)).
 
 O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). A versão acompanha o sqlparser-rs ([ADR-0010](docs/adr/0010-empacotamento.md)): `0.63.x` corresponde ao Rust `v0.63`, e mudanças só nossas avançam o último número ou o sufixo de pré-lançamento.
 
 ## [Não lançado]
+
+## [0.63.1-preview.3] - 2026-10-19
+
+Renome do pacote, dos assemblies e dos namespaces para `Lepton.SqlParser` ([ADR-0011](docs/adr/0011-renome-lepton-sqlparser.md)). O Rust portado é o mesmo da `0.63.1-preview.2` (commit `dacdbc9`): a AST, o comportamento e o SQL gerado não mudam.
+
+### Alterado
+
+- **Quebra de compatibilidade (nomes):**
+  - pacote `LeptonTI.SqlParser` → `Lepton.SqlParser`;
+  - assemblies `SqlParser.dll` → `Lepton.SqlParser.dll` e `SqlParser.Core.dll` → `Lepton.SqlParser.Core.dll`;
+  - namespaces `SqlParser` → `Lepton.SqlParser` e `SqlParser.Core`, `SqlParser.Core.Ast`, `SqlParser.Core.Dialects` → `Lepton.SqlParser.Core`, `Lepton.SqlParser.Core.Ast`, `Lepton.SqlParser.Core.Dialects`.
+
+  Os nomes dos tipos não mudam. O ID antigo nunca foi publicado em feed; quem usou o pacote local troca o `PackageReference` e os `using` e recompila.
+- Os namespaces e os assemblies deixam de colidir com os do SqlParser-cs (`SqlParser`, `SqlParser.dll`): as duas bibliotecas podem ser referenciadas no mesmo projeto.
+- `InternalsVisibleTo` passa a valer para `Lepton.SqlParser.Tests` e `Lepton.SqlParser.Core.Tests`.
+- Repositório: pastas, projetos e solução renomeados (`src/Lepton.SqlParser`, `src/Lepton.SqlParser.Core`, `tests/Lepton.SqlParser.Tests`, `tests/Lepton.SqlParser.Core.Tests`, `Lepton.SqlParser.sln`, `tools/bench/Lepton.SqlParser.Bench`); geradores de código atualizados e arquivos gerados regenerados (só o namespace e o caminho do cabeçalho mudam).
+
+### Adicionado
+
+- Endereços do projeto no pacote: `projectUrl` e `repository` (`https://github.com/lepton-tech/lepton-sqlparser-csharp`). O SourceLink do SDK gera os links dos fontes nos PDBs embutidos a partir desse repositório.
+
+### Documentação
+
+- ADR-0011 (renome, com a tabela de nomes antigos e novos). READMEs, `CLAUDE.md`, ADRs, convenções, glossário, divergências e skills usam os nomes novos; as notas históricas mantêm os antigos.
 
 ## [0.63.1-preview.2] - 2026-10-15
 

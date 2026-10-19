@@ -1,21 +1,21 @@
-# LeptonTI.SqlParser
+# Lepton.SqlParser
 
 Parser SQL para .NET: port em C# do [sqlparser-rs](https://github.com/apache/datafusion-sqlparser-rs) (Rust, projeto Apache DataFusion). O port é **fiel**: mesmos tipos, mesma AST, mesmas mensagens de erro e o mesmo SQL de saída do original, conferidos pelos testes do próprio Rust, portados um a um. Acompanha as versões novas do Rust.
 
 - **`netstandard2.0`**: roda no .NET Framework 4.8 e no .NET 8/10, sem Rust, sem DLLs nativas e sem pacotes de runtime.
 - **16 dialetos**, AST completa, SQL de volta como texto (inclusive formatado), visitors, reescrita e análise sintática.
-- **Versão atual:** `0.63.1-preview.2` (pré-lançamento), com o Rust até o commit `dacdbc9`, depois da `v0.63.0` ([`CHANGELOG.md`](CHANGELOG.md)).
+- **Versão atual:** `0.63.1-preview.3` (pré-lançamento), com o Rust até o commit `dacdbc9`, depois da `v0.63.0` ([`CHANGELOG.md`](CHANGELOG.md)).
 
-O pacote `LeptonTI.SqlParser` traz duas DLLs: `SqlParser.Core.dll`, o port fiel (namespaces `SqlParser.Core*`), e `SqlParser.dll`, a API pública (namespace `SqlParser`), no estilo do [SqlParser-cs](https://github.com/TylerBrinks/SqlParser-cs).
+O pacote `Lepton.SqlParser` traz duas DLLs: `Lepton.SqlParser.Core.dll`, o port fiel (namespaces `Lepton.SqlParser.Core*`), e `Lepton.SqlParser.dll`, a API pública (namespace `Lepton.SqlParser`), no estilo do [SqlParser-cs](https://github.com/TylerBrinks/SqlParser-cs). Até a `0.63.1-preview.2`, o pacote se chamava `LeptonTI.SqlParser` e os namespaces eram `SqlParser` e `SqlParser.Core` ([ADR-0011](docs/adr/0011-renome-lepton-sqlparser.md)). Código-fonte: [github.com/lepton-tech/lepton-sqlparser-csharp](https://github.com/lepton-tech/lepton-sqlparser-csharp).
 
 ## Instalação (pacote local)
 
 Por enquanto o pacote só existe localmente: nada é publicado em feed ([ADR-0010](docs/adr/0010-empacotamento.md)).
 
 ```bash
-pwsh tools/pack/Pack.ps1        # compila, roda os testes e gera artifacts/LeptonTI.SqlParser.<versão>.nupkg
-dotnet nuget add source "<caminho do repositório>/artifacts" --name leptonti-local
-dotnet add package LeptonTI.SqlParser --version 0.63.1-preview.2
+pwsh tools/pack/Pack.ps1        # compila, roda os testes e gera artifacts/Lepton.SqlParser.<versão>.nupkg
+dotnet nuget add source "<caminho do repositório>/artifacts" --name lepton-local
+dotnet add package Lepton.SqlParser --version 0.63.1-preview.3
 ```
 
 O `Pack.ps1` só empacota com a árvore do Git limpa (tudo commitado), para que o commit gravado nas DLLs identifique o conteúdo; `-AllowDirty` empacota assim mesmo, para teste, com `.dirty` no fim da `InformationalVersion`. Os símbolos de depuração (PDB) vão embutidos nas DLLs, então a depuração funciona a partir de qualquer feed, sem `.snupkg`.
@@ -25,10 +25,10 @@ Em vez do `dotnet nuget add source`, um `nuget.config` ao lado da solução cons
 ## Início rápido
 
 ```csharp
-using SqlParser;                 // SqlQueryParser, SqlParseException, ToSql, SqlVisitor, SqlRewriter, análise
-using SqlParser.Core;            // ParserOptions, Sequence
-using SqlParser.Core.Ast;        // Statement, SetExpr, Expr, ObjectName, Ident...
-using SqlParser.Core.Dialects;   // GenericDialect, PostgreSqlDialect, MsSqlDialect...
+using Lepton.SqlParser;                 // SqlQueryParser, SqlParseException, ToSql, SqlVisitor, SqlRewriter, análise
+using Lepton.SqlParser.Core;            // ParserOptions, Sequence
+using Lepton.SqlParser.Core.Ast;        // Statement, SetExpr, Expr, ObjectName, Ident...
+using Lepton.SqlParser.Core.Dialects;   // GenericDialect, PostgreSqlDialect, MsSqlDialect...
 
 var parser = new SqlQueryParser();
 
@@ -88,11 +88,11 @@ sealed class TableCollector : SqlVisitor
 }
 ```
 
-A referência da API pública, com todos os membros, a semântica da análise e a correspondência com o SqlParser-cs, está em [`src/SqlParser/README.md`](src/SqlParser/README.md). A AST usa os nomes do Rust (`Statement.Query`, `SetExpr.Select`, `Expr`).
+A referência da API pública, com todos os membros, a semântica da análise e a correspondência com o SqlParser-cs, está em [`src/Lepton.SqlParser/README.md`](src/Lepton.SqlParser/README.md). A AST usa os nomes do Rust (`Statement.Query`, `SetExpr.Select`, `Expr`).
 
 ## Dialetos
 
-| Dialeto | Classe (`SqlParser.Core.Dialects`) | Nome em `Parse(sql, "nome")` |
+| Dialeto | Classe (`Lepton.SqlParser.Core.Dialects`) | Nome em `Parse(sql, "nome")` |
 |---|---|---|
 | Genérico (padrão) | `GenericDialect` | `generic` |
 | ANSI SQL | `AnsiDialect` | `ansi` |
@@ -128,7 +128,7 @@ O comportamento é o do sqlparser-rs. As diferenças conhecidas estão em [`docs
 - **DIV-009**: em ASTs muito profundas, o visitor pode continuar em outra thread: os ganchos de `SqlVisitor`/`SqlRewriter` não devem depender da thread (nada de controles de UI ou objetos COM STA dentro deles).
 - **DIV-010**: `==`, `Equals` e `GetHashCode` dos nós da AST são recursivos e sem proteção de pilha. Em ASTs com milhares de níveis (8.000 `OR` na thread principal; 1.000 numa thread de 256 KB), estouram a pilha e derrubam o processo. Para comparar ASTs de origem desconhecida, compare `ToSql()`, que é protegido.
 
-Árvores profundas: o parser limita o aninhamento (limite de recursão 50, configurável em `new SqlQueryParser(recursionLimit)`), mas cadeias de operadores e de `UNION ALL` não contam para o limite. O parse, o `ToSql()` e os visitors aguentam essas árvores em qualquer pilha; a igualdade (DIV-010) e o `Span()` de aninhamentos muito profundos não. Para SQL de terceiros, limite também o tamanho do texto aceito. Detalhes em [`src/SqlParser/README.md`](src/SqlParser/README.md#árvores-profundas-e-threads).
+Árvores profundas: o parser limita o aninhamento (limite de recursão 50, configurável em `new SqlQueryParser(recursionLimit)`), mas cadeias de operadores e de `UNION ALL` não contam para o limite. O parse, o `ToSql()` e os visitors aguentam essas árvores em qualquer pilha; a igualdade (DIV-010) e o `Span()` de aninhamentos muito profundos não. Para SQL de terceiros, limite também o tamanho do texto aceito. Detalhes em [`src/Lepton.SqlParser/README.md`](src/Lepton.SqlParser/README.md#árvores-profundas-e-threads).
 
 ## Versões
 
@@ -136,27 +136,27 @@ A versão acompanha o sqlparser-rs ([ADR-0010](docs/adr/0010-empacotamento.md)):
 
 ## Licença e atribuição
 
-Apache License 2.0. O `SqlParser.Core` é obra derivada do sqlparser-rs (Apache-2.0, The Apache Software Foundation); este projeto não é afiliado nem endossado pela Apache Software Foundation. A API pública imita o estilo do SqlParser-cs (MIT), sem cópia de código. As tabelas de maiúsculas/minúsculas vêm do Unicode Character Database (Unicode License v3), e a lógica de `to_lowercase`/`to_uppercase`, da biblioteca padrão do Rust (MIT ou Apache-2.0). Detalhes em [`NOTICE`](NOTICE), [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md) e [`licenses/`](licenses/), que também vão dentro do pacote ([ADR-0003](docs/adr/0003-licenciamento-e-atribuicao.md)).
+Apache License 2.0. O `Lepton.SqlParser.Core` é obra derivada do sqlparser-rs (Apache-2.0, The Apache Software Foundation); este projeto não é afiliado nem endossado pela Apache Software Foundation. A API pública imita o estilo do SqlParser-cs (MIT), sem cópia de código. As tabelas de maiúsculas/minúsculas vêm do Unicode Character Database (Unicode License v3), e a lógica de `to_lowercase`/`to_uppercase`, da biblioteca padrão do Rust (MIT ou Apache-2.0). Detalhes em [`NOTICE`](NOTICE), [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md) e [`licenses/`](licenses/), que também vão dentro do pacote ([ADR-0003](docs/adr/0003-licenciamento-e-atribuicao.md)).
 
 ## Para quem mantém o port
 
 Comece por [`CLAUDE.md`](CLAUDE.md) (regras e comandos) e [`docs/port/progresso.md`](docs/port/progresso.md) (estado e diário).
 
 ```
-src/SqlParser.Core/      Port fiel do sqlparser-rs: tokenizer, keywords, dialetos, parser, AST, spans, visitor
-src/SqlParser/           API pública (código próprio): SqlQueryParser, ToSql, visitors, análise
-tests/SqlParser.Core.Tests/  Testes portados do Rust (mesmos nomes e casos)
-tests/SqlParser.Tests/       Testes da API pública
-tests/PackageSmoke/      Consumidores do pacote (net48 e net8.0), fora da solução
-tools/                   upstream/ (código de referência), codegen/ (geradores), pack/ (pacote), check/
-docs/                    Análise e plano, ADRs, convenções de port, divergências, progresso
+src/Lepton.SqlParser.Core/          Port fiel do sqlparser-rs: tokenizer, keywords, dialetos, parser, AST, spans, visitor
+src/Lepton.SqlParser/               API pública (código próprio): SqlQueryParser, ToSql, visitors, análise
+tests/Lepton.SqlParser.Core.Tests/  Testes portados do Rust (mesmos nomes e casos)
+tests/Lepton.SqlParser.Tests/       Testes da API pública
+tests/PackageSmoke/                 Consumidores do pacote (net48 e net8.0), fora da solução
+tools/                              upstream/ (código de referência), codegen/ (geradores), pack/ (pacote), check/, bench/
+docs/                               Análise e plano, ADRs, convenções de port, divergências, progresso
 ```
 
 Requisitos: .NET SDK 10 (`global.json`), PowerShell 7 e Git.
 
 ```bash
-dotnet build SqlParser.sln            # sem avisos (TreatWarningsAsErrors)
-dotnet test SqlParser.sln             # net48, net8.0 e net10.0
+dotnet build Lepton.SqlParser.sln     # sem avisos (TreatWarningsAsErrors)
+dotnet test Lepton.SqlParser.sln      # net48, net8.0 e net10.0
 pwsh tools/pack/Pack.ps1              # Release + testes + pacote em artifacts/ (exige a árvore limpa; -AllowDirty para teste)
 pwsh tools/pack/Test-Package.ps1      # instala o pacote em apps net48 e net8.0 e confere
 ```
@@ -172,7 +172,7 @@ pwsh tools/pack/Test-Package.ps1      # instala o pacote em apps net48 e net8.0 
    Sem o Claude Code, o mesmo roteiro está escrito na própria skill.
 2. **Subir a versão.** Altere `VersionPrefix`/`VersionSuffix` em [`Directory.Build.props`](Directory.Build.props) (tag nova do Rust, por exemplo v0.64.0 → `0.64.x`) e registre a mudança no [`CHANGELOG.md`](CHANGELOG.md).
 3. **Gerar e conferir o pacote:** depois do commit, `pwsh tools/pack/Pack.ps1` e `pwsh tools/pack/Test-Package.ps1`. Com alterações não commitadas, o `Pack.ps1` para (ou, com `-AllowDirty`, gera um pacote só para teste, marcado com `.dirty`).
-4. **Atualizar os consumidores:** nos projetos que usam a biblioteca, troque a versão de `LeptonTI.SqlParser`. As mudanças que quebram a API estão no `CHANGELOG.md`.
+4. **Atualizar os consumidores:** nos projetos que usam a biblioteca, troque a versão de `Lepton.SqlParser`. As mudanças que quebram a API estão no `CHANGELOG.md`.
 
 - [Análise técnica e plano](docs/analise-tecnica-e-plano.md) e [decisões de arquitetura (ADRs)](docs/adr/)
 - [Convenções de tradução Rust → C#](docs/port/convencoes.md), [glossário de nomes](docs/port/nomes.md) e [divergências](docs/port/divergencias.md)
