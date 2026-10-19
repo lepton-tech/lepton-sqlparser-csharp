@@ -79,3 +79,32 @@ A revisão R4 (`docs/port/onda-d/R4.md`, itens 11 e 12) apontou três problemas 
 - **Decisão: manter.** O `Pack.ps1` roda os testes em Release contra as **mesmas** DLLs que empacota (`dotnet pack --no-build`): tirar o atributo só no pacote exigiria uma segunda compilação, e o pacote deixaria de conter os binários testados. Os testes do Core usam membros `internal` (ex.: `StackGuard`, `RustString`); os da API hoje não usam nenhum, mas o atributo fica, pelo mesmo motivo, para quando precisarem.
 - **Risco:** sem assinatura forte, qualquer assembly chamado `Lepton.SqlParser.Tests` ou `Lepton.SqlParser.Core.Tests` enxerga os membros `internal`. Isso não é fronteira de segurança (reflexão também chega a eles), e um consumidor não tem motivo para usar esses nomes. Se a assinatura forte for adotada, o atributo passa a exigir a chave pública dos testes, e o risco desaparece.
 - Comentário no `.csproj` dos dois projetos aponta para esta seção.
+## Publicação (GitHub Actions, 2026-10-19)
+
+O repositório está em `https://github.com/lepton-tech/lepton-sqlparser-csharp`, com o padrão `develop`: o trabalho entra na `develop` por pull request, e a `main` recebe da `develop` nas versões. O destino do pacote é o **nuget.org**, por **Trusted Publishing**: uma credencial OIDC de curta duração emitida pelo GitHub Actions, sem chave de API guardada. Referência: <https://learn.microsoft.com/pt-br/nuget/nuget-org/trusted-publishing>.
+
+| Workflow | Quando roda | O que faz |
+|---|---|---|
+| `.github/workflows/ci.yml` | Push e pull request na `develop` e na `main` (e manual) | Windows: restore, build em Release (0 avisos), testes em net48, net8.0 e net10.0 (resultados como artefato) e `Generate-Visitor.ps1 -Check` |
+| `.github/workflows/release.yml` | Tag `v*` | **pacote** (Windows): tag igual a `v<VersionPrefix>-<VersionSuffix>` do `Directory.Build.props`, commit da tag contido na `main`, `Pack.ps1` (testes + pacote) e `Test-Package.ps1`. **nuget** (ambiente `nuget`, `id-token: write`): `NuGet/login@v1` troca o token OIDC por uma chave válida por 1 hora e roda `dotnet nuget push --skip-duplicate`. **github-release**: Release com o `.nupkg` e o trecho da versão no `CHANGELOG.md` (pré-lançamento quando há sufixo) |
+
+**Configuração única** (por quem administra o nuget.org e o GitHub):
+1. **nuget.org:**
+   - de preferência, uma organização dona do pacote;
+   - em **Publicação Confiável**, uma política com proprietário do repositório `lepton-tech`, repositório `lepton-sqlparser-csharp`, arquivo de fluxo de trabalho `release.yml` (só o nome) e ambiente `nuget`;
+   - escopo que permita publicar pacotes novos (o `Lepton.SqlParser` ainda não existe lá).
+
+   A política começa provisória por 7 dias e fica permanente na primeira publicação bem-sucedida.
+2. **GitHub:**
+   - secret `NUGET_USER` com o **nome de perfil** do nuget.org de quem criou a política (não o e-mail);
+   - ambiente `nuget` em *Settings → Environments* (opcional: revisores obrigatórios antes de publicar).
+
+**Publicar uma versão:**
+1. Na `develop`, ajuste `VersionPrefix`/`VersionSuffix` e o `CHANGELOG.md`.
+2. Abra o pull request `develop` → `main` e faça o merge com "Create a merge commit".
+3. Crie a tag na `main` e envie-a:
+
+   ```powershell
+   git tag v0.63.1-preview.3 origin/main
+   git push origin v0.63.1-preview.3
+   ```

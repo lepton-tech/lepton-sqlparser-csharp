@@ -10,6 +10,10 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). A
 
 Renome do pacote, dos assemblies e dos namespaces para `Lepton.SqlParser` ([ADR-0011](docs/adr/0011-renome-lepton-sqlparser.md)). O Rust portado é o mesmo da `0.63.1-preview.2` (commit `dacdbc9`): a AST, o comportamento e o SQL gerado não mudam.
 
+### Adicionado
+
+- **GitHub Actions** (`.github/workflows/`): `ci.yml` (build e testes em net48, net8.0 e net10.0 a cada push e pull request na `develop` e na `main`, mais a conferência do visitor gerado) e `release.yml` (com uma tag `v<versão>` na `main`: testes, pacote, instalação em net48 e net8.0, publicação no nuget.org por Trusted Publishing e Release no GitHub).
+
 ### Alterado
 
 - **Quebra de compatibilidade (nomes):**

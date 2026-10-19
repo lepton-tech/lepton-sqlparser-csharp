@@ -1,0 +1,140 @@
+# Publicação de uma versão: disparada por uma tag "v<versão do pacote>" (ex.: v0.63.1-preview.3) na main.
+#
+# 1. pacote: confere tag × Directory.Build.props, roda a suíte inteira e gera o pacote (tools/pack/Pack.ps1),
+#    instala o pacote em apps net48 e net8.0 (tools/pack/Test-Package.ps1);
+# 2. nuget: publica no nuget.org por Trusted Publishing (OIDC, sem chave guardada), no ambiente "nuget";
+# 3. github-release: cria a Release no GitHub com o .nupkg e o trecho da versão do CHANGELOG.md.
+#
+# Configuração (docs/adr/0010-empacotamento.md, "Publicação"):
+# - nuget.org → Publicação Confiável: proprietário do repositório "lepton-tech", repositório
+#   "lepton-sqlparser-csharp", arquivo de fluxo de trabalho "release.yml", ambiente "nuget";
+# - GitHub → Settings → Secrets and variables → Actions: secret NUGET_USER = nome de perfil no nuget.org
+#   (não o e-mail) de quem criou a política;
+# - GitHub → Settings → Environments: ambiente "nuget" (opcional: revisores obrigatórios).
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  pacote:
+    name: Testes e pacote
+    runs-on: windows-latest
+    timeout-minutes: 45
+    outputs:
+      version: ${{ steps.versao.outputs.version }}
+      prerelease: ${{ steps.versao.outputs.prerelease }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # para conferir se a tag está na main
+
+      - name: .NET SDK (global.json) e runtime do .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+          dotnet-version: 8.0.x
+
+      - name: Tag × versão do pacote e tag na main
+        id: versao
+        shell: pwsh
+        run: |
+          [xml]$props = Get-Content Directory.Build.props
+          $prefix = ($props.Project.PropertyGroup.VersionPrefix | Where-Object { $_ } | Select-Object -First 1)
+          $suffix = ($props.Project.PropertyGroup.VersionSuffix | Where-Object { $_ } | Select-Object -First 1)
+          $version = if ($suffix) { "$prefix-$suffix" } else { $prefix }
+          $tag = '${{ github.ref_name }}'
+          if ($tag -ne "v$version") {
+            throw "A tag '$tag' não bate com a versão do Directory.Build.props ('v$version'). Corrija a tag ou a versão."
+          }
+          git merge-base --is-ancestor "$env:GITHUB_SHA" origin/main
+          if ($LASTEXITCODE -ne 0) {
+            throw "O commit da tag '$tag' não está na main. Publique a partir da main (padrão develop → main)."
+          }
+          "version=$version" >> $env:GITHUB_OUTPUT
+          "prerelease=$(if ($suffix) { 'true' } else { 'false' })" >> $env:GITHUB_OUTPUT
+          "Versão $version (pré-lançamento: $([bool]$suffix))"
+
+      - name: Testes (3 alvos) e pacote
+        shell: pwsh
+        run: ./tools/pack/Pack.ps1
+
+      - name: Instalação do pacote em apps net48 e net8.0
+        shell: pwsh
+        run: ./tools/pack/Test-Package.ps1 -Version '${{ steps.versao.outputs.version }}'
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pacote
+          path: artifacts/*.nupkg
+          if-no-files-found: error
+
+  nuget:
+    name: Publicar no nuget.org
+    needs: pacote
+    runs-on: ubuntu-latest
+    environment: nuget
+    permissions:
+      id-token: write # Trusted Publishing: token OIDC do GitHub trocado por uma chave temporária do nuget.org
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: pacote
+          path: artifacts
+
+      - name: .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      # A chave temporária vale 1 hora: pedida logo antes do push.
+      - name: Login no nuget.org (OIDC → chave temporária)
+        uses: NuGet/login@v1
+        id: login
+        with:
+          user: ${{ secrets.NUGET_USER }}
+
+      - name: Push
+        run: dotnet nuget push "artifacts/*.nupkg" --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
+
+  github-release:
+    name: Release no GitHub
+    needs: [pacote, nuget]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: pacote
+          path: artifacts
+
+      - name: Notas da versão (CHANGELOG.md)
+        shell: pwsh
+        run: |
+          $version = '${{ needs.pacote.outputs.version }}'
+          $lines = Get-Content CHANGELOG.md
+          $start = ($lines | Select-String -SimpleMatch "## [$version]" | Select-Object -First 1).LineNumber
+          if (-not $start) { throw "CHANGELOG.md não tem a seção '## [$version]'." }
+          $rest = $lines[$start..($lines.Count - 1)]
+          $end = ($rest | Select-String -Pattern '^## \[' | Select-Object -First 1).LineNumber
+          $notes = if ($end) { $rest[0..($end - 2)] } else { $rest }
+          $notes | Set-Content notas.md -Encoding utf8
+
+      - name: Criar a Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          flag=""
+          if [ "${{ needs.pacote.outputs.prerelease }}" = "true" ]; then flag="--prerelease"; fi
+          gh release create "${{ github.ref_name }}" artifacts/*.nupkg --title "Lepton.SqlParser ${{ needs.pacote.outputs.version }}" --notes-file notas.md $flag

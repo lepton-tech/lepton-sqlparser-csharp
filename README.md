@@ -161,6 +161,16 @@ pwsh tools/pack/Pack.ps1              # Release + testes + pacote em artifacts/ 
 pwsh tools/pack/Test-Package.ps1      # instala o pacote em apps net48 e net8.0 e confere
 ```
 
+### Como publicar uma versão
+
+A publicação é feita pelo GitHub Actions (`.github/workflows/release.yml`), com Trusted Publishing no nuget.org, sem nenhuma chave guardada:
+
+1. ajuste a versão (`Directory.Build.props`) e o `CHANGELOG.md` na `develop`;
+2. faça o pull request `develop` → `main`;
+3. crie a tag `v<versão>` na `main` e envie-a (`git push origin v<versão>`).
+
+A pipeline confere a tag, roda os testes, gera e testa o pacote, publica no nuget.org e cria a Release no GitHub. A configuração que só se faz uma vez (política no nuget.org e secret `NUGET_USER`) está no [ADR-0010](docs/adr/0010-empacotamento.md), seção "Publicação". O `ci.yml` roda build e testes em todo pull request.
+
 ### Como atualizar quando sair uma versão nova do sqlparser-rs
 
 1. **Portar as mudanças do Rust.** No Claude Code, aberto na pasta do repositório, peça em português, por exemplo "tem versão nova do sqlparser-rs? Atualiza o port" ou "porta o PR #NNNN do sqlparser-rs". A skill [`sync-upstream`](.claude/skills/sync-upstream/SKILL.md) é acionada sozinha (ou digite `/sync-upstream`). Ela:
