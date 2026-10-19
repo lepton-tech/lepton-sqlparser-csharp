@@ -21,7 +21,7 @@ Legenda: ⬜ não iniciado · 🟨 em andamento · ✅ portado (testes portados 
 | `src/ast/spans.rs` | 3.165 | `Ast/Spans/` + `impl` nos arquivos dos tipos | ✅ | 18/18, passando em net48/net8.0/net10.0 | B7 (`docs/port/onda-b/B7.md`): 145 `impl Spanned` |
 | `src/ast/visitor.rs` | 1.376 | `Ast/Visitor/` (+ `Ast/Visitor/Generated/*.g.cs`, gerados por `tools/codegen/Generate-Visitor.ps1`) | ✅ | 7/7, passando em net48/net8.0/net10.0 (+ 18 testes próprios em `VisitorPortTests`) | C18 (`onda-c/C18.md`, ADR-0007): o derive `Visit`/`VisitMut` virou gerador; casos 125–134; DIV-008 e DIV-009 |
 | `src/parser/**` | ~22.800 (`mod.rs` 22.043, `alter.rs` 512, `merge.rs` 286) | `Parser/` | ✅ | 19/19 (`mod tests` de `mod.rs`, inclusive `test_parse_data_type`), passando em net48/net8.0/net10.0 (C17) | Onda B (B0–B6; `docs/port/onda-b/`). Revisões R1–R3 de contexto limpo: nenhum achado Alto ou Médio |
-| `src/test_utils.rs` | 505 | `tests/.../TestUtils/` (`TestedDialects.cs`, `TestUtils.cs`) | ✅ | — (sem testes no Rust) | Completo desde o commit `88c8499` (inclusive `options`, `recursion_limit` e as funções que usam o parser) |
+| `src/test_utils.rs` | 505 | `tests/.../TestUtils/` (`TestedDialects.cs`, `TestUtils.cs`) | ✅ | — (sem testes no Rust) | Completo desde o commit `1776531` (inclusive `options`, `recursion_limit` e as funções que usam o parser) |
 | `tests/*.rs` (21 arquivos) | ~55.000 | `tests/.../Integration/` (+ `Queries/tpch/`) | ✅ | 1.429/1.430 portados (tabela abaixo; o que falta é a variante `bigdecimal`, que não se aplica) | Onda C (C1–C17), integrada ao `main` |
 
 ### Testes de integração (`tests/*.rs`) por arquivo
@@ -100,7 +100,7 @@ Cada item tem, no arquivo C#, um comentário `// PENDENTE (...)` na posição ex
 
 ### Pendências de `test_utils.rs` (dependem do Parser/AST, Fase 2)
 
-**Concluídas** no commit `88c8499` (não há mais `// PENDENTE` em `tests/SqlParser.Core.Tests/TestUtils/`). Lista original, mantida como histórico:
+**Concluídas** no commit `1776531` (não há mais `// PENDENTE` em `tests/SqlParser.Core.Tests/TestUtils/`). Lista original, mantida como histórico:
 - `TestedDialects`: campos `options: Option<ParserOptions>` e `recursion_limit: Option<usize>`; `new_with_options`, `with_recursion_limit`, `new_parser`, `one_of_identical_results`, `run_parser_method`, `parse_sql_statements`, `one_statement_parses_to`, `statements_parse_to`, `expr_parses_to`, `verified_stmt`, `verified_query`, `verified_query_with_canonical`, `verified_only_select`, `verified_only_select_with_canonical`, `verified_expr`.
 - `TestedDialects.TokenizesTo`: o ramo `if let Some(options) = &self.options { tokenizer = tokenizer.with_unescape(options.unescape) }` (hoje `options` é sempre `None`, então o comportamento é o mesmo).
 - Funções livres: `all_dialects_with_options`, `expr_from_projection`, `alter_table_op_with_name`, `alter_table_op`, `number`, `single_quoted_string`, `table_alias`, `table`, `table_from_name`, `table_with_alias`, `join`, `call`, `index_column`.
@@ -234,7 +234,7 @@ Registre ao fim de cada sessão: data, o que foi feito, decisões tomadas e pró
 - **Atenção:** `portedThroughCommit` avançou só até `b595062` (#2496), porque o próximo PR cronológico (#2403) é do lote 6. Enquanto os lotes 4–6 não terminarem, o clone de referência nesse commit **não** contém tudo o que já foi portado: não regenere `Keywords.g.cs` com a fonte padrão (perderia `PROC`); use `-Source` com o `keywords.rs` de `dacdbc9`. A D3 (`to_*case` completo) ganhou um ponto a mais em `ParseSelectItem`.
 - **Próximo:** lote 4 (Display/`ToString`, ordem estrita), depois lotes 5 e 6, conforme o ledger; os testes novos desses lotes entram nas posições indicadas em `sync/rodada1-lotes1-3.md`, "Posição dos testes dos próximos lotes".
 
-### 2026-10-14 (onda D: D5, integrada depois do commit `c92d500`)
+### 2026-10-14 (onda D: D5, integrada depois do commit `a96d498`)
 - **D5:** `()` → `ValueTuple` em `MsSqlDialect.ParseStatement` (caso 85); DIV-001 medida nos três alvos (net48 difere do .NET moderno em ſ, K de Kelvin, ς e ẞ; efeito real em `ParseSnowflakeDeclare` e no `STORAGE` do MySQL), com `// PORT-DEVIATION DIV-001` em todo `to_*case` (regra nova na §10); `try/catch` do caminho comum trocado por equivalentes exatos sem exceção (caso 81); `throw StackGuard.Rethrow(e)` nos relançamentos de erro guardado (caso 83). 15 testes próprios. Notas em `onda-d/D5.md`.
 
 ### 2026-10-14 (API pública, fase 2: unidade E2)
@@ -266,7 +266,7 @@ Registre ao fim de cada sessão: data, o que foi feito, decisões tomadas e pró
 - **Próximo:** fase 2 da API pública (visitors no estilo SqlParser-cs e utilitários de análise), depois do port de `ast/visitor.rs`.
 
 ### 2026-10-14 (Fase 2: onda C, testes de integração, revisões e consolidação)
-- **Execução:** o lançamento de 20 agentes de uma vez esgotou o limite de sessão e interrompeu todos. A onda seguiu numa **fila de no máximo 5 agentes simultâneos**, cada um num git worktree isolado (criado a partir de `88c8499`), com retomada dos interrompidos. Divisão e status em `docs/port/onda-c/README.md`.
+- **Execução:** o lançamento de 20 agentes de uma vez esgotou o limite de sessão e interrompeu todos. A onda seguiu numa **fila de no máximo 5 agentes simultâneos**, cada um num git worktree isolado (criado a partir de `1776531`), com retomada dos interrompidos. Divisão e status em `docs/port/onda-c/README.md`.
 - **Resultados até agora:**
   - C1–C17 concluídas e integradas ao `main`: 1.429 dos 1.430 `#[test]` de `tests/*.rs` portados (o que falta é a variante `bigdecimal`, que não se aplica; tabela "Testes de integração por arquivo"), mais os 19 de `parser/mod.rs`.
   - **Nenhum teste portado falha em net48, net8.0 ou net10.0.** Os únicos `Skip` são os previstos: 2 PENDENTE de estouro de pilha (C4, onda D), 1 PENDENTE do visitor, 1 DIV-002 e 7 `#[ignore]` do próprio Rust.
@@ -322,7 +322,7 @@ Registre ao fim de cada sessão: data, o que foi feito, decisões tomadas e pró
   3. Consolidar as notas em `convencoes.md`/`nomes.md`/`divergencias.md`.
   4. Compilar o Core e corrigir.
   5. Onda B: o parser. Plano: B1 `parser/mod.rs` 611–4466; B2–B5 de 5202 a 21269 em 4 partes; B6 `alter.rs`, `merge.rs`, overrides de dialeto pendentes e testes do parser.
-- **Estado do build:** a Fase 2 não compila até a onda A terminar (tipos cruzados entre unidades). Não há commits desde `22c326d`.
+- **Estado do build:** a Fase 2 não compila até a onda A terminar (tipos cruzados entre unidades). Não há commits desde `ea9b6bc`.
 
 ### 2026-10-14 (revisão linha a linha do tokenizer)
 - Revisão por subagente com contexto limpo, usando `checklist-revisao.md`. Nenhum achado de severidade alta.

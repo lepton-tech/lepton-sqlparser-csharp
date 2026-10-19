@@ -3,7 +3,7 @@
 Notas da execução dos lotes 1–3 da "Rodada 1" de [`../upstream-ledger.md`](../upstream-ledger.md) (`v0.63.0` → `origin/main` em `dacdbc9`). Procedimento: skills `sync-upstream`, `port-rust-to-csharp` e `port-rust-tests`.
 
 - **Datas:** 2026-10-14 e 2026-10-15 (a sessão foi interrompida e retomada no mesmo worktree).
-- **Base:** cópia do `main` (código idêntico ao do commit `b8e2609`, que só mudou documentação).
+- **Base:** cópia do `main` (código idêntico ao do commit `16ecd9f`, que só mudou documentação).
 - **Clone de referência:** não foi alterado (nada de checkout/reset). O Rust novo foi lido com `git show <commit>` e `git show dacdbc9:<arquivo>`; para leituras amplas, `git archive dacdbc9 src tests derive HEADER` foi extraído numa pasta temporária.
 - **Resultado:** 41 PRs fechados (23 do lote 1, 2 do lote 2, 16 do lote 3). `portedThroughCommit` = `b5950628` (#2496): é o maior prefixo cronológico concluído, porque o PR seguinte, #2403, é do lote 6. `baselineTag` continua `v0.63.0`, e os cabeçalhos dos arquivos também (não há tag nova).
 

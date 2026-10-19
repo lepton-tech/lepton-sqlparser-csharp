@@ -1,6 +1,6 @@
 # Onda C da Fase 2: testes de integração, visitor e revisões
 
-**Execução em fila, com no máximo 5 agentes simultâneos** (decisão do usuário em 2026-10-14, depois que o lançamento de 20 agentes de uma vez esgotou o limite de sessão e interrompeu todos). Agentes interrompidos são retomados com o contexto preservado; o trabalho parcial fica no worktree. Cada agente trabalha num **git worktree isolado** (`.claude/worktrees/agent-*`), criado a partir do commit `88c8499`, para que as compilações não disputem arquivos. O integrador junta os resultados no `main`.
+**Execução em fila, com no máximo 5 agentes simultâneos** (decisão do usuário em 2026-10-14, depois que o lançamento de 20 agentes de uma vez esgotou o limite de sessão e interrompeu todos). Agentes interrompidos são retomados com o contexto preservado; o trabalho parcial fica no worktree. Cada agente trabalha num **git worktree isolado** (`.claude/worktrees/agent-*`), criado a partir do commit `1776531`, para que as compilações não disputem arquivos. O integrador junta os resultados no `main`.
 
 Regras comuns aos agentes de teste (C1–C17):
 - Só criam arquivos de teste e notas; **não alteram o `src/`**.

@@ -42,7 +42,7 @@ $exe = 'tools/bench/SqlParser.Bench/bin/Release/net8.0/SqlParser.Bench.exe'   # 
 
 ## Ambiente
 
-Notebook com Intel Core i7-1255U, Windows 11, .NET 8.0.28 e .NET Framework 4.8. Core em Release, no commit `1bbcd26` (sincronizado com o Rust `dacdbc9`); SqlParser-cs no commit `e1929977`.
+Notebook com Intel Core i7-1255U, Windows 11, .NET 8.0.28 e .NET Framework 4.8. Core em Release, no commit `4f4d77e` (sincronizado com o Rust `dacdbc9`); SqlParser-cs no commit `e1929977`.
 
 ## Resultados parciais
 
