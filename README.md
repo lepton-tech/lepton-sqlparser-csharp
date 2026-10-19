@@ -163,13 +163,13 @@ pwsh tools/pack/Test-Package.ps1      # instala o pacote em apps net48 e net8.0 
 
 ### Como publicar uma versão
 
-A publicação é feita pelo GitHub Actions (`.github/workflows/release.yml`), com Trusted Publishing no nuget.org, sem nenhuma chave guardada:
+A publicação é feita pelo GitHub Actions (`.github/workflows/nuget-publish.yml`), com Trusted Publishing no nuget.org, sem nenhuma chave guardada:
 
 1. ajuste a versão (`Directory.Build.props`) e o `CHANGELOG.md` na `develop`;
 2. faça o pull request `develop` → `main`;
 3. crie a tag `v<versão>` na `main` e envie-a (`git push origin v<versão>`).
 
-A pipeline confere a tag, roda os testes, gera e testa o pacote, publica no nuget.org e cria a Release no GitHub. A configuração que só se faz uma vez (política no nuget.org e secret `NUGET_USER`) está no [ADR-0010](docs/adr/0010-empacotamento.md), seção "Publicação". O `ci.yml` roda build e testes em todo pull request.
+A pipeline confere a tag, roda os testes, gera e testa o pacote e o publica no nuget.org (ambiente `production` do GitHub). A configuração, uma política de Trusted Publishing no nuget.org (sem chave de API nem secret), está no [ADR-0010](docs/adr/0010-empacotamento.md), seção "Publicação". O `ci.yml` roda build e testes em todo pull request.
 
 ### Como atualizar quando sair uma versão nova do sqlparser-rs
 

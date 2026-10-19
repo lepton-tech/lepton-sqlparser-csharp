@@ -12,7 +12,7 @@ Renome do pacote, dos assemblies e dos namespaces para `Lepton.SqlParser` ([ADR-
 
 ### Adicionado
 
-- **GitHub Actions** (`.github/workflows/`): `ci.yml` (build e testes em net48, net8.0 e net10.0 a cada push e pull request na `develop` e na `main`, mais a conferência do visitor gerado) e `release.yml` (com uma tag `v<versão>` na `main`: testes, pacote, instalação em net48 e net8.0, publicação no nuget.org por Trusted Publishing e Release no GitHub).
+- **GitHub Actions** (`.github/workflows/`): `ci.yml` (build e testes em net48, net8.0 e net10.0 a cada push e pull request na `develop` e na `main`, mais a conferência do visitor gerado) e `nuget-publish.yml` (com uma tag `v<versão>`: conferência da tag com a versão, testes, pacote, instalação em net48 e net8.0 e publicação no nuget.org por Trusted Publishing, no ambiente `production`).
 
 ### Alterado
 

@@ -22,10 +22,10 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: .NET SDK (global.json) e runtime do .NET 8
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           global-json-file: global.json
           dotnet-version: 8.0.x
@@ -41,7 +41,7 @@ jobs:
 
       - name: Resultados dos testes
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: resultados-testes
           path: TestResults

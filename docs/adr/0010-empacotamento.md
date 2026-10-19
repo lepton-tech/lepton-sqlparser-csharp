@@ -86,18 +86,15 @@ O repositório está em `https://github.com/lepton-tech/lepton-sqlparser-csharp`
 | Workflow | Quando roda | O que faz |
 |---|---|---|
 | `.github/workflows/ci.yml` | Push e pull request na `develop` e na `main` (e manual) | Windows: restore, build em Release (0 avisos), testes em net48, net8.0 e net10.0 (resultados como artefato) e `Generate-Visitor.ps1 -Check` |
-| `.github/workflows/release.yml` | Tag `v*` | **pacote** (Windows): tag igual a `v<VersionPrefix>-<VersionSuffix>` do `Directory.Build.props`, commit da tag contido na `main`, `Pack.ps1` (testes + pacote) e `Test-Package.ps1`. **nuget** (ambiente `nuget`, `id-token: write`): `NuGet/login@v1` troca o token OIDC por uma chave válida por 1 hora e roda `dotnet nuget push --skip-duplicate`. **github-release**: Release com o `.nupkg` e o trecho da versão no `CHANGELOG.md` (pré-lançamento quando há sufixo) |
+| `.github/workflows/nuget-publish.yml` | Tag `v*` | **build** (Windows, por causa do net48): tag igual a `v<PackageVersion>` do projeto (`VersionPrefix`/`VersionSuffix` do `Directory.Build.props`), `Pack.ps1` (build em Release, testes nos três alvos e pacote) e `Test-Package.ps1`; o `.nupkg` vira artefato. **publish** (ambiente `production`, `id-token: write`): `NuGet/login@v1` troca o token OIDC do GitHub por uma chave de API válida por 1 hora, pedida logo antes do `dotnet nuget push`. Sem chave de API guardada nem secret: a confiança é a política no nuget.org |
 
-**Configuração única** (por quem administra o nuget.org e o GitHub):
-1. **nuget.org:**
-   - de preferência, uma organização dona do pacote;
-   - em **Publicação Confiável**, uma política com proprietário do repositório `lepton-tech`, repositório `lepton-sqlparser-csharp`, arquivo de fluxo de trabalho `release.yml` (só o nome) e ambiente `nuget`;
-   - escopo que permita publicar pacotes novos (o `Lepton.SqlParser` ainda não existe lá).
+**Política de Trusted Publishing no nuget.org** (já cadastrada; o nome do arquivo e o ambiente do workflow têm de bater com ela):
+- dono do pacote: a organização `lepton-tech` do nuget.org; escopo: publicar pacotes novos e versões novas; padrão de pacotes `Lepton*`;
+- Repository Owner `lepton-tech`; Repository `lepton-sqlparser-csharp`; Workflow File `nuget-publish.yml` (só o nome do arquivo, sem `.github/workflows/`); Environment `production`.
 
-   A política começa provisória por 7 dias e fica permanente na primeira publicação bem-sucedida.
-2. **GitHub:**
-   - secret `NUGET_USER` com o **nome de perfil** do nuget.org de quem criou a política (não o e-mail);
-   - ambiente `nuget` em *Settings → Environments* (opcional: revisores obrigatórios antes de publicar).
+Renomear o `nuget-publish.yml` ou tirar o `environment: production` do job **publish** faz o nuget.org recusar a troca do token. O ambiente `production` do GitHub é criado na primeira execução, se ainda não existir; em *Settings → Environments* dá para exigir aprovação antes de publicar e, se houver regra de branches e tags de implantação, ela precisa aceitar as tags `v*`.
+
+O `user` do `NuGet/login` é o **nome de perfil** no nuget.org (não o e-mail) do **usuário que criou a política**, e não o da organização dona dela (o próprio `NuGet/login` avisa, ao falhar: "use the username of the policy creator, not the policy owner"). É obrigatório na action, mas não é chave nem dá acesso sozinho; o artigo da Microsoft sugere guardá-lo num secret (`NUGET_USER`), e aqui ele fica escrito no workflow.
 
 **Publicar uma versão:**
 1. Na `develop`, ajuste `VersionPrefix`/`VersionSuffix` e o `CHANGELOG.md`.
