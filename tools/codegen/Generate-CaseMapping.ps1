@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Gera src/Lepton.SqlParser.Core/Support/RustCaseMapping.g.cs (tabelas de maiúsculas/minúsculas do Rust) a partir
+    Gera src/LeptonTech.SqlParser.Core/Support/RustCaseMapping.g.cs (tabelas de maiúsculas/minúsculas do Rust) a partir
     do Unicode Character Database (UCD).
 
 .DESCRIPTION
@@ -37,7 +37,7 @@ param(
     # Só para o cabeçalho do gerado: a toolchain estável cujo `char::UNICODE_VERSION` é -UnicodeVersion.
     [string]$RustToolchain = '1.99.0',
     [string]$UcdDir = (Join-Path ([System.IO.Path]::GetTempPath()) "sqlparser-ucd/$UnicodeVersion"),
-    [string]$Output = (Join-Path $PSScriptRoot '..\..\src\Lepton.SqlParser.Core\Support\RustCaseMapping.g.cs')
+    [string]$Output = (Join-Path $PSScriptRoot '..\..\src\LeptonTech.SqlParser.Core\Support\RustCaseMapping.g.cs')
 )
 
 $ErrorActionPreference = 'Stop'
@@ -278,7 +278,7 @@ Add-Line '// </auto-generated>'
 Add-Line ''
 Add-Line '#nullable enable'
 Add-Line ''
-Add-Line 'namespace Lepton.SqlParser.Core;'
+Add-Line 'namespace LeptonTech.SqlParser.Core;'
 Add-Line ''
 Add-Line 'internal static partial class RustCaseMapping'
 Add-Line '{'

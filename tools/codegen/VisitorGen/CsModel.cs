@@ -1,5 +1,5 @@
 // Código próprio do port (ferramenta de desenvolvimento): modelo dos tipos da AST C# lido por reflexão
-// do Lepton.SqlParser.Core.dll compilado sem o código gerado do visitor.
+// do LeptonTech.SqlParser.Core.dll compilado sem o código gerado do visitor.
 
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -27,8 +27,8 @@ internal sealed record SourceDecl(string RelativePath, bool IsPartial, string Mo
 
 internal sealed class CsModel
 {
-    private const string AstNs = "Lepton.SqlParser.Core.Ast";
-    private const string CoreNs = "Lepton.SqlParser.Core";
+    private const string AstNs = "LeptonTech.SqlParser.Core.Ast";
+    private const string CoreNs = "LeptonTech.SqlParser.Core";
     private readonly Dictionary<Type, CsShape> _shapes = new();
 
     public CsModel(Assembly assembly, string sourcesRoot)

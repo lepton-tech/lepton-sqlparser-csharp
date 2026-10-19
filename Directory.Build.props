@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <!--
-    Versão e identificação do pacote Lepton.SqlParser (docs/adr/0010-empacotamento.md).
+    Versão e identificação do pacote LeptonTech.SqlParser (docs/adr/0010-empacotamento.md).
     - Versão do pacote: alinhada ao sqlparser-rs (0.63.x). Mudanças só nossas avançam o último número ou o sufixo.
     - AssemblyVersion e FileVersion: <VersionPrefix>.0 (ex.: 0.63.1.0), sem o sufixo de pré-lançamento.
       As DLLs não têm assinatura forte, então o .NET Framework não usa a AssemblyVersion na vinculação.
@@ -19,12 +19,12 @@
   -->
   <PropertyGroup>
     <VersionPrefix>0.63.1</VersionPrefix>
-    <VersionSuffix>preview.3</VersionSuffix>
+    <VersionSuffix>preview.4</VersionSuffix>
     <AssemblyVersion>$(VersionPrefix).0</AssemblyVersion>
     <FileVersion>$(VersionPrefix).0</FileVersion>
     <Authors>Lepton TI</Authors>
     <Company>Lepton TI</Company>
-    <Product>Lepton.SqlParser</Product>
+    <Product>LeptonTech.SqlParser</Product>
     <Copyright>Copyright (c) 2026 Lepton TI. Contains code ported from sqlparser-rs (Apache-2.0, The Apache Software Foundation); see NOTICE.</Copyright>
   </PropertyGroup>
 
@@ -47,17 +47,17 @@
     vale em servidores de CI (CI, TF_BUILD, BITBUCKET_BUILD_NUMBER) ou quando passado explicitamente
     (tools/pack/Pack.ps1 usa -p:ContinuousIntegrationBuild=true). EmbedUntrackedSources embute nos PDBs os fontes que
     o Git não rastreia (ex.: os gerados em obj/).
-    Símbolos: os PDBs são portáteis. Nas duas DLLs do pacote (Lepton.SqlParser e Lepton.SqlParser.Core), o PDB vai
+    Símbolos: os PDBs são portáteis. Nas duas DLLs do pacote (LeptonTech.SqlParser e LeptonTech.SqlParser.Core), o PDB vai
     EMBUTIDO na DLL (DebugType=embedded): o depurador e os rastros de pilha acham os símbolos em qualquer feed (local,
     interno ou nuget.org) sem servidor de símbolos, e não há .snupkg. Os demais projetos (testes) mantêm o PDB em arquivo.
     Ver docs/adr/0010-empacotamento.md.
     SourceLink: o repositório está no GitHub (lepton-tech/lepton-sqlparser-csharp). O SourceLink embutido no SDK (8 ou
     superior) gera os links dos fontes a partir do remoto do Git; RepositoryUrl, PackageProjectUrl e
-    PublishRepositoryUrl ficam em src/Lepton.SqlParser/Lepton.SqlParser.csproj (docs/adr/0011-renome-lepton-sqlparser.md).
+    PublishRepositoryUrl ficam em src/LeptonTech.SqlParser/LeptonTech.SqlParser.csproj (docs/adr/0011-renome-lepton-sqlparser.md).
   -->
   <PropertyGroup>
     <DebugType>portable</DebugType>
-    <DebugType Condition="'$(MSBuildProjectName)' == 'Lepton.SqlParser' or '$(MSBuildProjectName)' == 'Lepton.SqlParser.Core'">embedded</DebugType>
+    <DebugType Condition="'$(MSBuildProjectName)' == 'LeptonTech.SqlParser' or '$(MSBuildProjectName)' == 'LeptonTech.SqlParser.Core'">embedded</DebugType>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
   </PropertyGroup>
   <PropertyGroup Condition="'$(ContinuousIntegrationBuild)' == '' and ('$(CI)' == 'true' or '$(TF_BUILD)' == 'true' or '$(BITBUCKET_BUILD_NUMBER)' != '')">

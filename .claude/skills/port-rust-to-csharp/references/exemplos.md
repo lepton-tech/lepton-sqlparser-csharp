@@ -1,6 +1,6 @@
 # Exemplos canônicos de tradução Rust → C#
 
-Estes exemplos são **o padrão a copiar**. Vêm do `tokenizer.rs` e do `dialect/mod.rs` do sqlparser-rs v0.63.0. Se o código já portado em `src/Lepton.SqlParser.Core/` divergir daqui, quem está certo é `docs/port/convencoes.md`. Quando um exemplo melhor surgir no código real, atualize este arquivo apontando para ele.
+Estes exemplos são **o padrão a copiar**. Vêm do `tokenizer.rs` e do `dialect/mod.rs` do sqlparser-rs v0.63.0. Se o código já portado em `src/LeptonTech.SqlParser.Core/` divergir daqui, quem está certo é `docs/port/convencoes.md`. Quando um exemplo melhor surgir no código real, atualize este arquivo apontando para ele.
 
 Sumário:
 1. [Struct `Copy` com `Display`, `Debug`, `From` e construtores](#1-struct-copy-com-display-debug-from-e-construtores)
@@ -142,7 +142,7 @@ public abstract record Token : IDisplay
     public sealed record EOF : Token;
     /// <summary>A keyword (like SELECT) or an optionally quoted SQL identifier</summary>
     // Variante tupla cujo tipo tem o mesmo nome: tipo qualificado (convencoes.md §6)
-    public sealed record Word(Lepton.SqlParser.Core.Word Value) : Token;
+    public sealed record Word(LeptonTech.SqlParser.Core.Word Value) : Token;
     /// <summary>An unsigned numeric literal</summary>
     // 2+ campos: nomes registrados em docs/port/nomes.md
     public sealed record Number(string Value, bool Long) : Token;
@@ -151,7 +151,7 @@ public abstract record Token : IDisplay
 
     // impl Token { pub fn make_word(..) }
     public static Token MakeWord(string word, char? quoteStyle) =>
-        new Word(new Lepton.SqlParser.Core.Word(word, quoteStyle, KeywordLookup(word, quoteStyle)));
+        new Word(new LeptonTech.SqlParser.Core.Word(word, quoteStyle, KeywordLookup(word, quoteStyle)));
 
     // impl fmt::Display for Token: o match inteiro vira UM switch na base
     public void Fmt(Formatter f)
@@ -247,7 +247,7 @@ while let Some(&ch) = chars.peek() {
 
 ```csharp
 if (chars.Peek() is { } ch) { ... }                       // Peek() retorna char? (null = fim)
-char? quoteEnd = Lepton.SqlParser.Core.Word.MatchingEndQuote(quoteStart);
+char? quoteEnd = LeptonTech.SqlParser.Core.Word.MatchingEndQuote(quoteStart);
 while (chars.Peek() is { } ch2)
 {
     if (ch2 == ' ') { chars.Next(); continue; }
@@ -346,9 +346,9 @@ indented_list(f, &self.projection)?;
 ```
 
 ```csharp
-using static Lepton.SqlParser.Core.Ast.AstModule;   // display_separated, display_comma_separated...
+using static LeptonTech.SqlParser.Core.Ast.AstModule;   // display_separated, display_comma_separated...
 
-namespace Lepton.SqlParser.Core.Ast;
+namespace LeptonTech.SqlParser.Core.Ast;
 
 /// <summary>...</summary>
 /// <param name="WithToken">Token for the <c>WITH</c> keyword</param>
@@ -415,16 +415,16 @@ Arquivos de referência, já compilados:
 
 | Arquivo | Mostra |
 |---|---|
-| `src/Lepton.SqlParser.Core/Ast/Mod/Ident.cs` | `PartialEq`/`Hash` customizados que ignoram `Span`; construtor extra para `fn new`; `assert!`; `match` com guarda em `Display`; qualificação `Ast.Value` (caso 38) |
-| `src/Lepton.SqlParser.Core/Ast/Mod/ObjectName.cs` | Tuple struct (`Value`); enum com dados + `Display` em `switch`; `impl From`; `display_separated`/`display_comma_separated` com `using static` |
-| `src/Lepton.SqlParser.Core/Ast/Mod/Parens.cs` | Struct genérico; `Deref` não traduzido |
-| `src/Lepton.SqlParser.Core/Ast/Mod/AstModule.cs` | Funções livres do módulo (`partial class AstModule`); `DisplaySeparated<T>` |
-| `src/Lepton.SqlParser.Core/Ast/Helpers/AttachedToken.cs` | Igualdade "sempre verdadeira" (o campo some da igualdade dos records que o contêm) |
-| `src/Lepton.SqlParser.Core/DisplayUtils/*.cs` | `Indent`, `NewLine`, `SpaceOrNewline`, `DisplayCommaSeparated` e `DisplayUtils.IndentedList` (pretty-print) |
+| `src/LeptonTech.SqlParser.Core/Ast/Mod/Ident.cs` | `PartialEq`/`Hash` customizados que ignoram `Span`; construtor extra para `fn new`; `assert!`; `match` com guarda em `Display`; qualificação `Ast.Value` (caso 38) |
+| `src/LeptonTech.SqlParser.Core/Ast/Mod/ObjectName.cs` | Tuple struct (`Value`); enum com dados + `Display` em `switch`; `impl From`; `display_separated`/`display_comma_separated` com `using static` |
+| `src/LeptonTech.SqlParser.Core/Ast/Mod/Parens.cs` | Struct genérico; `Deref` não traduzido |
+| `src/LeptonTech.SqlParser.Core/Ast/Mod/AstModule.cs` | Funções livres do módulo (`partial class AstModule`); `DisplaySeparated<T>` |
+| `src/LeptonTech.SqlParser.Core/Ast/Helpers/AttachedToken.cs` | Igualdade "sempre verdadeira" (o campo some da igualdade dos records que o contêm) |
+| `src/LeptonTech.SqlParser.Core/DisplayUtils/*.cs` | `Indent`, `NewLine`, `SpaceOrNewline`, `DisplayCommaSeparated` e `DisplayUtils.IndentedList` (pretty-print) |
 
 ## 9. Parser: funções de parse
 
-Regras: `convencoes.md` §13, casos 43 a 54. Código real de referência: `src/Lepton.SqlParser.Core/Parser/Parser.cs` e `Parser.TokenHelpers.cs`.
+Regras: `convencoes.md` §13, casos 43 a 54. Código real de referência: `src/LeptonTech.SqlParser.Core/Parser/Parser.cs` e `Parser.TokenHelpers.cs`.
 
 ```rust
 /// Parses `BETWEEN <low> AND <high>`, assuming the `BETWEEN` keyword was already consumed.

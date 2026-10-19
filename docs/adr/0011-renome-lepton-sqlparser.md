@@ -1,6 +1,6 @@
 # ADR-0011: Renome para Lepton.SqlParser
 
-- **Status:** Aceita
+- **Status:** Substituída pelo [ADR-0012](0012-renome-leptontech-sqlparser.md) quanto aos nomes: o nuget.org recusou o ID `Lepton.SqlParser` (prefixo reservado), e tudo passou a se chamar `LeptonTech.SqlParser` na `0.63.1-preview.4`
 - **Data:** 2026-10-19
 - **Decidido por:** responsável pelo projeto ("renomear para Lepton.SqlParser")
 

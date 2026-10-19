@@ -1,19 +1,19 @@
 <#
 .SYNOPSIS
-    Testa o pacote Lepton.SqlParser de artifacts/ como um consumidor externo: dois apps de console
+    Testa o pacote LeptonTech.SqlParser de artifacts/ como um consumidor externo: dois apps de console
     (net48 e net8.0, em tests/PackageSmoke/, fora da solução) instalam o pacote do feed local e o usam.
 
 .DESCRIPTION
     1. escolhe o .nupkg mais recente de artifacts/ (ou a versão passada em -Version);
     2. apaga a entrada do pacote no cache global do NuGet, para que a restauração use o .nupkg recém-gerado;
-    3. para cada app (net48 e net8.0): apaga bin/obj, restaura (tests/PackageSmoke/nuget.config: Lepton.* só do
+    3. para cada app (net48 e net8.0): apaga bin/obj, restaura (tests/PackageSmoke/nuget.config: LeptonTech.* só do
        feed local), compila e executa. O app analisa SQL em três dialetos, imprime ToSql(pretty) e
        GetReferencedTables e sai com 0 se tudo conferir.
     Gere o pacote antes com tools/pack/Pack.ps1.
 
 .EXAMPLE
     pwsh tools/pack/Test-Package.ps1
-    pwsh tools/pack/Test-Package.ps1 -Version 0.63.1-preview.3
+    pwsh tools/pack/Test-Package.ps1 -Version 0.63.1-preview.4
 #>
 [CmdletBinding()]
 param(
@@ -24,7 +24,7 @@ param(
 $ErrorActionPreference = 'Stop'
 $root = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 $smoke = Join-Path $root 'tests\PackageSmoke'
-$id = 'Lepton.SqlParser'
+$id = 'LeptonTech.SqlParser'
 
 if (-not (Test-Path $Artifacts)) { throw "Pasta '$Artifacts' não encontrada. Rode antes: pwsh tools/pack/Pack.ps1" }
 if (-not $Version) {
@@ -57,7 +57,7 @@ foreach ($app in 'Net48', 'Net8') {
         $path = Join-Path $dir $sub
         if (Test-Path $path) { Remove-Item -Recurse -Force $path }
     }
-    dotnet build $project -c Release -nologo -v q "-p:LeptonSqlParserVersion=$Version"
+    dotnet build $project -c Release -nologo -v q "-p:LeptonTechSqlParserVersion=$Version"
     if ($LASTEXITCODE -ne 0) { $results[$app] = $LASTEXITCODE; continue }
     $tfm = if ($app -eq 'Net48') { 'net48' } else { 'net8.0' }
     & (Join-Path $dir "bin\Release\$tfm\PackageSmoke.$app.exe")

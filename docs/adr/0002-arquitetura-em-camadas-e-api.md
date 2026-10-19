@@ -14,18 +14,18 @@
 Dois projetos, com dependência em um só sentido:
 
 ```
-Lepton.SqlParser (API pública)  ──depende de──►  Lepton.SqlParser.Core (port fiel)
+LeptonTech.SqlParser (API pública)  ──depende de──►  LeptonTech.SqlParser.Core (port fiel)
 ```
 
-| | `Lepton.SqlParser.Core` | `Lepton.SqlParser` |
+| | `LeptonTech.SqlParser.Core` | `LeptonTech.SqlParser` |
 |---|---|---|
 | **Conteúdo** | Tradução 1:1 do sqlparser-rs: tokenizer, keywords, dialetos, parser, AST, `Display`, spans, visitor | Código nosso: ponto de entrada (`SqlQueryParser`), `ToSql()`/`ToSql(pretty)`, `TryParse`, visitors no estilo SqlParser-cs, utilitários de análise, customizações |
 | **Nomes** | Os do Rust, por regra mecânica (`Expr`, `SetExpr`, `Statement.Query`). Sem exceções "de gosto" | Livres, no estilo do SqlParser-cs (`SqlQueryParser`, `ToSql`…) |
 | **Regras** | `docs/port/convencoes.md` (normativo) | Boas práticas .NET (Framework Design Guidelines) |
 | **Cabeçalho ASF** | Sim (código derivado) | Não (código próprio), salvo se algo for derivado |
 | **Muda quando** | O upstream muda | Nós decidimos |
-| **Testes** | `Lepton.SqlParser.Core.Tests` (portados do Rust) | `Lepton.SqlParser.Tests` (nossos) |
-| **Namespaces** | `Lepton.SqlParser.Core`, `Lepton.SqlParser.Core.Ast`, `Lepton.SqlParser.Core.Dialects` | `Lepton.SqlParser`, e outros a definir |
+| **Testes** | `LeptonTech.SqlParser.Core.Tests` (portados do Rust) | `LeptonTech.SqlParser.Tests` (nossos) |
+| **Namespaces** | `LeptonTech.SqlParser.Core`, `LeptonTech.SqlParser.Core.Ast`, `LeptonTech.SqlParser.Core.Dialects` | `LeptonTech.SqlParser`, e outros a definir |
 
 **AST exposta pela API pública:**
 - Inicialmente, a camada pública **reexpõe os tipos de AST do Core**, sem duplicar a AST.
@@ -42,4 +42,4 @@ Lepton.SqlParser (API pública)  ──depende de──►  Lepton.SqlParser.Cor
 
 - O Core segue regras mecânicas sem exceções. Isso reduz decisões por sessão e, com elas, o risco de traduções inconsistentes.
 - Mudanças de API vindas do upstream (frequentes) chegam ao Core. A camada pública é onde se pode amortecê-las.
-- **Empacotamento** (um pacote com as duas DLLs ou dois pacotes NuGet): decidido no [ADR-0010](0010-empacotamento.md): um pacote só, com as duas DLLs. O nome (`Lepton.SqlParser`, também dos assemblies e namespaces) está no [ADR-0011](0011-renome-lepton-sqlparser.md); até a `0.63.1-preview.2`, o pacote era `LeptonTI.SqlParser` e os namespaces, `SqlParser` e `SqlParser.Core`.
+- **Empacotamento** (um pacote com as duas DLLs ou dois pacotes NuGet): decidido no [ADR-0010](0010-empacotamento.md): um pacote só, com as duas DLLs. O nome (`LeptonTech.SqlParser`, também dos assemblies e namespaces) está no [ADR-0012](0012-renome-leptontech-sqlparser.md); até a `0.63.1-preview.2`, o pacote era `LeptonTI.SqlParser` e os namespaces, `SqlParser` e `SqlParser.Core`, e na `0.63.1-preview.3` tudo se chamava `Lepton.SqlParser` ([ADR-0011](0011-renome-lepton-sqlparser.md)).
