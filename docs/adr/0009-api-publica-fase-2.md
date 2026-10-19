@@ -44,7 +44,7 @@ public abstract class SqlVisitor
 }
 ```
 
-- **Nome `SqlVisitor`:** `Visitor` colidiria (CS0104) com a classe estática `Visitor` e com `Visitor<TBreak>` do Core, porque o consumidor quase sempre declara `using Lepton.SqlParser.Core.Ast;`. O prefixo `Sql` segue `SqlQueryParser`.
+- **Nome `SqlVisitor`:** `Visitor` colidiria (CS0104) com a classe estática `Visitor` e com `Visitor<TBreak>` do Core, porque o consumidor quase sempre declara `using LeptonTech.SqlParser.Core.Ast;`. O prefixo `Sql` segue `SqlQueryParser`.
 - **`ControlFlow` sem valor**, como no SqlParser-cs. Não conflita com `ControlFlow<TBreak>` do Core: a aridade diferencia os dois nomes. Quem precisar de um valor no `Break` deriva direto de `Visitor<TBreak>`. Só `Break` interrompe; qualquer outro valor segue a visita.
 - **Nomes dos ganchos:** o nome do SqlParser-cs quando existe (`PreVisitExpression`); nos demais, o do Core por extenso, como pedem as diretrizes do .NET (`PreVisitIdentifier`, `PreVisitOrderByExpression`). Os tipos dos parâmetros são os da AST do Core.
 - **Sem `PreVisitDefault`:** o visitor do Rust só tem ganchos para 11 tipos e poda os campos que não alcançam nenhum deles (ADR-0007). Um gancho para "qualquer nó" exigiria percorrer a AST por conta própria, o que esta camada não faz.
@@ -191,7 +191,7 @@ As relações são os 21 campos que o sqlparser-rs v0.63.0 marca com `visit(with
 
 ### 7. Testes e licença
 
-- Testes em `tests/Lepton.SqlParser.Tests` (net48, net8.0 e net10.0):
+- Testes em `tests/LeptonTech.SqlParser.Tests` (net48, net8.0 e net10.0):
   - `SqlVisitorTests`: ordem igual à do Core em 8 instruções de 7 dialetos; `Break`; subárvores; atalhos de leitura comparados com as funções do Core;
   - `SqlRewriterTests`: ordem e trocas iguais às do `VisitorMut`; renomear tabela e trocar literais com ida e volta pelo `ToSql()` e por um novo parse; `Break`; troca da raiz; `null`; atalhos de reescrita;
   - `SqlAnalysisTests`: tabelas (inclusive as regras de CTE e os alvos de `INTO`), colunas, funções (inclusive as de tabela) e o tipo de 41 instruções, em vários dialetos;

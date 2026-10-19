@@ -1,12 +1,30 @@
 # Changelog
 
-Mudanças relevantes do pacote `Lepton.SqlParser` (até a `0.63.1-preview.2`, `LeptonTI.SqlParser`; [ADR-0011](docs/adr/0011-renome-lepton-sqlparser.md)).
+Mudanças relevantes do pacote `LeptonTech.SqlParser` (até a `0.63.1-preview.2`, `LeptonTI.SqlParser`; na `0.63.1-preview.3`, `Lepton.SqlParser`; [ADR-0011](docs/adr/0011-renome-lepton-sqlparser.md) e [ADR-0012](docs/adr/0012-renome-leptontech-sqlparser.md)).
 
 O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). A versão acompanha o sqlparser-rs ([ADR-0010](docs/adr/0010-empacotamento.md)): `0.63.x` corresponde ao Rust `v0.63`, e mudanças só nossas avançam o último número ou o sufixo de pré-lançamento.
 
 ## [Não lançado]
 
+## [0.63.1-preview.4] - 2026-10-19
+
+Renome do pacote, dos assemblies e dos namespaces para `LeptonTech.SqlParser` ([ADR-0012](docs/adr/0012-renome-leptontech-sqlparser.md)). O nuget.org recusou o ID `Lepton.SqlParser` (`409`, prefixo reservado), e a `0.63.1-preview.3` não foi publicada. O Rust portado é o mesmo (commit `dacdbc9`): a AST, o comportamento e o SQL gerado não mudam.
+
+### Alterado
+
+- **Quebra de compatibilidade (nomes):**
+  - pacote `Lepton.SqlParser` → `LeptonTech.SqlParser`;
+  - assemblies `Lepton.SqlParser.dll` → `LeptonTech.SqlParser.dll` e `Lepton.SqlParser.Core.dll` → `LeptonTech.SqlParser.Core.dll`;
+  - namespaces `Lepton.SqlParser` → `LeptonTech.SqlParser` e `Lepton.SqlParser.Core`, `Lepton.SqlParser.Core.Ast`, `Lepton.SqlParser.Core.Dialects` → `LeptonTech.SqlParser.Core`, `LeptonTech.SqlParser.Core.Ast`, `LeptonTech.SqlParser.Core.Dialects`.
+
+  Os nomes dos tipos não mudam. Quem usou o pacote local troca o `PackageReference` e os `using` e recompila.
+- `InternalsVisibleTo` passa a valer para `LeptonTech.SqlParser.Tests` e `LeptonTech.SqlParser.Core.Tests`.
+- Repositório: pastas, projetos e solução renomeados (`src/LeptonTech.SqlParser`, `src/LeptonTech.SqlParser.Core`, `tests/LeptonTech.SqlParser.Tests`, `tests/LeptonTech.SqlParser.Core.Tests`, `LeptonTech.SqlParser.sln`, `tools/bench/LeptonTech.SqlParser.Bench`); arquivos gerados com o namespace novo.
+- `nuget-publish.yml`: o `user` do `NuGet/login` passa a vir do secret `NUGET_USER` (valor `lepton.tech`), como no artigo da Microsoft sobre Trusted Publishing.
+
 ## [0.63.1-preview.3] - 2026-10-19
+
+> **Não publicada no nuget.org:** o envio recebeu `409` (ID reservado). Substituída pela `0.63.1-preview.4`.
 
 Renome do pacote, dos assemblies e dos namespaces para `Lepton.SqlParser` ([ADR-0011](docs/adr/0011-renome-lepton-sqlparser.md)). O Rust portado é o mesmo da `0.63.1-preview.2` (commit `dacdbc9`): a AST, o comportamento e o SQL gerado não mudam.
 

@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Gera o pacote Lepton.SqlParser (.nupkg) em artifacts/, depois de compilar em Release e rodar todos os testes.
+    Gera o pacote LeptonTech.SqlParser (.nupkg) em artifacts/, depois de compilar em Release e rodar todos os testes.
 
 .DESCRIPTION
     Passos, na ordem (qualquer falha interrompe o script, e nada é empacotado):
@@ -8,11 +8,11 @@
          gravado nas DLLs (InformationalVersion) e no .nuspec só identifica o conteúdo se não houver alterações
          não commitadas nem arquivos novos fora do .gitignore. Com alterações, o script para, a menos que
          -AllowDirty seja passado;
-      1. restaura a solução (Lepton.SqlParser.sln);
+      1. restaura a solução (LeptonTech.SqlParser.sln);
       2. compila em Release, com build reproduzível (ContinuousIntegrationBuild: caminhos /_/ nos PDBs);
       3. roda a suíte inteira em Release (net48, net8.0 e net10.0);
-      4. empacota src/Lepton.SqlParser (sem recompilar) em artifacts/: um pacote só, com Lepton.SqlParser.dll e
-         Lepton.SqlParser.Core.dll, cada uma com o PDB portátil embutido (docs/adr/0010-empacotamento.md);
+      4. empacota src/LeptonTech.SqlParser (sem recompilar) em artifacts/: um pacote só, com LeptonTech.SqlParser.dll e
+         LeptonTech.SqlParser.Core.dll, cada uma com o PDB portátil embutido (docs/adr/0010-empacotamento.md);
       5. mostra o caminho e a lista de arquivos do .nupkg e a InformationalVersion das DLLs (e apaga um .snupkg
          antigo da mesma versão, de antes dos PDBs embutidos).
     Nada é publicado: artifacts/ funciona como feed local (ver tools/pack/Test-Package.ps1).
@@ -33,8 +33,8 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $root = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
-$sln = Join-Path $root 'Lepton.SqlParser.sln'
-$project = Join-Path $root 'src\Lepton.SqlParser\Lepton.SqlParser.csproj'
+$sln = Join-Path $root 'LeptonTech.SqlParser.sln'
+$project = Join-Path $root 'src\LeptonTech.SqlParser\LeptonTech.SqlParser.csproj'
 
 # Árvore de trabalho limpa? (Só leitura: git status não altera nada.) Num worktree, .git é um arquivo.
 $insideGit = Test-Path (Join-Path $root '.git')
@@ -86,7 +86,7 @@ Invoke-Step 'Empacotamento' { dotnet pack $project -c Release --no-build -nologo
 # Versão calculada pelo MSBuild (VersionPrefix/VersionSuffix de Directory.Build.props).
 $version = (dotnet msbuild $project -nologo -getProperty:PackageVersion -p:Configuration=Release).Trim()
 if ($LASTEXITCODE -ne 0 -or -not $version) { throw 'Não foi possível ler a PackageVersion do projeto.' }
-$id = 'Lepton.SqlParser'
+$id = 'LeptonTech.SqlParser'
 
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 $file = Join-Path $Output "$id.$version.nupkg"
@@ -104,8 +104,8 @@ try {
 finally { $zip.Dispose() }
 
 # As DLLs empacotadas são as da compilação acima (pack sem recompilar).
-$binDir = Join-Path $root 'src\Lepton.SqlParser\bin\Release\netstandard2.0'
-foreach ($dll in 'Lepton.SqlParser.dll', 'Lepton.SqlParser.Core.dll') {
+$binDir = Join-Path $root 'src\LeptonTech.SqlParser\bin\Release\netstandard2.0'
+foreach ($dll in 'LeptonTech.SqlParser.dll', 'LeptonTech.SqlParser.Core.dll') {
     $productVersion = [Diagnostics.FileVersionInfo]::GetVersionInfo((Join-Path $binDir $dll)).ProductVersion
     Write-Host ("  {0}: {1}" -f $dll, $productVersion)
 }

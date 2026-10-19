@@ -1,4 +1,4 @@
-Lepton.SqlParser (port C# do sqlparser-rs)
+LeptonTech.SqlParser (port C# do sqlparser-rs)
 
 Este produto contém código traduzido para C# a partir do projeto
 Apache DataFusion sqlparser-rs (https://github.com/apache/datafusion-sqlparser-rs),

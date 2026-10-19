@@ -1,10 +1,10 @@
 <#
 .SYNOPSIS
-    Prepara as cópias do SqlParser-cs usadas pelo benchmark (tools/bench/Lepton.SqlParser.Bench).
+    Prepara as cópias do SqlParser-cs usadas pelo benchmark (tools/bench/LeptonTech.SqlParser.Bench).
 
 .DESCRIPTION
     O SqlParser-cs gera um assembly chamado "SqlParser.dll" (até a 0.63.1-preview.2, o mesmo nome do assembly da
-    nossa API pública, hoje Lepton.SqlParser.dll), e o clone de referência
+    nossa API pública, hoje LeptonTech.SqlParser.dll), e o clone de referência
     em upstream/SqlParser-cs não pode ser alterado. Por isso o benchmark referencia CÓPIAS do clone,
     feitas fora do repositório. Em cada cópia, um Directory.Build.props renomeia o assembly para
     "SqlParserCs.dll", e um Directory.Build.targets dá um PackageId próprio ao projeto: o restore do
@@ -22,7 +22,7 @@
     O patch é aplicado com o GNU patch (vem com o Git for Windows em usr/bin/patch.exe). Não usa git.
 
 .PARAMETER Destination
-    Pasta de destino. Padrão: $env:TEMP/Lepton.SqlParser.Bench/sqlparser-cs. O projeto de benchmark lê o mesmo
+    Pasta de destino. Padrão: $env:TEMP/LeptonTech.SqlParser.Bench/sqlparser-cs. O projeto de benchmark lê o mesmo
     caminho da propriedade/variável de ambiente SqlParserCsDir (com o mesmo padrão).
 
 .EXAMPLE
@@ -31,7 +31,7 @@
 #>
 [CmdletBinding()]
 param(
-    [string]$Destination = (Join-Path ([IO.Path]::GetTempPath()) 'Lepton.SqlParser.Bench/sqlparser-cs')
+    [string]$Destination = (Join-Path ([IO.Path]::GetTempPath()) 'LeptonTech.SqlParser.Bench/sqlparser-cs')
 )
 
 $ErrorActionPreference = 'Stop'

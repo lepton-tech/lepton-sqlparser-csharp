@@ -2,12 +2,12 @@
 
 **Leia este arquivo no início de cada sessão** e **atualize-o ao final**. É o "estado salvo" do projeto: diz o que já foi portado, de qual versão do upstream e o que vem em seguida. Assim nenhuma sessão precisa reconstruir o contexto do zero.
 
-> **Nomes antigos nas notas.** Desde 2026-10-19, o pacote, os projetos, os assemblies e os namespaces se chamam `Lepton.SqlParser` e `Lepton.SqlParser.Core` ([ADR-0011](../adr/0011-renome-lepton-sqlparser.md)). As entradas do diário e as notas (`onda-*/`, `sync/`, `../plano-b/`) anteriores a essa data usam os nomes antigos: `SqlParser`, `SqlParser.Core`, `SqlParser.Tests`, `SqlParser.Core.Tests`, `SqlParser.sln` e o pacote `LeptonTI.SqlParser`.
+> **Nomes antigos nas notas.** O pacote, os projetos, os assemblies e os namespaces se chamam `LeptonTech.SqlParser` e `LeptonTech.SqlParser.Core` ([ADR-0012](../adr/0012-renome-leptontech-sqlparser.md)). As entradas do diário e as notas (`onda-*/`, `sync/`, `../plano-b/`) mais antigas usam os nomes da época: até 2026-10-19, `SqlParser`, `SqlParser.Core`, `SqlParser.Tests`, `SqlParser.Core.Tests`, `SqlParser.sln` e o pacote `LeptonTI.SqlParser`; na `0.63.1-preview.3` (2026-10-19), `Lepton.SqlParser` e `Lepton.SqlParser.Core` ([ADR-0011](../adr/0011-renome-lepton-sqlparser.md)).
 
 - **Baseline do upstream:** `v0.63.0` (`85b1a6f`). Ver `UPSTREAM.json`.
 - **Sincronização com o upstream:** Rodada 1 (`v0.63.0` → `dacdbc9`) **concluída**: os 63 PRs têm status final (41 `portado`, 22 `não-aplicável`); `portedThroughCommit` = `dacdbc9`. Não há tag nova: o baseline e os cabeçalhos continuam `v0.63.0` (`upstream-ledger.md`).
 - **Fase atual:** 2, AST e parser portados (ondas A e B); testes de integração portados (onda C, todos passando); visitor (C18) e onda D (correções, lista em "Pendências para a onda D") em andamento; API pública fases 1 (E1) e 2 (E2: visitors e análise) prontas. Plano em [`../analise-tecnica-e-plano.md`](../analise-tecnica-e-plano.md) §8.
-- **Pacote:** `Lepton.SqlParser` `0.63.1-preview.3` (até a `0.63.1-preview.2`, `LeptonTI.SqlParser`; ADR-0011), gerado localmente por `tools/pack/Pack.ps1` em `artifacts/` (só com a árvore do Git limpa, ou com `-AllowDirty`, que marca `.dirty`) e conferido por `tools/pack/Test-Package.ps1` ([ADR-0010](../adr/0010-empacotamento.md), [`CHANGELOG.md`](../../CHANGELOG.md)). PDBs embutidos nas DLLs, sem `.snupkg` (F1). Nada publicado.
+- **Pacote:** `LeptonTech.SqlParser` `0.63.1-preview.4` (até a `0.63.1-preview.2`, `LeptonTI.SqlParser`; na `0.63.1-preview.3`, `Lepton.SqlParser`, recusado pelo nuget.org; ADR-0011 e ADR-0012), gerado localmente por `tools/pack/Pack.ps1` em `artifacts/` (só com a árvore do Git limpa, ou com `-AllowDirty`, que marca `.dirty`) e conferido por `tools/pack/Test-Package.ps1` ([ADR-0010](../adr/0010-empacotamento.md), [`CHANGELOG.md`](../../CHANGELOG.md)). PDBs embutidos nas DLLs, sem `.snupkg` (F1). Publicação no nuget.org pelo `nuget-publish.yml` (tag `v<versão>`); nada publicado ainda.
 
 ## Estado por arquivo Rust
 
@@ -102,7 +102,7 @@ Cada item tem, no arquivo C#, um comentário `// PENDENTE (...)` na posição ex
 
 ### Pendências de `test_utils.rs` (dependem do Parser/AST, Fase 2)
 
-**Concluídas** no commit `1776531` (não há mais `// PENDENTE` em `tests/Lepton.SqlParser.Core.Tests/TestUtils/`). Lista original, mantida como histórico:
+**Concluídas** no commit `1776531` (não há mais `// PENDENTE` em `tests/LeptonTech.SqlParser.Core.Tests/TestUtils/`). Lista original, mantida como histórico:
 - `TestedDialects`: campos `options: Option<ParserOptions>` e `recursion_limit: Option<usize>`; `new_with_options`, `with_recursion_limit`, `new_parser`, `one_of_identical_results`, `run_parser_method`, `parse_sql_statements`, `one_statement_parses_to`, `statements_parse_to`, `expr_parses_to`, `verified_stmt`, `verified_query`, `verified_query_with_canonical`, `verified_only_select`, `verified_only_select_with_canonical`, `verified_expr`.
 - `TestedDialects.TokenizesTo`: o ramo `if let Some(options) = &self.options { tokenizer = tokenizer.with_unescape(options.unescape) }` (hoje `options` é sempre `None`, então o comportamento é o mesmo).
 - Funções livres: `all_dialects_with_options`, `expr_from_projection`, `alter_table_op_with_name`, `alter_table_op`, `number`, `single_quoted_string`, `table_alias`, `table`, `table_from_name`, `table_with_alias`, `join`, `call`, `index_column`.
@@ -156,6 +156,18 @@ Levantadas nas notas das ondas B e C e nas revisões R1–R3 (consolidação de 
 ## Diário de sessões
 
 Registre ao fim de cada sessão: data, o que foi feito, decisões tomadas e próximo passo. Entradas mais recentes no topo.
+
+### 2026-10-19 (renome para `LeptonTech.SqlParser`, versão `0.63.1-preview.4`; branch `feature/nuget-user-secret`)
+- **Motivo** ([ADR-0012](../adr/0012-renome-leptontech-sqlparser.md)): a primeira publicação (tag `v0.63.1-preview.3`, execução 39272014516) passou em build, testes, pacote e login por Trusted Publishing. O `dotnet nuget push`, porém, recebeu `409 (The package ID is reserved...)`. O `.nuspec` estava certo (`<id>Lepton.SqlParser</id>`), e não há no nuget.org nenhum pacote começado por `Lepton.`: a causa é uma reserva de prefixo de outra conta, cujo dono o nuget.org não mostra.
+- **Feito:**
+  - troca de texto `Lepton.SqlParser` → `LeptonTech.SqlParser` e `LeptonSqlParserVersion` → `LeptonTechSqlParserVersion` em 767 arquivos versionados, fora do `upstream/` e do histórico (diário, `onda-*/`, `sync/`, `plano-b/`, `CHANGELOG.md` e ADR-0011);
+  - pastas, `.csproj` e `.sln` renomeados;
+  - feed do `PackageSmoke`: `leptontech-local`, padrão `LeptonTech.*`;
+  - versão `0.63.1-preview.4`;
+  - ADR-0012 novo, ADR-0011 marcado como substituído e textos que contam o histórico dos nomes (ADRs 0002, 0008 e 0010, `convencoes.md`, READMEs) com os dois renomes.
+- **Secret `NUGET_USER`:** o `user` do `NuGet/login` saiu do workflow e foi para o secret `NUGET_USER` (ajuste do usuário). Comentários, ADR-0010, README e CHANGELOG foram atualizados. O secret ainda **precisa ser criado** no GitHub (valor `lepton.tech`).
+- **Resultado:** build com 0 avisos; `LeptonTech.SqlParser.Core.Tests` 1.715 aprovados e 10 ignorados e `LeptonTech.SqlParser.Tests` 279, em net48, net8.0 e net10.0. Geradores rodados de novo, sem diferença. `Pack.ps1` e `Test-Package.ps1` passando com `LeptonTech.SqlParser.0.63.1-preview.4.nupkg`.
+- **Próximo:** criar o secret `NUGET_USER`; PR para a `develop`, PR `develop` → `main`, tag `v0.63.1-preview.4`. Se o 409 se repetir, o prefixo reservado cobre `Lepton*` inteiro (ADR-0012, "Risco que continua").
 
 ### 2026-10-19 (renome para `Lepton.SqlParser`, versão `0.63.1-preview.3`; worktree isolado, a integrar)
 - **Feito** (decisão e tabela de nomes antigos e novos no [ADR-0011](../adr/0011-renome-lepton-sqlparser.md)):

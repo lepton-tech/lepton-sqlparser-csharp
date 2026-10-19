@@ -1,9 +1,10 @@
-# Publicação do pacote Lepton.SqlParser no nuget.org por Trusted Publishing
-# (https://learn.microsoft.com/nuget/nuget-org/trusted-publishing): sem chave de API guardada e sem secret.
+# Publicação do pacote LeptonTech.SqlParser no nuget.org por Trusted Publishing
+# (https://learn.microsoft.com/nuget/nuget-org/trusted-publishing): sem chave de API guardada. O único secret é o
+# NUGET_USER, com o nome do usuário no nuget.org (não é chave nem dá acesso sozinho).
 # O GitHub emite um token OIDC de curta duração; o NuGet/login o troca no nuget.org por uma chave de API
 # temporária (válida por 1 hora, uma por token), e o push usa essa chave.
 #
-# Disparo: push de uma tag "v<versão do pacote>" (ex.: v0.63.1-preview.3).
+# Disparo: push de uma tag "v<versão do pacote>" (ex.: v0.63.1-preview.4).
 #   1. build (Windows, por causa dos testes em net48): confere tag × versão, roda tools/pack/Pack.ps1 (build em
 #      Release, testes em net48, net8.0 e net10.0, pacote em artifacts/) e tools/pack/Test-Package.ps1 (instala o
 #      pacote em apps net48 e net8.0);
@@ -41,7 +42,7 @@ jobs:
         id: versao
         shell: pwsh
         run: |
-          $version = (dotnet msbuild src/Lepton.SqlParser/Lepton.SqlParser.csproj -nologo -getProperty:PackageVersion -p:Configuration=Release).Trim()
+          $version = (dotnet msbuild src/LeptonTech.SqlParser/LeptonTech.SqlParser.csproj -nologo -getProperty:PackageVersion -p:Configuration=Release).Trim()
           if ($LASTEXITCODE -ne 0 -or -not $version) { throw 'Não foi possível ler a PackageVersion do projeto.' }
           if ($env:GITHUB_REF_NAME -ne "v$version") {
             throw "A tag '$env:GITHUB_REF_NAME' não corresponde à versão do pacote em Directory.Build.props ('v$version')."
@@ -61,7 +62,7 @@ jobs:
       - uses: actions/upload-artifact@v7
         with:
           name: nupkg
-          path: artifacts/Lepton.SqlParser.${{ steps.versao.outputs.version }}.nupkg
+          path: artifacts/LeptonTech.SqlParser.${{ steps.versao.outputs.version }}.nupkg
           if-no-files-found: error
 
   publish:
@@ -86,9 +87,10 @@ jobs:
         uses: NuGet/login@v1
         id: login
         with:
-          # Nome de perfil no nuget.org (não o e-mail) do usuário que criou a política (confirmado pelo responsável: lepton.tech),
-          # e não o da organização dona da política (lepton-tech). Fonte: NuGet/login, src/index.ts ("use the username of
-          # the policy creator, not the policy owner").
+          # Nome de perfil no nuget.org (não o e-mail) do usuário que criou a política (lepton.tech), e não o da organização
+          # dona da política (lepton-tech). Fonte: NuGet/login, src/index.ts ("use the username of the policy creator, not
+          # the policy owner"). Fica no secret NUGET_USER (do repositório ou do ambiente production), como no artigo da
+          # Microsoft; sem ele, o user vai vazio e o login falha.
           user: lepton.tech
 
       - name: NuGet push

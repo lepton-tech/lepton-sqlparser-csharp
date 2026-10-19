@@ -7,8 +7,8 @@ namespace VisitorGen;
 
 internal sealed class Emitter
 {
-    private const string Flow = "global::Lepton.SqlParser.Core.ControlFlow<TBreak>";
-    private const string Support = "global::Lepton.SqlParser.Core.Ast.VisitSupport";
+    private const string Flow = "global::LeptonTech.SqlParser.Core.ControlFlow<TBreak>";
+    private const string Support = "global::LeptonTech.SqlParser.Core.Ast.VisitSupport";
     private readonly Analysis _a;
     private readonly StringBuilder _sb = new();
     private int _indent;
@@ -90,7 +90,7 @@ internal sealed class Emitter
             Line("// " + h);
         }
         var generic = t.IsGenericTypeDefinition ? "<" + string.Join(", ", t.GetGenericArguments().Select(a => a.Name)) + ">" : "";
-        Open($"{decl} {CsModel.StripArity(t.Name)}{generic} : global::Lepton.SqlParser.Core.Ast.IVisit, global::Lepton.SqlParser.Core.Ast.IVisitMut<{self}>");
+        Open($"{decl} {CsModel.StripArity(t.Name)}{generic} : global::LeptonTech.SqlParser.Core.Ast.IVisit, global::LeptonTech.SqlParser.Core.Ast.IVisitMut<{self}>");
         var trivial = !_a.TypeReaches(t);
 
         // impl Visit for X
@@ -99,7 +99,7 @@ internal sealed class Emitter
         {
             // Nota do port em // e não em /// (convencoes.md §12): não aparece no IntelliSense.
             Line("// Nenhum campo alcança um gancho do Visitor<TBreak>: a visita do derive Rust não tem efeito.");
-            Line($"public {Flow} Visit<TBreak>(global::Lepton.SqlParser.Core.Ast.Visitor<TBreak> visitor) => {Flow}.Continue;");
+            Line($"public {Flow} Visit<TBreak>(global::LeptonTech.SqlParser.Core.Ast.Visitor<TBreak> visitor) => {Flow}.Continue;");
         }
         else
         {
@@ -109,7 +109,7 @@ internal sealed class Emitter
 
         // impl VisitMut for X
         Line("/// <inheritdoc/>");
-        Open($"public {Flow} Visit<TBreak>(global::Lepton.SqlParser.Core.Ast.VisitorMut<TBreak> visitor, out {self} self)");
+        Open($"public {Flow} Visit<TBreak>(global::LeptonTech.SqlParser.Core.Ast.VisitorMut<TBreak> visitor, out {self} self)");
         if (trivial)
         {
             Line("self = this;");
@@ -141,7 +141,7 @@ internal sealed class Emitter
     private void EmitVisit(CsShape shape)
     {
         _counter = 0;
-        Open($"public {Flow} Visit<TBreak>(global::Lepton.SqlParser.Core.Ast.Visitor<TBreak> visitor)");
+        Open($"public {Flow} Visit<TBreak>(global::LeptonTech.SqlParser.Core.Ast.Visitor<TBreak> visitor)");
         Line("// #[cfg_attr(feature = \"recursive-protection\", recursive::recursive)]");
         Line($"if ({Support}.StackIsLow()) return {Support}.VisitOnNewStack(this, visitor);");
         Line($"{Flow} flow;");
@@ -183,7 +183,7 @@ internal sealed class Emitter
             _counter = 0;
             Line();
             Line($"// {v.Name}");
-            Open($"private static {Flow} VisitVariant<TBreak>({TypeName(v.Type)} v, global::Lepton.SqlParser.Core.Ast.Visitor<TBreak> visitor)");
+            Open($"private static {Flow} VisitVariant<TBreak>({TypeName(v.Type)} v, global::LeptonTech.SqlParser.Core.Ast.Visitor<TBreak> visitor)");
             Line($"{Flow} flow;");
             foreach (var f in v.Fields)
             {
@@ -252,7 +252,7 @@ internal sealed class Emitter
         if (t.IsGenericParameter)
         {
             var g = Fresh("x");
-            Open($"if ({expr} is global::Lepton.SqlParser.Core.Ast.IVisit {g})");
+            Open($"if ({expr} is global::LeptonTech.SqlParser.Core.Ast.IVisit {g})");
             Line($"flow = {g}.Visit(visitor);");
             Line("if (flow.IsBreak) return flow;");
             Close();
@@ -278,7 +278,7 @@ internal sealed class Emitter
     {
         _counter = 0;
         var self = TypeName(shape.Type);
-        Open($"internal static {Flow} VisitMut<TBreak>(ref {self} node, global::Lepton.SqlParser.Core.Ast.VisitorMut<TBreak> visitor)");
+        Open($"internal static {Flow} VisitMut<TBreak>(ref {self} node, global::LeptonTech.SqlParser.Core.Ast.VisitorMut<TBreak> visitor)");
         Line("// #[cfg_attr(feature = \"recursive-protection\", recursive::recursive)]");
         Line($"if ({Support}.StackIsLow()) return {Support}.VisitMutOnNewStack(ref node, visitor);");
         Line($"var flow = {Flow}.Continue;");
@@ -323,7 +323,7 @@ internal sealed class Emitter
             _counter = 0;
             Line();
             Line($"// {v.Name}");
-            Open($"private static {Flow} VisitMutVariant<TBreak>(ref {self} node, {TypeName(v.Type)} v, global::Lepton.SqlParser.Core.Ast.VisitorMut<TBreak> visitor)");
+            Open($"private static {Flow} VisitMutVariant<TBreak>(ref {self} node, {TypeName(v.Type)} v, global::LeptonTech.SqlParser.Core.Ast.VisitorMut<TBreak> visitor)");
             Line($"var flow = {Flow}.Continue;");
             Line("var n = v;");
             foreach (var f in v.Fields)
@@ -405,7 +405,7 @@ internal sealed class Emitter
             Close();
             Line("if (flow.IsBreak) break;");
             Close();
-            Line($"if ({arr} is not null) {v} = global::Lepton.SqlParser.Core.Sequence<{elementName}>.FromArrayNoCopy({arr});");
+            Line($"if ({arr} is not null) {v} = global::LeptonTech.SqlParser.Core.Sequence<{elementName}>.FromArrayNoCopy({arr});");
             _indent--;
             Line("}");
             return;
