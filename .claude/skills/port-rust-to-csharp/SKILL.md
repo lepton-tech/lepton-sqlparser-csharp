@@ -1,9 +1,9 @@
 ---
 name: port-rust-to-csharp
-description: Fluxo obrigatório para portar (traduzir/transcrever) código do sqlparser-rs (Rust) para o Lepton.SqlParser.Core em C#. Use SEMPRE que a tarefa envolver portar, traduzir, transcrever, reescrever ou implementar em C# qualquer parte do sqlparser-rs (tokenizer, keywords, dialects, parser, AST, Display/ToString, spans, visitor), corrigir uma divergência em relação ao Rust, ou continuar o port de onde parou, mesmo que o pedido diga só "continua o port", "porta o arquivo X" ou "implementa a função parse_xxx".
+description: Fluxo obrigatório para portar (traduzir/transcrever) código do sqlparser-rs (Rust) para o LeptonTech.SqlParser.Core em C#. Use SEMPRE que a tarefa envolver portar, traduzir, transcrever, reescrever ou implementar em C# qualquer parte do sqlparser-rs (tokenizer, keywords, dialects, parser, AST, Display/ToString, spans, visitor), corrigir uma divergência em relação ao Rust, ou continuar o port de onde parou, mesmo que o pedido diga só "continua o port", "porta o arquivo X" ou "implementa a função parse_xxx".
 ---
 
-# Portar Rust → C# (Lepton.SqlParser.Core)
+# Portar Rust → C# (LeptonTech.SqlParser.Core)
 
 Esta skill garante que cada sessão porte código **do mesmo jeito** que as anteriores. A consistência vem de três fontes, nesta ordem:
 1. as regras escritas;
@@ -21,9 +21,9 @@ Leia, nesta ordem:
 3. `docs/port/nomes.md` e `docs/port/divergencias.md`.
 4. `UPSTREAM.json`: qual versão do Rust portar. O código Rust fica em `upstream/sqlparser-rs/`. Se a pasta não existir, rode `pwsh tools/upstream/Get-Upstream.ps1`.
 
-Depois rode o *smoke test*: `dotnet test Lepton.SqlParser.sln -nologo -v q`. **Comece só com a árvore verde.** Se algo já estiver quebrado, conserte ou registre isso antes de trabalho novo, para não misturar a falha herdada com a sua.
+Depois rode o *smoke test*: `dotnet test LeptonTech.SqlParser.sln -nologo -v q`. **Comece só com a árvore verde.** Se algo já estiver quebrado, conserte ou registre isso antes de trabalho novo, para não misturar a falha herdada com a sua.
 
-Antes de traduzir um construto, procure no código C# já portado (`src/Lepton.SqlParser.Core/`) como ele foi traduzido antes. Exemplos: um `match` sobre `Token`, um `Option<Box<Expr>>`, um `impl Display`. **Copie o padrão existente.** Se o padrão existente contradiz `convencoes.md`, a convenção vence: corrija o código antigo na mesma mudança, ou registre a pendência no diário.
+Antes de traduzir um construto, procure no código C# já portado (`src/LeptonTech.SqlParser.Core/`) como ele foi traduzido antes. Exemplos: um `match` sobre `Token`, um `Option<Box<Expr>>`, um `impl Display`. **Copie o padrão existente.** Se o padrão existente contradiz `convencoes.md`, a convenção vence: corrija o código antigo na mesma mudança, ou registre a pendência no diário.
 
 ## 2. Delimitar a unidade de trabalho
 
@@ -57,8 +57,8 @@ Porte os testes Rust correspondentes junto com o código, usando a skill `port-r
 Rode na raiz do repositório:
 
 ```bash
-dotnet build Lepton.SqlParser.sln -nologo -v q
-dotnet test Lepton.SqlParser.sln -nologo -v q
+dotnet build LeptonTech.SqlParser.sln -nologo -v q
+dotnet test LeptonTech.SqlParser.sln -nologo -v q
 ```
 
 - **Armadilha das ferramentas de edição:** Write/Edit podem converter sequências de escape (a barra invertida seguida de `u` e 4 dígitos hex, como no escape de U+FFFF) no **caractere literal**. Isso já aconteceu duas vezes neste projeto: um teste de unescape continuou verde testando outra entrada. Depois de escrever literais de string/char com escapes, rode `pwsh tools/check/Find-SuspiciousChars.ps1` e confira cada linha listada. Para restaurar, gere a barra por script (por exemplo, `[char]92` no PowerShell) em vez de digitá-la.

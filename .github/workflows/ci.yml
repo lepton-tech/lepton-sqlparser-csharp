@@ -31,13 +31,13 @@ jobs:
           dotnet-version: 8.0.x
 
       - name: Restore
-        run: dotnet restore Lepton.SqlParser.sln
+        run: dotnet restore LeptonTech.SqlParser.sln
 
       - name: Build (TreatWarningsAsErrors)
-        run: dotnet build Lepton.SqlParser.sln -c Release --no-restore -nologo
+        run: dotnet build LeptonTech.SqlParser.sln -c Release --no-restore -nologo
 
       - name: Testes
-        run: dotnet test Lepton.SqlParser.sln -c Release --no-build -nologo --logger trx --results-directory TestResults
+        run: dotnet test LeptonTech.SqlParser.sln -c Release --no-build -nologo --logger trx --results-directory TestResults
 
       - name: Resultados dos testes
         if: always()

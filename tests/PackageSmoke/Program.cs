@@ -1,4 +1,4 @@
-// Teste do pacote Lepton.SqlParser como um consumidor externo o usaria (tools/pack/Test-Package.ps1).
+// Teste do pacote LeptonTech.SqlParser como um consumidor externo o usaria (tools/pack/Test-Package.ps1).
 // Compilado em net48 e net8.0, em C# 7.3 de propósito: o pacote precisa servir a projetos antigos do .NET Framework.
 // Sai com código 0 se tudo conferir e 1 se algo divergir.
 
@@ -6,10 +6,10 @@ using System;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using Lepton.SqlParser;
-using Lepton.SqlParser.Core;
-using Lepton.SqlParser.Core.Ast;
-using Lepton.SqlParser.Core.Dialects;
+using LeptonTech.SqlParser;
+using LeptonTech.SqlParser.Core;
+using LeptonTech.SqlParser.Core.Ast;
+using LeptonTech.SqlParser.Core.Dialects;
 
 namespace PackageSmoke
 {
@@ -20,8 +20,8 @@ namespace PackageSmoke
         private static int Main()
         {
             Console.WriteLine("Runtime: " + RuntimeInformation.FrameworkDescription);
-            PrintAssembly(typeof(SqlQueryParser).Assembly);   // Lepton.SqlParser.dll (API pública)
-            PrintAssembly(typeof(GenericDialect).Assembly);   // Lepton.SqlParser.Core.dll (port fiel)
+            PrintAssembly(typeof(SqlQueryParser).Assembly);   // LeptonTech.SqlParser.dll (API pública)
+            PrintAssembly(typeof(GenericDialect).Assembly);   // LeptonTech.SqlParser.Core.dll (port fiel)
 
             var parser = new SqlQueryParser();
 

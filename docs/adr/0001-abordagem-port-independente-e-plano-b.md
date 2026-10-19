@@ -16,7 +16,7 @@ Precisamos de um parser SQL em C# (`netstandard2.0`, sem dependências nativas) 
 
 ## Decisão
 
-Seguir com o **port independente** (opção C): `Lepton.SqlParser.Core` fiel ao Rust, mais uma camada pública própria ([ADR-0002](0002-arquitetura-em-camadas-e-api.md)).
+Seguir com o **port independente** (opção C): `LeptonTech.SqlParser.Core` fiel ao Rust, mais uma camada pública própria ([ADR-0002](0002-arquitetura-em-camadas-e-api.md)).
 
 ## Plano B: quando e como mudar de rota
 

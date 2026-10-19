@@ -5,14 +5,14 @@ description: Acompanhar e incorporar atualizações do sqlparser-rs (upstream Ru
 
 # Sincronizar com o upstream (sqlparser-rs)
 
-**Objetivo:** levar o `Lepton.SqlParser.Core` da versão registrada em `UPSTREAM.json` para uma versão mais nova do Rust, **sem pular nenhuma mudança em silêncio**.
+**Objetivo:** levar o `LeptonTech.SqlParser.Core` da versão registrada em `UPSTREAM.json` para uma versão mais nova do Rust, **sem pular nenhuma mudança em silêncio**.
 
 **Modelo:** iText ("port-hash" + commits que citam a origem) e TypeScript 7 (port acompanhando o commit de referência). Ver `docs/port/referencias-e-boas-praticas.md` P1–P4 e o [ADR-0004](../../../docs/adr/0004-baseline-e-sincronizacao.md).
 
 ## Pré-condições
 
 - Port do baseline concluído para as áreas afetadas. Sincronizar uma área ainda não portada é desnecessário: ela será portada direto da versão nova.
-- Árvore verde (`dotnet test Lepton.SqlParser.sln`).
+- Árvore verde (`dotnet test LeptonTech.SqlParser.sln`).
 - **Não use Git no repositório do projeto** (commit, branch) sem autorização do usuário. O Git em `upstream/sqlparser-rs` (só leitura: `fetch`, `log`, `diff`, `show`) pode ser usado à vontade.
 
 ## 1. Descobrir o que mudou
@@ -39,7 +39,7 @@ git -C upstream/sqlparser-rs show --stat --format="%h %s" <hash>
 | Arquivos tocados | Área | Ação |
 |---|---|---|
 | `src/keywords.rs` | keywords | Rodar `pwsh tools/codegen/Generate-Keywords.ps1` (nunca editar `Keywords.g.cs` à mão) |
-| `src/tokenizer.rs` | tokenizer | Portar o diff em `src/Lepton.SqlParser.Core/Tokenizer/` |
+| `src/tokenizer.rs` | tokenizer | Portar o diff em `src/LeptonTech.SqlParser.Core/Tokenizer/` |
 | `src/dialect/*.rs` | dialetos | Portar. Atenção a flags `supports_*` novas ou renomeadas |
 | `src/ast/**` | AST | Portar a mudança de tipo/campo/variante e ajustar o `Display`. Tipo novo é `partial`. Depois, rodar `pwsh tools/codegen/Generate-Visitor.ps1`: ele confere a AST C# contra o Rust (campos, ordem, `visit(with)`) e regenera o visitor |
 | `src/ast/visitor.rs`, `derive/src/visit.rs` | visitor | Portar a mudança em `Ast/Visitor/*.cs` (à mão) ou no gerador `tools/codegen/VisitorGen` (derive) e regenerar (`docs/adr/0007-visitor.md`) |

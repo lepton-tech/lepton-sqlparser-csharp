@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <!-- Consumidor .NET Framework 4.8 do pacote Lepton.SqlParser (fora da solução; tools/pack/Test-Package.ps1). -->
+  <!-- Consumidor .NET Framework 4.8 do pacote LeptonTech.SqlParser (fora da solução; tools/pack/Test-Package.ps1). -->
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net48</TargetFramework>
@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Lepton.SqlParser" Version="$(LeptonSqlParserVersion)" />
+    <PackageReference Include="LeptonTech.SqlParser" Version="$(LeptonTechSqlParserVersion)" />
   </ItemGroup>
 
 </Project>

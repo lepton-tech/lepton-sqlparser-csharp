@@ -4,8 +4,8 @@
     Gerador do visitor (port do derive Visit/VisitMut de sqlparser-rs, derive/src/visit.rs).
     Ferramenta de desenvolvimento: NÃO faz parte da solução nem é distribuída.
     Uso: pwsh tools/codegen/Generate-Visitor.ps1 (ver docs/adr/0007-visitor.md).
-    Lê por reflexão o Lepton.SqlParser.Core.dll compilado SEM o código gerado (-p:SqlParserVisitorCodegen=true)
-    e escreve src/Lepton.SqlParser.Core/Ast/Visitor/Generated/*.g.cs.
+    Lê por reflexão o LeptonTech.SqlParser.Core.dll compilado SEM o código gerado (-p:SqlParserVisitorCodegen=true)
+    e escreve src/LeptonTech.SqlParser.Core/Ast/Visitor/Generated/*.g.cs.
   -->
   <PropertyGroup>
     <OutputType>Exe</OutputType>

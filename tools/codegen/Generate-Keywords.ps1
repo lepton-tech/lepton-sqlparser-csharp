@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Gera src/Lepton.SqlParser.Core/Keywords.g.cs a partir de upstream/sqlparser-rs/src/keywords.rs.
+    Gera src/LeptonTech.SqlParser.Core/Keywords.g.cs a partir de upstream/sqlparser-rs/src/keywords.rs.
 
 .DESCRIPTION
     O keywords.rs do Rust é declarativo (macro define_keywords! + listas RESERVED_*), então é
@@ -13,7 +13,7 @@
 [CmdletBinding()]
 param(
     [string]$Source = (Join-Path $PSScriptRoot '..\..\upstream\sqlparser-rs\src\keywords.rs'),
-    [string]$Output = (Join-Path $PSScriptRoot '..\..\src\Lepton.SqlParser.Core\Keywords.g.cs')
+    [string]$Output = (Join-Path $PSScriptRoot '..\..\src\LeptonTech.SqlParser.Core\Keywords.g.cs')
 )
 
 $ErrorActionPreference = 'Stop'
@@ -78,7 +78,7 @@ foreach ($h in $header) { [void]$sb.AppendLine($h) }
 [void]$sb.AppendLine('')
 [void]$sb.AppendLine('#nullable enable')
 [void]$sb.AppendLine('')
-[void]$sb.AppendLine('namespace Lepton.SqlParser.Core;')
+[void]$sb.AppendLine('namespace LeptonTech.SqlParser.Core;')
 [void]$sb.AppendLine('')
 # Doc comments (///) só com o texto do Rust; notas do port em // (convencoes.md §12).
 [void]$sb.AppendLine('/// <summary>An enumeration of SQL keywords recognized by the parser.</summary>')
