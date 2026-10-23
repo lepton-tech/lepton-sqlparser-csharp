@@ -6,7 +6,7 @@ Port em C# (`netstandard2.0`) do parser SQL **apache/datafusion-sqlparser-rs** (
 
 1. Leia `docs/port/progresso.md`: estado atual, fase e diário da última sessão.
 2. Rode `dotnet test LeptonTech.SqlParser.sln -nologo -v q`. Só comece trabalho novo com a árvore verde.
-3. Para portar código, use a skill **`port-rust-to-csharp`**. Para testes, **`port-rust-tests`**. Para atualizar a partir do Rust, **`sync-upstream`**.
+3. Para portar código, use a skill **`port-rust-to-csharp`**. Para testes, **`port-rust-tests`**. Para atualizar a partir do Rust, **`sync-upstream`**. Para publicar uma versão (tag `v<versão>` e nuget.org), **`publish-release`**.
 4. Ao terminar, atualize o diário em `docs/port/progresso.md`.
 
 ## Regras que não podem ser quebradas
