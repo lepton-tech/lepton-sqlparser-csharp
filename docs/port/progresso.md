@@ -157,6 +157,10 @@ Levantadas nas notas das ondas B e C e nas revisões R1–R3 (consolidação de 
 
 Registre ao fim de cada sessão: data, o que foi feito, decisões tomadas e próximo passo. Entradas mais recentes no topo.
 
+### 2026-10-23 (skill `publish-release`; branch `feature/skill-release`)
+- **Feito:** skill nova `publish-release` (`.claude/skills/publish-release/SKILL.md`) com o processo inteiro de publicação: estado, escolha da versão (ADR-0010), arquivos a atualizar, `Pack.ps1`/`Test-Package.ps1`, PRs `feature` → `develop` → `main`, tag `v<versão>` na `main`, acompanhamento do `nuget-publish.yml` e como abrir PR pelo Chrome sem `gh`. Referências no `CLAUDE.md`, no ADR-0010 ("Publicar uma versão") e na skill `sync-upstream` (§4).
+- **Decisão:** o nome `release` cairia na regra `[Rr]elease/` do `.gitignore` (modelo do Visual Studio), e a pasta não entraria no Git; por isso `publish-release`.
+
 ### 2026-10-23 (versão `0.63.1-preview.5`; branch `feature/versao-0.63.1-preview.5`)
 - **Feito:** a Rodada 2 chegou à `main` (PRs #7 e #8). Versão do pacote `0.63.1-preview.4` → `0.63.1-preview.5` (`Directory.Build.props`); a seção "Não lançado" do `CHANGELOG.md` virou `[0.63.1-preview.5] - 2026-10-23`; READMEs (o commit do Rust passa a `9119ec6`), ADR-0009, ADR-0010, `Test-Package.ps1` e o exemplo do `nuget-publish.yml` atualizados.
 - **Verificação:** `Pack.ps1 -AllowDirty` (build em Release, testes nos três alvos, `LeptonTech.SqlParser.0.63.1-preview.5.nupkg` com `InformationalVersion` `0.63.1-preview.5+sqlparser-rs.9119ec6.<commit>`) e `Test-Package.ps1 -Version 0.63.1-preview.5` (net48 e net8.0): OK.

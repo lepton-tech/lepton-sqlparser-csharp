@@ -96,7 +96,7 @@ Renomear o `nuget-publish.yml` ou tirar o `environment: production` do job **pub
 
 O `user` do `NuGet/login` é o **nome de perfil** no nuget.org (não o e-mail) do **usuário que criou a política**, e não o da organização dona dela (o próprio `NuGet/login` avisa, ao falhar: "use the username of the policy creator, not the policy owner"). É obrigatório na action, mas não é chave nem dá acesso sozinho. Como no artigo da Microsoft, ele fica no secret `NUGET_USER`, com o valor `lepton.tech`, em *Settings → Secrets and variables → Actions* (do repositório ou do ambiente `production`). Sem o secret, o `user` vai vazio e a publicação falha no login.
 
-**Publicar uma versão:**
+**Publicar uma versão** (passo a passo completo, com a escolha da versão, os arquivos a atualizar e os PRs, na skill `publish-release`, `.claude/skills/publish-release/SKILL.md`):
 1. Na `develop`, ajuste `VersionPrefix`/`VersionSuffix` e o `CHANGELOG.md`.
 2. Abra o pull request `develop` → `main` e faça o merge com "Create a merge commit".
 3. Crie a tag na `main` e envie-a:
