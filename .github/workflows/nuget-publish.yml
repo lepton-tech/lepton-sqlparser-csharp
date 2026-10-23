@@ -4,7 +4,7 @@
 # O GitHub emite um token OIDC de curta duração; o NuGet/login o troca no nuget.org por uma chave de API
 # temporária (válida por 1 hora, uma por token), e o push usa essa chave.
 #
-# Disparo: push de uma tag "v<versão do pacote>" (ex.: v0.63.1-preview.4).
+# Disparo: push de uma tag "v<versão do pacote>" (ex.: v0.63.1-preview.5).
 #   1. build (Windows, por causa dos testes em net48): confere tag × versão, roda tools/pack/Pack.ps1 (build em
 #      Release, testes em net48, net8.0 e net10.0, pacote em artifacts/) e tools/pack/Test-Package.ps1 (instala o
 #      pacote em apps net48 e net8.0);

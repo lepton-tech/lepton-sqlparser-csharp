@@ -4,7 +4,7 @@ Parser SQL para .NET: port em C# do [sqlparser-rs](https://github.com/apache/dat
 
 - `netstandard2.0`: roda no .NET Framework 4.8 e no .NET 8/10, sem dependências nativas nem pacotes de runtime.
 - Duas DLLs no mesmo pacote: `LeptonTech.SqlParser.Core.dll` (port fiel do Rust: tokenizer, dialetos, parser, AST) e `LeptonTech.SqlParser.dll` (API pública: `SqlQueryParser`, `ToSql`, visitors, análise).
-- A versão acompanha o sqlparser-rs: `0.63.x` corresponde ao Rust `v0.63`. A `0.63.1-preview.4` inclui o `main` do Rust até o commit `dacdbc9`.
+- A versão acompanha o sqlparser-rs: `0.63.x` corresponde ao Rust `v0.63`. A `0.63.1-preview.5` inclui o `main` do Rust até o commit `9119ec6`.
 - Namespaces `LeptonTech.SqlParser` (API pública) e `LeptonTech.SqlParser.Core*` (port fiel). Versões anteriores, nunca publicadas no nuget.org: até a `0.63.1-preview.2`, `LeptonTI.SqlParser`, com os namespaces `SqlParser` e `SqlParser.Core`; na `0.63.1-preview.3`, `Lepton.SqlParser`.
 - Código-fonte, changelog e documentação: [github.com/lepton-tech/lepton-sqlparser-csharp](https://github.com/lepton-tech/lepton-sqlparser-csharp).
 
