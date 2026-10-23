@@ -1,6 +1,6 @@
 ---
 name: publish-release
-description: Publicar uma versão do pacote LeptonTech.SqlParser no nuget.org. Cobre a escolha da versão; a atualização do Directory.Build.props, do CHANGELOG e das demais referências; a validação com Pack.ps1 e Test-Package.ps1; os PRs feature → develop → main; e a criação da tag v<versão>, que dispara o nuget-publish.yml. Use quando o usuário pedir para criar ou enviar uma tag, publicar ou lançar uma versão, subir a versão do pacote, fazer um release ou publicar no NuGet.
+description: Publicar uma versão do pacote LeptonTech.SqlParser no nuget.org. Cobre a escolha da versão; a atualização do Directory.Build.props, do CHANGELOG e das demais referências; a validação com Pack.ps1 e Test-Package.ps1; os PRs feature → develop → main; a criação da tag v<versão>, que dispara o nuget-publish.yml; e o Release do GitHub com as notas da versão. Use quando o usuário pedir para criar ou enviar uma tag, publicar ou lançar uma versão, subir a versão do pacote, fazer um release ou publicar no NuGet.
 ---
 
 # Publicar uma versão (tag `v<versão>`)
@@ -91,9 +91,36 @@ git ls-remote --tags origin "v<versão>"                             # vazio: a 
 git tag v<versão> origin/main
 ```
 
-Antes de pedir o push, lembre o usuário de que ele publica no nuget.org e não tem volta. O usuário envia a tag com `! git push origin v<versão>`.
+Antes de pedir o push, lembre o usuário de que ele publica no nuget.org e não tem volta. O usuário envia a tag com `! git push origin v<versão>`. Em seguida, crie o release com as notas (passo 5).
 
-## 5. Acompanhar a publicação
+## 5. Notas da versão (Release do GitHub)
+
+A tag sozinha não mostra o que mudou. Logo depois do push da tag, crie um **Release do GitHub** para ela, com as notas da versão. O release não dispara nenhum workflow, porque o `nuget-publish.yml` só reage ao push da tag.
+
+1. Monte as notas a partir da seção `## [<versão>]` do `CHANGELOG.md` da `main` (`git show origin/main:CHANGELOG.md`). O texto abre com:
+   - uma frase sobre a versão;
+   - o `dotnet add package LeptonTech.SqlParser --version <versão>`;
+   - o link `https://www.nuget.org/packages/LeptonTech.SqlParser/<versão>`;
+   - o aviso de quebra de compatibilidade, quando houver.
+
+   Em seguida vêm "Adicionado" e "Alterado". No fim, o link para o `CHANGELOG.md` completo.
+2. **Links:**
+   - **Caminhos relativos** do repositório (`docs/...`) não funcionam no release. Use `https://github.com/lepton-tech/lepton-sqlparser-csharp/blob/v<versão>/<caminho>`.
+   - **Número solto** (`#2628`) vira link para um PR **deste** repositório. Para PRs do Rust, escreva `apache/datafusion-sqlparser-rs#2628`.
+3. Grave as notas num arquivo no scratchpad. Monte a URL do formulário já preenchido com `[Uri]::EscapeDataString`:
+
+   `https://github.com/lepton-tech/lepton-sqlparser-csharp/releases/new?tag=v<versão>&title=v<versão>&prerelease=1&body=<notas>`
+
+   - o `prerelease=1` vale só para versões `preview`;
+   - em versão estável, tire o parâmetro e deixe "Set as the latest release".
+4. Abra a URL no Chrome. Confira, sem publicar ainda:
+   - "Existing tag" com a tag certa;
+   - o título;
+   - o fim das notas;
+   - o "Release label" (Pre-release ou latest).
+5. Clique em "Publish release" numa chamada separada e confira a página `releases/tag/v<versão>`.
+6. Release errado se corrige pelo lápis da página do release. **Nunca apague nem recrie a tag.**
+## 6. Acompanhar a publicação
 
 1. No GitHub, abra **Actions → "Publicação no nuget.org"** e a execução da tag:
    - o job **build** roda no Windows e confere tag × versão, `Pack.ps1` e `Test-Package.ps1`;
