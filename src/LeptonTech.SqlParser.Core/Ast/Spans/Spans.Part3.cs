@@ -646,6 +646,10 @@ public abstract partial record JoinConstraint : ISpanned
         {
             On expr => expr.Value.Span(),
             Using vec => UnionSpans(vec.Value.Select(i => i.Span())),
+            UsingAlias usingAlias => UnionSpans(
+                usingAlias.Columns
+                    .Select(i => i.Span())
+                    .Concat(Once(usingAlias.Alias.Span))),
             Natural => Core.Span.Empty(),
             None => Core.Span.Empty(),
             _ => throw new InvalidOperationException($"Variante de JoinConstraint não tratada: {GetType().Name}"),

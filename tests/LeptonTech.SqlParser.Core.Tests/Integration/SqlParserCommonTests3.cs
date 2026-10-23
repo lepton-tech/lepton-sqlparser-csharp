@@ -301,7 +301,8 @@ public class SqlParserCommonTests3
 
         Assert.Equal(
             new ParserError.ParserErrorValue("Expected: ), found: 'xyz'"),
-            Assert.Throws<ParserException>(() => ParseSqlStatements("SELECT TRIM(FOO 'xyz' FROM 'xyzfooxyz')")).Error);
+            Assert.Throws<ParserException>(() => TestUtils.AllDialectsWhere(d => !d.IsCustomTypeTypedString(Keyword.NoKeyword, false))
+                .ParseSqlStatements("SELECT TRIM(FOO 'xyz' FROM 'xyzfooxyz')")).Error);
 
         // dialects that support comma-separated TRIM syntax
         var dialects = TestUtils.AllDialectsWhere(d => d.SupportsCommaSeparatedTrim);
@@ -2462,16 +2463,19 @@ public class SqlParserCommonTests3
         VerifiedStmt("SELECT f FROM foo WHERE field IS UNKNOWN");
         VerifiedStmt("SELECT f FROM foo WHERE field IS NOT UNKNOWN");
 
-        foreach (var sql2 in new[]
+        foreach (var (sql2, found) in new (string, string)[]
         {
-            "SELECT f from foo where field is 0",
-            "SELECT s, s IS XYZ NORMALIZED FROM foo",
-            "SELECT s, s IS NFKC FROM foo",
-            "SELECT s, s IS TRIM(' NFKC ') FROM foo",
+            ("SELECT f from foo where field is 0", "0"),
+            ("SELECT s, s IS XYZ NORMALIZED FROM foo", "XYZ"),
+            ("SELECT s, s IS NFKC FROM foo", "FROM"),
+            ("SELECT s, s IS TRIM(' NFKC ') FROM foo", "TRIM"),
         })
         {
-            // assert!(parse_sql_statements(sql).is_err(), "expected a parse failure for `{sql}`")
-            Assert.Throws<ParserException>(() => ParseSqlStatements(sql2));
+            TestUtils.AssertEqualWithMessage<ParserError>(
+                Assert.Throws<ParserException>(() => ParseSqlStatements(sql2)).Error,
+                new ParserError.ParserErrorValue(
+                    $"Expected: [NOT] NULL | TRUE | FALSE | DISTINCT | [NOT] JSON [VALUE | SCALAR | ARRAY | OBJECT] [WITH | WITHOUT UNIQUE [KEYS]] | [form] NORMALIZED FROM after IS, found: {found}"),
+                sql2);
         }
     }
 
@@ -2509,27 +2513,66 @@ public class SqlParserCommonTests3
     {
         var dialects = TestUtils.AllDialects();
 
-        var invalid = new[]
+        foreach (var (sql, err) in new (string, string)[]
         {
-            "SELECT * FROM t WHERE a IS JSON WITH FROM",
-            "SELECT * FROM t WHERE a IS JSON WITH KEYS",
-            "SELECT * FROM t WHERE a IS JSON WITHOUT FROM",
-            "SELECT * FROM t WHERE a IS JSON WITHOUT KEYS",
-            "SELECT * FROM t WHERE a IS NOT JSON WITH FROM",
-            "SELECT * FROM t WHERE a IS JSON VALUE ARRAY",
-            "SELECT * FROM t WHERE a IS JSON OBJECT VALUE",
-            "SELECT * FROM t WHERE a IS JSON WITH UNIQUE EXTRA",
-            "SELECT * FROM t WHERE a IS JSON WITH UNIQUE KEYS EXTRA",
-            "SELECT * FROM t WHERE a IS JSON WITHOUT UNIQUE EXTRA",
-            "SELECT * FROM t WHERE a IS JSON WITHOUT UNIQUE KEYS EXTRA",
-            "SELECT * FROM t WHERE a IS JSON WITH UNIQUE KEYS WITH UNIQUE KEYS",
-            "SELECT * FROM t WHERE a IS JSON WITHOUT UNIQUE KEYS WITHOUT UNIQUE KEYS",
-        };
-
-        foreach (var sql in invalid)
+            (
+                "SELECT * FROM t WHERE a IS JSON WITH FROM",
+                "Expected: UNIQUE, found: FROM"
+            ),
+            (
+                "SELECT * FROM t WHERE a IS JSON WITH KEYS",
+                "Expected: UNIQUE, found: KEYS"
+            ),
+            (
+                "SELECT * FROM t WHERE a IS JSON WITHOUT FROM",
+                "Expected: UNIQUE, found: FROM"
+            ),
+            (
+                "SELECT * FROM t WHERE a IS JSON WITHOUT KEYS",
+                "Expected: UNIQUE, found: KEYS"
+            ),
+            (
+                "SELECT * FROM t WHERE a IS NOT JSON WITH FROM",
+                "Expected: UNIQUE, found: FROM"
+            ),
+            (
+                "SELECT * FROM t WHERE a IS JSON VALUE ARRAY",
+                "Expected: end of statement, found: ARRAY"
+            ),
+            (
+                "SELECT * FROM t WHERE a IS JSON OBJECT VALUE",
+                "Expected: end of statement, found: VALUE"
+            ),
+            (
+                "SELECT * FROM t WHERE a IS JSON WITH UNIQUE EXTRA",
+                "Expected: end of statement, found: EXTRA"
+            ),
+            (
+                "SELECT * FROM t WHERE a IS JSON WITH UNIQUE KEYS EXTRA",
+                "Expected: end of statement, found: EXTRA"
+            ),
+            (
+                "SELECT * FROM t WHERE a IS JSON WITHOUT UNIQUE EXTRA",
+                "Expected: end of statement, found: EXTRA"
+            ),
+            (
+                "SELECT * FROM t WHERE a IS JSON WITHOUT UNIQUE KEYS EXTRA",
+                "Expected: end of statement, found: EXTRA"
+            ),
+            (
+                "SELECT * FROM t WHERE a IS JSON WITH UNIQUE KEYS WITH UNIQUE KEYS",
+                "Expected: end of statement, found: WITH"
+            ),
+            (
+                "SELECT * FROM t WHERE a IS JSON WITHOUT UNIQUE KEYS WITHOUT UNIQUE KEYS",
+                "Expected: end of statement, found: WITHOUT"
+            ),
+        })
         {
-            // assert!(dialects.parse_sql_statements(sql).is_err(), "expected a parse failure for `{sql}`")
-            Assert.Throws<ParserException>(() => dialects.ParseSqlStatements(sql));
+            TestUtils.AssertEqualWithMessage<ParserError>(
+                Assert.Throws<ParserException>(() => dialects.ParseSqlStatements(sql)).Error,
+                new ParserError.ParserErrorValue(err),
+                sql);
         }
     }
 
@@ -3095,6 +3138,12 @@ public class SqlParserCommonTests3
         OneStatementParsesTo(
             "SELECT * FROM t PIVOT(SUM(1) x, COUNT(42) y FOR a.abc IN (1))",
             "SELECT * FROM t PIVOT(SUM(1) AS x, COUNT(42) AS y FOR a.abc IN (1))");
+
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => TestUtils.AllDialects()
+                .ParseSqlStatements("SELECT * FROM t PIVOT(SUM(a) AS 1 FOR b IN (1))")).Error,
+            new ParserError.ParserErrorValue(
+                "Expected: an identifier after AS, found: 1"));
     }
 
     [Fact]

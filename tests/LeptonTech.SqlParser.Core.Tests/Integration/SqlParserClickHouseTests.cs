@@ -1803,9 +1803,10 @@ public class SqlParserClickHouseTests
                 throw new InvalidOperationException(Unreachable);
         }
 
-        // assert!(..parse_sql_statements(..).is_err())
-        Assert.Throws<ParserException>(() => Clickhouse()
-            .ParseSqlStatements("ALTER TABLE t ADD COLUMN c UInt8 AFTER"));
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => Clickhouse()
+                .ParseSqlStatements("ALTER TABLE t ADD COLUMN c UInt8 AFTER")).Error,
+            new ParserError.ParserErrorValue("Expected: identifier, found: EOF"));
     }
 
     [Fact]
@@ -1835,17 +1836,34 @@ public class SqlParserClickHouseTests
                 throw new InvalidOperationException(Unreachable);
         }
 
-        foreach (var sql in new[]
+        foreach (var (sql, err) in new (string, string)[]
         {
-            "ALTER TABLE events MODIFY ORDER BY",
-            "ALTER TABLE events MODIFY ORDER BY (a",
-            "ALTER TABLE events MODIFY ORDER BY (,)",
-            "ALTER TABLE events MODIFY ORDER BY (a) b",
-            "CREATE TABLE events (a UInt8) ENGINE = MergeTree ORDER BY (a",
+            (
+                "ALTER TABLE events MODIFY ORDER BY",
+                "Expected: an expression, found: EOF"
+            ),
+            (
+                "ALTER TABLE events MODIFY ORDER BY (a",
+                "Expected: ), found: EOF"
+            ),
+            (
+                "ALTER TABLE events MODIFY ORDER BY (,)",
+                "Expected: an expression, found: ,"
+            ),
+            (
+                "ALTER TABLE events MODIFY ORDER BY (a) b",
+                "Expected: end of statement, found: b"
+            ),
+            (
+                "CREATE TABLE events (a UInt8) ENGINE = MergeTree ORDER BY (a",
+                "Expected: ), found: EOF"
+            ),
         })
         {
-            // assert!(clickhouse_and_generic().parse_sql_statements(sql).is_err(), "{sql}")
-            Assert.Throws<ParserException>(() => ClickhouseAndGeneric().ParseSqlStatements(sql));
+            TestUtils.AssertEqualWithMessage<ParserError>(
+                Assert.Throws<ParserException>(() => ClickhouseAndGeneric().ParseSqlStatements(sql)).Error,
+                new ParserError.ParserErrorValue(err),
+                sql);
         }
     }
 
@@ -1967,17 +1985,26 @@ public class SqlParserClickHouseTests
         Clickhouse().VerifiedStmt("SELECT 1.5, 1 + 0.5");
         Clickhouse().OneStatementParsesTo("SELECT .5, 1e3", "SELECT 0.5, 1000");
 
-        // assert!(..parse_sql_statements(..).is_err())
-        Assert.Throws<ParserException>(() => Clickhouse().ParseSqlStatements("SELECT t."));
-        Assert.Throws<ParserException>(() => Clickhouse().ParseSqlStatements("SELECT t.1."));
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => Clickhouse().ParseSqlStatements("SELECT t.")).Error,
+            new ParserError.ParserErrorValue(
+                "Expected: an identifier or a '*' after '.', found: EOF"));
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => Clickhouse().ParseSqlStatements("SELECT t.1.")).Error,
+            new ParserError.ParserErrorValue("Expected: identifier, found: EOF"));
 
-        var unsupported = TestUtils.AllDialectsWhere(d => !d.SupportsTupleElementAccess);
-        unsupported.VerifiedStmt("SELECT (1, 'a') . 1");
-        foreach (var dialect in unsupported.Dialects)
+        TestUtils.AllDialectsWhere(d => !d.SupportsTupleElementAccess).VerifiedStmt("SELECT (1, 'a') . 1");
+        foreach (var (numericPrefix, err) in new (bool, string)[]
         {
-            // assert!(TestedDialects::new(vec![dialect]).parse_sql_statements(..).is_err())
-            Assert.Throws<ParserException>(() => new TestedDialects(new List<Dialect> { dialect })
-                .ParseSqlStatements("SELECT t.1 FROM t"));
+            (true, "Expected: an identifier or a '*' after '.', found: 1"),
+            (false, "Expected: end of statement, found: .1"),
+        })
+        {
+            Assert.Equal(
+                Assert.Throws<ParserException>(() => TestUtils.AllDialectsWhere(
+                        d => !d.SupportsTupleElementAccess && d.SupportsNumericPrefix == numericPrefix)
+                    .ParseSqlStatements("SELECT t.1 FROM t")).Error,
+                new ParserError.ParserErrorValue(err));
         }
     }
 
@@ -1987,11 +2014,11 @@ public class SqlParserClickHouseTests
         var select = Clickhouse().VerifiedOnlySelect("SELECT * FROM t WHERE x GLOBAL IN (1, 2)");
         Assert.Equal<Expr>(
             select.Selection!,
-            new Expr.InList(
+            new Expr.In(
                 Expr: new Expr.Identifier(new Ident("x")),
-                List: Sequence.Of<Expr>(
+                Target: new InTarget.List(Sequence.Of<Expr>(
                     new Expr.Value(TestUtils.Number("1").WithEmptySpan()),
-                    new Expr.Value(TestUtils.Number("2").WithEmptySpan())),
+                    new Expr.Value(TestUtils.Number("2").WithEmptySpan()))),
                 Negated: false,
                 Global: true));
 
@@ -1999,9 +2026,9 @@ public class SqlParserClickHouseTests
             .VerifiedOnlySelect("SELECT * FROM t WHERE x GLOBAL NOT IN (SELECT y FROM t2)");
         Assert.Equal<Expr>(
             select.Selection!,
-            new Expr.InSubquery(
+            new Expr.In(
                 Expr: new Expr.Identifier(new Ident("x")),
-                Subquery: Clickhouse().VerifiedQuery("SELECT y FROM t2"),
+                Target: new InTarget.Subquery(Clickhouse().VerifiedQuery("SELECT y FROM t2")),
                 Negated: true,
                 Global: true));
 
@@ -2013,16 +2040,17 @@ public class SqlParserClickHouseTests
             Clickhouse().VerifiedOnlySelect("SELECT * FROM t WHERE x GLOBAL IN (1) AND y = 2");
         Assert.True(select.Selection! is Expr.BinaryOp { Op: BinaryOperator.And });
 
-        // assert!(..parse_sql_statements(..).is_err())
-        Assert.Throws<ParserException>(() => Clickhouse()
-            .ParseSqlStatements("SELECT * FROM t WHERE x GLOBAL y"));
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => Clickhouse()
+                .ParseSqlStatements("SELECT * FROM t WHERE x GLOBAL y")).Error,
+            new ParserError.ParserErrorValue(
+                "Expected: end of statement, found: GLOBAL"));
 
-        foreach (var dialect in TestUtils.AllDialectsWhere(d => !d.SupportsGlobalIn).Dialects)
-        {
-            // assert!(TestedDialects::new(vec![dialect]).parse_sql_statements(..).is_err())
-            Assert.Throws<ParserException>(() => new TestedDialects(new List<Dialect> { dialect })
-                .ParseSqlStatements("SELECT * FROM t WHERE x GLOBAL IN (1)"));
-        }
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => TestUtils.AllDialectsWhere(d => !d.SupportsGlobalIn)
+                .ParseSqlStatements("SELECT * FROM t WHERE x GLOBAL IN (1)")).Error,
+            new ParserError.ParserErrorValue(
+                "Expected: end of statement, found: GLOBAL"));
     }
 
     [Fact]
@@ -2077,7 +2105,7 @@ public class SqlParserClickHouseTests
             Clickhouse().ExprParsesTo("x GLOBAL IN t2 AND y = 2", "x GLOBAL IN (t2) AND y = 2");
         Assert.True(
             expr is Expr.BinaryOp { Left: var left, Op: BinaryOperator.And }
-            && left is Expr.InList { Global: true });
+            && left is Expr.In { Target: InTarget.List, Global: true });
     }
 
     [Fact]
@@ -2086,7 +2114,142 @@ public class SqlParserClickHouseTests
         var expr = Clickhouse().ExprParsesTo("x GLOBAL IN t2 = 1", "x GLOBAL IN (t2) = 1");
         Assert.True(
             expr is Expr.BinaryOp { Left: var left, Op: BinaryOperator.Eq }
-            && left is Expr.InList { Global: true });
+            && left is Expr.In { Target: InTarget.List, Global: true });
+    }
+
+    [Fact]
+    public void parse_delete_on_cluster_and_settings()
+    {
+        ClickhouseAndGeneric().VerifiedStmt("DELETE FROM db.hits ON CLUSTER c1 WHERE x = 1");
+        ClickhouseAndGeneric().VerifiedStmt("DELETE FROM hits ON CLUSTER '{cluster}' WHERE x = 1");
+        ClickhouseAndGeneric()
+            .VerifiedStmt("DELETE FROM hits WHERE x = 1 SETTINGS lightweight_deletes_sync = 0");
+
+        switch (ClickhouseAndGeneric()
+            .VerifiedStmt("DELETE FROM hits ON CLUSTER c1 WHERE x = 1 SETTINGS a = 1, b = 'x'"))
+        {
+            case Statement.Delete { Value: var delete }:
+                Assert.Equal(new Ident("c1"), delete.OnCluster);
+                Assert.Equal(
+                    (Sequence<Setting>?)Sequence.Of(
+                        new Setting(
+                            Key: new Ident("a"),
+                            Value: Expr.MakeValue(TestUtils.Number("1"))),
+                        new Setting(
+                            Key: new Ident("b"),
+                            Value: Expr.MakeValue(new Value.SingleQuotedString("x")))),
+                    delete.Settings);
+                break;
+            default:
+                throw new InvalidOperationException("internal error: entered unreachable code");
+        }
+
+        foreach (var (sql, err) in new (string, string)[]
+        {
+            (
+                "DELETE FROM hits SETTINGS a = 1 WHERE x = 1",
+                "Expected: end of statement, found: WHERE"
+            ),
+            (
+                "DELETE FROM hits WHERE x = 1 ON CLUSTER c1",
+                "Expected: end of statement, found: ON"
+            ),
+            (
+                "DELETE FROM hits ON CLUSTER 1 WHERE x = 1",
+                "Expected: identifier, found: 1"
+            ),
+            (
+                "DELETE FROM hits WHERE x = 1 SETTINGS a",
+                "Expected: =, found: EOF"
+            ),
+        })
+        {
+            Assert.Equal(
+                Assert.Throws<ParserException>(() => ClickhouseAndGeneric().ParseSqlStatements(sql)).Error,
+                new ParserError.ParserErrorValue(err));
+        }
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => TestUtils.AllDialectsWhere(d => !d.SupportsSettings)
+                .ParseSqlStatements("DELETE FROM hits WHERE x = 1 SETTINGS a = 1"))
+                .Error,
+            new ParserError.ParserErrorValue("Expected: end of statement, found: SETTINGS"));
+    }
+
+    [Fact]
+    public void parse_update_on_cluster_and_settings()
+    {
+        ClickhouseAndGeneric().VerifiedStmt("UPDATE db.hits ON CLUSTER c1 SET x = 1 WHERE y = 2");
+        ClickhouseAndGeneric()
+            .VerifiedStmt("UPDATE hits ON CLUSTER '{cluster}' SET x = 1, z = 2 WHERE y = 2");
+        ClickhouseAndGeneric()
+            .VerifiedStmt("UPDATE hits SET x = 1 WHERE y = 2 SETTINGS update_parallel_mode = 'auto'");
+
+        switch (ClickhouseAndGeneric()
+            .VerifiedStmt("UPDATE hits ON CLUSTER c1 SET x = 1 WHERE y = 2 SETTINGS a = 1"))
+        {
+            case Statement.Update { Value: var update }:
+                Assert.Equal(new Ident("c1"), update.OnCluster);
+                Assert.Equal(
+                    (Sequence<Setting>?)Sequence.Of(new Setting(
+                        Key: new Ident("a"),
+                        Value: Expr.MakeValue(TestUtils.Number("1")))),
+                    update.Settings);
+                break;
+            default:
+                throw new InvalidOperationException("internal error: entered unreachable code");
+        }
+
+        foreach (var (sql, err) in new (string, string)[]
+        {
+            (
+                "UPDATE hits SET x = 1 ON CLUSTER c1 WHERE y = 2",
+                "Expected: end of statement, found: ON"
+            ),
+            (
+                "UPDATE hits SET x = 1 SETTINGS a = 1 WHERE y = 2",
+                "Expected: end of statement, found: WHERE"
+            ),
+            (
+                "UPDATE hits ON CLUSTER 1 SET x = 1 WHERE y = 2",
+                "Expected: identifier, found: 1"
+            ),
+            (
+                "UPDATE hits SET x = 1 WHERE y = 2 SETTINGS a",
+                "Expected: =, found: EOF"
+            ),
+        })
+        {
+            Assert.Equal(
+                Assert.Throws<ParserException>(() => ClickhouseAndGeneric().ParseSqlStatements(sql)).Error,
+                new ParserError.ParserErrorValue(err));
+        }
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => TestUtils.AllDialectsWhere(d => !d.SupportsSettings)
+                .ParseSqlStatements("UPDATE hits SET x = 1 WHERE y = 2 SETTINGS a = 1"))
+                .Error,
+            new ParserError.ParserErrorValue("Expected: end of statement, found: SETTINGS"));
+    }
+
+    [Fact]
+    public void parse_dollar_in_identifier()
+    {
+        var select = ClickhouseAndGeneric().VerifiedOnlySelect("SELECT a$b, c$$, d$e$ FROM t");
+        Assert.Equal(
+            select.Projection,
+            Sequence.Of<SelectItem>(
+                new SelectItem.UnnamedExpr(new Expr.Identifier(new Ident("a$b"))),
+                new SelectItem.UnnamedExpr(new Expr.Identifier(new Ident("c$$"))),
+                new SelectItem.UnnamedExpr(new Expr.Identifier(new Ident("d$e$")))));
+        // Dollar-quoted strings still take precedence at the start of a token.
+        ClickhouseAndGeneric().VerifiedStmt("SELECT $$abc$$, $tag$abc$tag$");
+        // Tokenizes like ClickHouse does; only the parser rejects it.
+        var err = Assert.Throws<ParserException>(() => Clickhouse()
+            .ParseSqlStatements("INSERT I$$$$$$$$$$$$$$$$$$$$$$$$$$")).Error;
+        // "{err}"
+        Assert.IsType<ParserError.ParserErrorValue>(err);
+
+        Assert.Throws<ParserException>(() => TestUtils.AllDialectsWhere(d => !d.IsIdentifierPart('$'))
+            .ParseSqlStatements("SELECT a$b FROM t"));
     }
 
     private static TestedDialects Clickhouse() =>
@@ -2098,4 +2261,13 @@ public class SqlParserClickHouseTests
             new ClickHouseDialect(),
             new GenericDialect(),
         });
+
+    [Fact]
+    public void parse_create_table_engine_name_quoting()
+    {
+        ClickhouseAndGeneric().VerifiedStmt("CREATE TABLE t (a INT) ENGINE = \"MergeTree\"");
+        ClickhouseAndGeneric().VerifiedStmt("CREATE TABLE t (a INT) ENGINE = `MergeTree`");
+        ClickhouseAndGeneric().VerifiedStmt("CREATE TABLE t (a INT) ENGINE = ``");
+        Clickhouse().VerifiedStmt("CREATE TABLE t (a INT) ENGINE = MergeTree");
+    }
 }

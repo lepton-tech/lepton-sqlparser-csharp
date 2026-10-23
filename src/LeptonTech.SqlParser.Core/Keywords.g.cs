@@ -1378,6 +1378,8 @@ public enum Keyword
     OVERLAY,
     /// <summary>The <c>OVERRIDE</c> SQL keyword.</summary>
     OVERRIDE,
+    /// <summary>The <c>OVERRIDING</c> SQL keyword.</summary>
+    OVERRIDING,
     /// <summary>The <c>OVERWRITE</c> SQL keyword.</summary>
     OVERWRITE,
     /// <summary>The <c>OWNED</c> SQL keyword.</summary>
@@ -2234,6 +2236,8 @@ public enum Keyword
     YEARS,
     /// <summary>The <c>YES</c> SQL keyword.</summary>
     YES,
+    /// <summary>The <c>ZEROFILL</c> SQL keyword.</summary>
+    ZEROFILL,
     /// <summary>The <c>ZONE</c> SQL keyword.</summary>
     ZONE,
     /// <summary>The <c>ZORDER</c> SQL keyword.</summary>
@@ -2922,6 +2926,7 @@ public static partial class Keywords
         "OVERLAPS",
         "OVERLAY",
         "OVERRIDE",
+        "OVERRIDING",
         "OVERWRITE",
         "OWNED",
         "OWNER",
@@ -3350,6 +3355,7 @@ public static partial class Keywords
         "YEAR",
         "YEARS",
         "YES",
+        "ZEROFILL",
         "ZONE",
         "ZORDER",
         "ZSTD",
@@ -4032,6 +4038,7 @@ public static partial class Keywords
         Keyword.OVERLAPS,
         Keyword.OVERLAY,
         Keyword.OVERRIDE,
+        Keyword.OVERRIDING,
         Keyword.OVERWRITE,
         Keyword.OWNED,
         Keyword.OWNER,
@@ -4460,6 +4467,7 @@ public static partial class Keywords
         Keyword.YEAR,
         Keyword.YEARS,
         Keyword.YES,
+        Keyword.ZEROFILL,
         Keyword.ZONE,
         Keyword.ZORDER,
         Keyword.ZSTD,
@@ -5254,6 +5262,7 @@ public static partial class Keywords
         "OVERLAPS",
         "OVERLAY",
         "OVERRIDE",
+        "OVERRIDING",
         "OVERWRITE",
         "OWNED",
         "OWNER",
@@ -5682,6 +5691,7 @@ public static partial class Keywords
         "YEAR",
         "YEARS",
         "YES",
+        "ZEROFILL",
         "ZONE",
         "ZORDER",
         "ZSTD",

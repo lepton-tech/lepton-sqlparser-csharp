@@ -54,12 +54,13 @@ public class SqlParserDeriveDialectTests
         Assert.True(!dialect.SupportsFactorialOperator);
 
         // Parsing works with the overrides
-        var parser = new Parser(dialect)
-            .TryWithSql("SELECT '''value''' FROM t ORDER BY ALL");
-
-        // let result = ..parse_statements(); assert!(result.is_ok()): ParseStatements lança
-        // ParserException em caso de erro, e a exceção reprova o teste.
-        parser.ParseStatements();
+        var statements = new Parser(dialect)
+            .TryWithSql("SELECT '''value''' FROM t ORDER BY ALL")
+            .ParseStatements();
+        Assert.Single(statements);
+        Assert.Equal(
+            "SELECT '''value''' FROM t ORDER BY ALL",
+            statements[0].ToString());
     }
 
     // derive_dialect!(

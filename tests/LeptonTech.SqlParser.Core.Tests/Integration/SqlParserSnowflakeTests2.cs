@@ -1586,23 +1586,29 @@ public class SqlParserSnowflakeTests2
         }
 
         // Some keywords that should not be parsed as an alias
-        var reservedKws = new List<string>
+        foreach (var (kw, err) in new (string, string)[]
         {
-            "FROM",
-            "GROUP",
-            "HAVING",
-            "INTERSECT",
-            "INTO",
-            "ORDER",
-            "SELECT",
-            "UNION",
-            "WHERE",
-            "WITH",
-        };
-        foreach (var kw in reservedKws)
+            ("FROM", "Expected: identifier, found: EOF"),
+            ("GROUP", "Expected: end of statement, found: GROUP"),
+            ("HAVING", "Expected: an expression, found: EOF"),
+            (
+                "INTERSECT",
+                "Expected: SELECT, VALUES, or a subquery in the query body, found: EOF"
+            ),
+            ("INTO", "Expected: an expression, found: EOF"),
+            ("ORDER", "Expected: end of statement, found: ORDER"),
+            ("SELECT", "Expected: end of statement, found: SELECT"),
+            (
+                "UNION",
+                "Expected: SELECT, VALUES, or a subquery in the query body, found: EOF"
+            ),
+            ("WHERE", "Expected: an expression, found: EOF"),
+            ("WITH", "Expected: end of statement, found: WITH"),
+        })
         {
-            Assert.Throws<ParserException>(() => Snowflake()
-                .ParseSqlStatements($"SELECT 1, {kw}"));
+            Assert.Equal(
+                Assert.Throws<ParserException>(() => Snowflake().ParseSqlStatements($"SELECT 1, {kw}")).Error,
+                new ParserError.ParserErrorValue(err));
         }
     }
 
@@ -1618,23 +1624,29 @@ public class SqlParserSnowflakeTests2
         }
 
         // Some keywords that should not be parsed as an alias
-        var reservedKws = new List<string>
+        foreach (var (kw, err) in new (string, string)[]
         {
-            "FROM",
-            "GROUP",
-            "HAVING",
-            "INTERSECT",
-            "INTO",
-            "ORDER",
-            "SELECT",
-            "UNION",
-            "WHERE",
-            "WITH",
-        };
-        foreach (var kw in reservedKws)
+            ("FROM", "Expected: identifier, found: EOF"),
+            ("GROUP", "Expected: end of statement, found: GROUP"),
+            ("HAVING", "Expected: an expression, found: EOF"),
+            (
+                "INTERSECT",
+                "Expected: SELECT, VALUES, or a subquery in the query body, found: EOF"
+            ),
+            ("INTO", "Expected: an expression, found: EOF"),
+            ("ORDER", "Expected: end of statement, found: ORDER"),
+            ("SELECT", "Expected: end of statement, found: SELECT"),
+            (
+                "UNION",
+                "Expected: SELECT, VALUES, or a subquery in the query body, found: EOF"
+            ),
+            ("WHERE", "Expected: an expression, found: EOF"),
+            ("WITH", "Expected: end of statement, found: WITH"),
+        })
         {
-            Assert.Throws<ParserException>(() => Snowflake()
-                .ParseSqlStatements($"SELECT 1 {kw}"));
+            Assert.Equal(
+                Assert.Throws<ParserException>(() => Snowflake().ParseSqlStatements($"SELECT 1 {kw}")).Error,
+                new ParserError.ParserErrorValue(err));
         }
 
         // LIMIT is alias
@@ -1728,14 +1740,24 @@ public class SqlParserSnowflakeTests2
         }
 
         // Some keywords that should not be parsed as an alias implicitly
-        var reservedKws = new List<string>
+        foreach (var (kw, err) in new (string, string)[]
         {
-            "FROM", "GROUP", "HAVING", "ORDER", "SELECT", "UNION", "WHERE", "WITH",
-        };
-        foreach (var kw in reservedKws)
+            ("FROM", "Expected: end of statement, found: FROM"),
+            ("GROUP", "Expected: end of statement, found: GROUP"),
+            ("HAVING", "Expected: an expression, found: EOF"),
+            ("ORDER", "Expected: end of statement, found: ORDER"),
+            ("SELECT", "Expected: end of statement, found: SELECT"),
+            (
+                "UNION",
+                "Expected: SELECT, VALUES, or a subquery in the query body, found: EOF"
+            ),
+            ("WHERE", "Expected: an expression, found: EOF"),
+            ("WITH", "Expected: end of statement, found: WITH"),
+        })
         {
-            Assert.Throws<ParserException>(() => Snowflake()
-                .ParseSqlStatements($"SELECT * FROM tbl {kw}"));
+            Assert.Equal(
+                Assert.Throws<ParserException>(() => Snowflake().ParseSqlStatements($"SELECT * FROM tbl {kw}")).Error,
+                new ParserError.ParserErrorValue(err));
         }
 
         // LIMIT is alias
@@ -1763,8 +1785,10 @@ public class SqlParserSnowflakeTests2
         Snowflake().VerifiedStmt("SELECT 1 FROM TABLE(GENERATOR(ROWCOUNT => 10)) AS a, TABLE(GENERATOR(ROWCOUNT => 10)) AS b");
 
         // ORDER is reserved
-        Assert.Throws<ParserException>(() => Snowflake()
-            .ParseSqlStatements("SELECT * FROM tbl, order"));
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => Snowflake().ParseSqlStatements("SELECT * FROM tbl, order")).Error,
+            new ParserError.ParserErrorValue(
+                "Expected: end of statement, found: order"));
     }
 
     [Fact]
@@ -2340,11 +2364,16 @@ public class SqlParserSnowflakeTests2
         }
 
         // Cannot have more than one IDENTIFIER part in an object name
-        Assert.Throws<ParserException>(() => Snowflake()
-            .ParseSqlStatements(
-                "CREATE TABLE IDENTIFIER('db1').IDENTIFIER('sc1').IDENTIFIER('tbl') (id INT)"));
-        Assert.Throws<ParserException>(() => Snowflake()
-            .ParseSqlStatements("CREATE TABLE IDENTIFIER('db1')..IDENTIFIER('tbl') (id INT)"));
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => Snowflake().ParseSqlStatements(
+                "CREATE TABLE IDENTIFIER('db1').IDENTIFIER('sc1').IDENTIFIER('tbl') (id INT)")).Error,
+            new ParserError.ParserErrorValue(
+                "Expected: column name or constraint definition, found: 'sc1'"));
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => Snowflake()
+                .ParseSqlStatements("CREATE TABLE IDENTIFIER('db1')..IDENTIFIER('tbl') (id INT)")).Error,
+            new ParserError.ParserErrorValue(
+                "Expected: column name or constraint definition, found: 'tbl'"));
     }
 
     [Fact]
@@ -2384,18 +2413,14 @@ public class SqlParserSnowflakeTests2
             "WITH TAG (env='prod', team='data') " +
             "WITH CONTACT (owner = admin, dpo = compliance)");
 
-        var err = Assert.Throws<ParserException>(() => Snowflake()
-            .ParseSqlStatements("CREATE DATABASE"))
-            .Error
-            .ToString();
-        // assert!(err.contains("Expected"), "Unexpected error: {err}")
-        Assert.Contains("Expected", err);
-
-        err = Assert.Throws<ParserException>(() => Snowflake()
-            .ParseSqlStatements("CREATE DATABASE my_db CLONE"))
-            .Error
-            .ToString();
-        Assert.Contains("Expected", err);
+        foreach (var sql in new[] { "CREATE DATABASE", "CREATE DATABASE my_db CLONE" })
+        {
+            TestUtils.AssertEqualWithMessage<ParserError>(
+                Assert.Throws<ParserException>(() => Snowflake().ParseSqlStatements(sql)).Error,
+                new ParserError.ParserErrorValue(
+                    "Expected: identifier, found: EOF"),
+                sql);
+        }
     }
 
     [Fact]
@@ -2543,9 +2568,10 @@ public class SqlParserSnowflakeTests2
         Assert.Equal(1, castFields[1].Options.Count);
         Assert.Equal<ColumnOption>(castFields[1].Options[0].Option, new ColumnOption.NotNull());
 
-        // assert!(..parse_sql_statements(..).is_err())
-        Assert.Throws<ParserException>(() => Snowflake()
-            .ParseSqlStatements("CREATE TABLE t (o OBJECT(city VARCHAR)"));
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => Snowflake().ParseSqlStatements("CREATE TABLE t (o OBJECT(city VARCHAR)")).Error,
+            new ParserError.ParserErrorValue(
+                "Expected: ',' or ')' after column definition, found: EOF"));
 
         if (SnowflakeAndGeneric().VerifiedStmt("CREATE TABLE t (o OBJECT)")
             is not Statement.CreateTable { Value.Columns: var columns })

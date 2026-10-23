@@ -1134,25 +1134,34 @@ public sealed partial class Parser
     {
         // BigQuery allows `IN UNNEST(array_expression)`
         // https://cloud.google.com/bigquery/docs/reference/standard-sql/operators#in_operators
+        InTarget target;
         if (!global && ParseKeyword(Keyword.UNNEST))
         {
             ExpectToken(new Token.LParen());
             var arrayExpr = ParseExpr();
             ExpectToken(new Token.RParen());
-            return new Expr.InUnnest(
-                Expr: expr,
-                ArrayExpr: arrayExpr,
-                Negated: negated);
+            target = new InTarget.Unnest(arrayExpr);
         }
-        if (_dialect.SupportsInUnparenthesizedExpr
+        else if (_dialect.SupportsInUnparenthesizedExpr
             && PeekTokenRef().Token is not Token.LParen)
         {
-            return new Expr.InList(
-                Expr: expr,
-                List: Sequence.Of(ParseSubexpr(_dialect.PrecValue(Precedence.Eq))),
-                Negated: negated,
-                Global: global);
+            target = new InTarget.List(Sequence.Of(
+                ParseSubexpr(_dialect.PrecValue(Precedence.Eq))));
         }
+        else
+        {
+            target = ParseInParenthesizedTarget();
+        }
+        return new Expr.In(
+            Expr: expr,
+            Target: target,
+            Negated: negated,
+            Global: global);
+    }
+
+    /// <summary>Parses the parenthesized subquery or value list of an <c>IN</c> predicate.</summary>
+    internal InTarget ParseInParenthesizedTarget()
+    {
         ExpectToken(new Token.LParen());
         // A leading query is the whole subquery only when `)` follows it,
         // otherwise it is the first item of a list, as in `IN ((SELECT 1), 2)`.
@@ -1173,11 +1182,7 @@ public sealed partial class Parser
             {
                 if (ConsumeToken(new Token.RParen()))
                 {
-                    return new Expr.InSubquery(
-                        Expr: expr,
-                        Subquery: subquery,
-                        Negated: negated,
-                        Global: global);
+                    return new InTarget.Subquery(subquery);
                 }
                 missingRparen = _index;
                 _index = start;
@@ -1203,11 +1208,7 @@ public sealed partial class Parser
         switch (listError)
         {
             case null:
-                return new Expr.InList(
-                    Expr: expr,
-                    List: list,
-                    Negated: negated,
-                    Global: global);
+                return new InTarget.List(list);
             case { Error: ParserError.RecursionLimitExceeded }:
                 throw StackGuard.Rethrow(listError);
             default:
@@ -1216,7 +1217,7 @@ public sealed partial class Parser
                 if (missingRparen is { } index && _index <= index)
                 {
                     _index = index;
-                    return ExpectedRef<Expr>(")", PeekTokenRef());
+                    return ExpectedRef<InTarget>(")", PeekTokenRef());
                 }
                 throw StackGuard.Rethrow(listError);
         }

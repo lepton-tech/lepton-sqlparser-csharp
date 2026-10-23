@@ -241,6 +241,33 @@ A Rodada 1 levou o Core de `v0.63.0` a `dacdbc9` (63 PRs; `docs/port/upstream-le
 - `SqlVisitor`/`SqlRewriter` passam a receber `PreVisitIdentifier`/`PostVisitIdentifier` para os nomes do comando `TABLE t`, porque `Table` agora guarda `Ident`, como no Rust. `GetReferencedTables` não muda: esses nomes não são relações no Rust.
 - `GetStatementKind` classifica `CREATE FOREIGN TABLE` como `Create` sem código novo (decisão 6).
 
+## Impacto da Rodada 2 de sincronização com o upstream (2026-10-23)
+
+A Rodada 2 levou o Core de `dacdbc9` a `9119ec6` (46 PRs; `docs/port/upstream-ledger.md`). De novo, a camada pública **não precisou de mudança de código**: os 279 testes de `tests/LeptonTech.SqlParser.Tests` passam sem alteração nos três alvos, e as análises (`GetReferencedTables`, `GetReferencedColumns`...) atravessam os tipos novos pelo visitor gerado. As quebras do Core chegam ao consumidor pelo mesmo caminho da Rodada 1 (ADR-0008, decisão 1); a próxima versão do pacote é de **quebra de compatibilidade**.
+
+**Assinaturas públicas do Core que mudaram (quebra de código-fonte):**
+
+| Antes | Depois | PR |
+|---|---|---|
+| `Expr.InList(Expr Expr, Sequence<Expr> List, bool Negated, bool Global)`, `Expr.InSubquery(Expr Expr, Query Subquery, bool Negated, bool Global)` e `Expr.InUnnest(Expr Expr, Expr ArrayExpr, bool Negated)` | `Expr.In(Expr Expr, InTarget Target, bool Negated, bool Global)`, com `InTarget.List(Sequence<Expr>)`, `InTarget.Subquery(Query)` e `InTarget.Unnest(Expr)` | #2679 |
+| `Insert(.., Sequence<Ident> AfterColumns, bool HasTableKeyword, ..)` (27 parâmetros) | `Insert(.., Sequence<Ident> AfterColumns, InsertOverriding? Overriding, bool HasTableKeyword, ..)` (28) | #2626 |
+| `Delete(.., FromTable From, Sequence<TableWithJoins>? Using, .., Expr? Limit)` | `Delete(.., FromTable From, Ident? OnCluster, Sequence<TableWithJoins>? Using, .., Expr? Limit, Sequence<Setting>? Settings)` | #2617 |
+| `Update(.., TableWithJoins Table, Sequence<Assignment> Assignments, .., Expr? Limit)` | `Update(.., TableWithJoins Table, Ident? OnCluster, Sequence<Assignment> Assignments, .., Expr? Limit, Sequence<Setting>? Settings)` | #2617 |
+| `CreateTable(.., bool WithoutRowid, .., bool Strict, ..)` | `CreateTable(.., SqliteTableOptions SqliteTableOptions, ..)` (sai `Strict`) | #2575 |
+| `CreateTableBuilder.WithoutRowid`/`Strict`, `SetWithoutRowid(bool)`, `SetStrict(bool)` | `CreateTableBuilder.SqliteTableOptions`, `SetSqliteTableOptions(SqliteTableOptions)` | #2575 |
+| `Statement.Declare(Sequence<Declare> Stmts)` | `Statement.Declare(Sequence<Declare> Stmts, DeclareSeparator Separator)` | #2671 |
+| `CommentWithSpan(Comment Comment, Span Span)` | `CommentWithSpan(Comment Comment, Span Span, Location? PrevTokenEnd, Location? NextTokenStart)` | #2691 |
+| `void IFmtWrite.WriteStr(string)` e os métodos de escrita do `Formatter` (`WriteStr`, `WriteChar`, `Write`, `WriteAlternate`, `WriteValue`, `FmtInPlace`) devolvem `void` | Devolvem `bool`, o `fmt::Result` do Rust (`false` no lugar de `Err(fmt::Error)`); quem implementa `IFmtWrite` devolve `true` quando a escrita dá certo. Quem só chama os métodos não muda o código-fonte | #2577 |
+
+**Quebra binária sem mudança de código-fonte:** o `enum` `Keyword` foi renumerado de novo (`OVERRIDING`, #2626, e `ZEROFILL`, #2636).
+
+**Acréscimos:** `DataType.Zerofill` (#2636), `InsertOverriding` (#2626), `JoinConstraint.UsingAlias` (#2492), `SqliteTableOption`/`SqliteTableOptions` (#2575), `InTarget` (#2679), `DeclareSeparator` (#2671), `Comments.FindBefore(Location)` (#2691) e membros `virtual` novos no `Dialect`: `SupportsDataTypeZerofillSuffix`, `SupportsCteMaterialization`, `SupportsHashComment`, `RequiresHashCommentSpace`, `SupportsAddColumnIfNotExists`, `SupportsUnterminatedBlockComments`, `SupportsLiteralPrefixInQualifiedName`, `SupportsStringLiteralColumnAlias(bool)`, `SupportsStringLiteralTableAlias(bool)` e `IsCustomTypeTypedString(Keyword, bool)`.
+
+**Comportamento visível pela camada pública:**
+- `ToSql()` muda em alguns casos: `DECLARE @a INT, @b INT` no MsSql (antes saía com `;`), `CREATE MACRO f() AS ..` sempre com os parênteses, o espaço depois de `-`/`!` prefixo decidido pelo primeiro caractere renderizado (`- -x::INT`), o nome do `ENGINE` com as aspas originais, `USING (..) AS alias`, `OVERRIDING .. VALUE`, `ON CLUSTER`/`SETTINGS` em `DELETE`/`UPDATE`.
+- Entradas antes aceitas passam a dar erro: aliases com string no PostgreSQL, Spark, Databricks, Hive e ClickHouse (e só depois de `AS` no DuckDB; no MySQL, só em itens do `SELECT`). Entradas antes recusadas passam a ser aceitas: `ZEROFILL`, `# comentário` no ClickHouse, `$` em identificadores do SQLite e do ClickHouse, comentário de bloco aberto no fim (SQLite), `FROM (t)` no SQLite, `SELECT` sem lista no PostgreSQL, `ADD COLUMN IF NOT EXISTS` no Snowflake, `pg_catalog.floor(3)`.
+- A mesma entrada pode dar outra AST: `mood 'happy'` no PostgreSQL (agora `TypedString`), `t.x'ff'` no MySQL e no Generic (agora a coluna `x` com o alias `'ff'`), `a && b = c` no MySQL e `1 | 2 & 3` no SQLite (precedências novas), `WITH .. AS MATERIALIZED` também no DuckDB.
+
 ## Correções da revisão R4 (F1, 2026-10-15)
 
 A revisão R4 (`docs/port/onda-d/R4.md`) testou a API pública e o pacote de contexto limpo. A unidade F1 mudou o comportamento de `SqlParser` nestes pontos (todos registrados no `CHANGELOG.md`, em "Não lançado"):

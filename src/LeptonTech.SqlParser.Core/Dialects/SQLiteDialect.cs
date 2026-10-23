@@ -53,7 +53,7 @@ public class SQLiteDialect : Dialect
 
     public override bool SupportsStartTransactionModifier => true;
 
-    public override bool IsIdentifierPart(char ch) => IsIdentifierStart(ch) || (ch >= '0' && ch <= '9');
+    public override bool IsIdentifierPart(char ch) => IsIdentifierStart(ch) || (ch >= '0' && ch <= '9') || ch == '$';
 
     public override Statement? ParseStatement(Parser parser)
     {
@@ -90,6 +90,21 @@ public class SQLiteDialect : Dialect
         return null;
     }
 
+    /// <summary>
+    /// <c>&amp;</c> and <c>|</c> share one left-associative precedence level.
+    /// See <see href="https://www.sqlite.org/lang_expr.html#operators_and_parse_affecting_attributes"/>
+    /// </summary>
+    public override byte? GetNextPrecedence(Parser parser)
+    {
+        switch (parser.PeekTokenRef().Token)
+        {
+            case Token.Ampersand or Token.Pipe:
+                return PrecValue(Precedence.Ampersand);
+            default:
+                return null;
+        }
+    }
+
     public override bool SupportsInEmptyList => true;
 
     public override bool SupportsLimitComma => true;
@@ -115,4 +130,8 @@ public class SQLiteDialect : Dialect
     public override bool SupportsCastEmptyDataTypeToUnspecified => true;
 
     public override bool SupportsNationalStringLiteral => false;
+
+    public override bool SupportsParensAroundTableFactor => true;
+
+    public override bool SupportsUnterminatedBlockComments => true;
 }

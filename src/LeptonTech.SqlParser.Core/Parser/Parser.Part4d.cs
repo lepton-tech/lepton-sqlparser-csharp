@@ -143,7 +143,6 @@ public sealed partial class Parser
             // followed by some joins or (B) another level of nesting.
             var tableAndJoins = ParseTableAndJoins();
 
-            // #[allow(clippy::if_same_then_else)]: não traduzido.
             if (!tableAndJoins.Joins.IsEmpty)
             {
                 ExpectToken(new Token.RParen());

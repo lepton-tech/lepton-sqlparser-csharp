@@ -145,6 +145,9 @@ public sealed partial record Join(TableFactor Relation, bool Global, JoinOperato
                 case JoinConstraint.Using { Value: var attrs }:
                     f.Write($" USING({DisplayCommaSeparated(attrs)})");
                     break;
+                case JoinConstraint.UsingAlias { Columns: var columns, Alias: var alias }:
+                    f.Write($" USING({DisplayCommaSeparated(columns)}) AS {alias}");
+                    break;
                 default:
                     break;
             }

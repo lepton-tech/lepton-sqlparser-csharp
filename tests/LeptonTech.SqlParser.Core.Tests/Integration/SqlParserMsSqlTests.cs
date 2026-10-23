@@ -86,7 +86,10 @@ public class SqlParserMsSqlTests
                 Joins: Sequence<Join>.Empty)));
 
         sql = "SELECT 1 FROM t1 FOR SYSTEM TIME AS OF 'some_timestamp'";
-        Assert.Throws<ParserException>(() => Ms().ParseSqlStatements(sql));
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => Ms().ParseSqlStatements(sql)).Error,
+            new ParserError.ParserErrorValue(
+                "Expected: one of UPDATE or SHARE, found: SYSTEM"));
     }
 
     [Fact]
@@ -821,8 +824,11 @@ public class SqlParserMsSqlTests
     [Fact]
     public void dont_parse_trailing_for()
     {
-        Assert.Throws<ParserException>(() => Ms()
-            .RunParserMethod("SELECT * FROM foo FOR", p => p.ParseQuery()));
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => Ms()
+                .RunParserMethod("SELECT * FROM foo FOR", p => p.ParseQuery())).Error,
+            new ParserError.ParserErrorValue(
+                "Expected: one of UPDATE or SHARE, found: EOF"));
     }
 
     [Fact]
@@ -1233,7 +1239,8 @@ public class SqlParserMsSqlTests
                         Sensitive: null,
                         Scroll: null,
                         Hold: null,
-                        ForQuery: null)))),
+                        ForQuery: null)),
+                Separator: DeclareSeparator.Comma)),
             ast);
 
         sql = "DECLARE @bar INT;SET @bar = 2;SELECT @bar * 4";
@@ -1250,7 +1257,8 @@ public class SqlParserMsSqlTests
                         Sensitive: null,
                         Scroll: null,
                         Hold: null,
-                        ForQuery: null))),
+                        ForQuery: null)),
+                    Separator: DeclareSeparator.Comma),
                 new Statement.Set(new Set.SingleAssignment(
                     Scope: null,
                     Hivevar: false,
@@ -1463,7 +1471,11 @@ public class SqlParserMsSqlTests
         _ = MsAndGeneric().VerifiedStmt(sql);
 
         // Error: WAITFOR without DELAY or TIME
-        Assert.Throws<ParserException>(() => MsAndGeneric().ParseSqlStatements("WAITFOR '00:00:05'"));
+        var res = Assert.Throws<ParserException>(() => MsAndGeneric().ParseSqlStatements("WAITFOR '00:00:05'"));
+        Assert.Equal(
+            res.Error,
+            new ParserError.ParserErrorValue(
+                "Expected: DELAY or TIME, found: '00:00:05'"));
     }
 
     [Fact]
@@ -1655,7 +1667,7 @@ public class SqlParserMsSqlTests
                     FileFormat: null,
                     Location: null,
                     Query: null,
-                    WithoutRowid: false,
+                    SqliteTableOptions: SqliteTableOptions.Default(),
                     Like: null,
                     CloneValue: null,
                     Comment: null,
@@ -1669,7 +1681,6 @@ public class SqlParserMsSqlTests
                     Inherits: null,
                     PartitionOf: null,
                     ForValues: null,
-                    Strict: false,
                     Iceberg: false,
                     Snapshot: false,
                     CopyGrants: false,
@@ -1826,7 +1837,7 @@ public class SqlParserMsSqlTests
                     FileFormat: null,
                     Location: null,
                     Query: null,
-                    WithoutRowid: false,
+                    SqliteTableOptions: SqliteTableOptions.Default(),
                     Like: null,
                     CloneValue: null,
                     Comment: null,
@@ -1840,7 +1851,6 @@ public class SqlParserMsSqlTests
                     Inherits: null,
                     PartitionOf: null,
                     ForValues: null,
-                    Strict: false,
                     CopyGrants: false,
                     EnableSchemaEvolution: null,
                     ChangeTracking: null,
@@ -2287,14 +2297,29 @@ public class SqlParserMsSqlTests
     public void test_sql_keywords_as_table_aliases()
     {
         // Some keywords that should not be parsed as an alias implicitly or explicitly
-        var reservedKws = new List<string> { "IF", "ELSE" };
-        foreach (var kw in reservedKws)
+        foreach (var (sql, err) in new (string, string)[]
         {
-            foreach (var @explicit in new[] { "", "AS " })
-            {
-                Assert.Throws<ParserException>(() => Tsql()
-                    .ParseSqlStatements($"SELECT * FROM tbl {@explicit}{kw}"));
-            }
+            (
+                "SELECT * FROM tbl IF",
+                "Expected: an expression, found: EOF"
+            ),
+            (
+                "SELECT * FROM tbl AS IF",
+                "Expected: an identifier after AS, found: IF"
+            ),
+            (
+                "SELECT * FROM tbl ELSE",
+                "Expected: an SQL statement, found: ELSE"
+            ),
+            (
+                "SELECT * FROM tbl AS ELSE",
+                "Expected: an identifier after AS, found: ELSE"
+            ),
+        })
+        {
+            Assert.Equal(
+                Assert.Throws<ParserException>(() => Tsql().ParseSqlStatements(sql)).Error,
+                new ParserError.ParserErrorValue(err));
         }
     }
 
@@ -2302,14 +2327,29 @@ public class SqlParserMsSqlTests
     public void test_sql_keywords_as_column_aliases()
     {
         // Some keywords that should not be parsed as an alias implicitly or explicitly
-        var reservedKws = new List<string> { "IF", "ELSE" };
-        foreach (var kw in reservedKws)
+        foreach (var (sql, err) in new (string, string)[]
         {
-            foreach (var @explicit in new[] { "", "AS " })
-            {
-                Assert.Throws<ParserException>(() => Tsql()
-                    .ParseSqlStatements($"SELECT col {@explicit}{kw} FROM tbl"));
-            }
+            (
+                "SELECT col IF FROM tbl",
+                "Expected: an SQL statement, found: tbl"
+            ),
+            (
+                "SELECT col AS IF FROM tbl",
+                "Expected: an identifier after AS, found: IF"
+            ),
+            (
+                "SELECT col ELSE FROM tbl",
+                "Expected: an SQL statement, found: ELSE"
+            ),
+            (
+                "SELECT col AS ELSE FROM tbl",
+                "Expected: an identifier after AS, found: ELSE"
+            ),
+        })
+        {
+            Assert.Equal(
+                Assert.Throws<ParserException>(() => Tsql().ParseSqlStatements(sql)).Error,
+                new ParserError.ParserErrorValue(err));
         }
     }
 
@@ -2621,5 +2661,13 @@ public class SqlParserMsSqlTests
         Assert.Throws<ParserException>(() => new TestedDialects(new List<Dialect> { new GenericDialect() })
             .ParseSqlStatements("CREATE PROC test AS BEGIN SELECT 1; END"));
         MsAndGeneric().VerifiedStmt("SELECT proc FROM jobs");
+    }
+
+    [Fact]
+    public void parse_mssql_declare_comma_list_display()
+    {
+        Ms().VerifiedStmt("DECLARE @a INT, @b INT");
+        Ms().VerifiedStmt("DECLARE @a INT = 1, @b TEXT = 'x'");
+        Ms().VerifiedStmt("DECLARE @foo CURSOR, @bar INT");
     }
 }

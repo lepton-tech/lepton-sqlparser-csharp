@@ -144,26 +144,39 @@ public sealed partial class Parser
                 });
             case Keyword.LAMBDA when _dialect.SupportsLambdaKeywordSyntax:
                 return ParseLambdaExpr();
-            case var _ when _dialect.SupportsGeometricTypes:
-                switch (w.Keyword)
+            default:
+                switch (GeometricTypeKindOf(w.Keyword))
                 {
-                    case Keyword.CIRCLE:
-                        return ParseGeometricType(new GeometricTypeKind.Circle());
-                    case Keyword.BOX:
-                        return ParseGeometricType(new GeometricTypeKind.GeometricBox());
-                    case Keyword.PATH:
-                        return ParseGeometricType(new GeometricTypeKind.GeometricPath());
-                    case Keyword.LINE:
-                        return ParseGeometricType(new GeometricTypeKind.Line());
-                    case Keyword.LSEG:
-                        return ParseGeometricType(new GeometricTypeKind.LineSegment());
-                    case Keyword.POINT:
-                        return ParseGeometricType(new GeometricTypeKind.Point());
-                    case Keyword.POLYGON:
-                        return ParseGeometricType(new GeometricTypeKind.Polygon());
-                    default:
+                    case { } kind:
+                        return ParseGeometricType(kind);
+                    case null:
                         return null;
                 }
+        }
+    }
+
+    internal GeometricTypeKind? GeometricTypeKindOf(Keyword keyword)
+    {
+        if (!_dialect.SupportsGeometricTypes)
+        {
+            return null;
+        }
+        switch (keyword)
+        {
+            case Keyword.CIRCLE:
+                return new GeometricTypeKind.Circle();
+            case Keyword.BOX:
+                return new GeometricTypeKind.GeometricBox();
+            case Keyword.PATH:
+                return new GeometricTypeKind.GeometricPath();
+            case Keyword.LINE:
+                return new GeometricTypeKind.Line();
+            case Keyword.LSEG:
+                return new GeometricTypeKind.LineSegment();
+            case Keyword.POINT:
+                return new GeometricTypeKind.Point();
+            case Keyword.POLYGON:
+                return new GeometricTypeKind.Polygon();
             default:
                 return null;
         }
@@ -246,6 +259,17 @@ public sealed partial class Parser
         }
     }
 
+    internal bool PeekCustomTypedString(Keyword firstKeyword, ObjectName name)
+    {
+        var qualified = name.Value.Count > 1;
+        return PeekTokenRef().Token is Token.SingleQuotedString
+                or Token.EscapedStringLiteral
+                or Token.UnicodeStringLiteral
+                or Token.DollarQuotedString
+            && _dialect.IsCustomTypeTypedString(firstKeyword, qualified)
+            && (qualified || GeometricTypeKindOf(firstKeyword) is null);
+    }
+
     /// <summary>Parse an expression prefix.</summary>
     public Expr ParsePrefix()
     {
@@ -315,6 +339,16 @@ public sealed partial class Parser
         // expression that should parse as the column name "date".
         // (`loc` só servia ao `parser_err!("dummy", loc)`, que aqui virou `return null`: caso 140.)
         var loc = PeekTokenRef().Span.Start;
+        Keyword? firstKeyword;
+        switch (PeekTokenRef().Token)
+        {
+            case Token.Word { Value: var firstWord }:
+                firstKeyword = firstWord.Keyword;
+                break;
+            default:
+                firstKeyword = null;
+                break;
+        }
         // PORT-PERF (caso 140): MaybeParseNoMatch e ParseDataTypeNoMatch. Os dois `Err` que este maybe_parse
         // descarta em quase toda expressão (`parse_data_type()?` no primeiro token e `parser_err!("dummy", loc)`)
         // viram `return null`, sem exceção; os demais erros seguem como exceção.
@@ -327,20 +361,12 @@ public sealed partial class Parser
                     return null;
                 case DataType.Interval:
                     return parser.ParseInterval();
-                // PostgreSQL allows almost any identifier to be used as custom data type name,
-                // and we support that in `parse_data_type()`. But unlike Postgres we don't
-                // have a list of globally reserved keywords (since they vary across dialects),
-                // so given `NOT 'a' LIKE 'b'`, we'd accept `NOT` as a possible custom data type
-                // name, resulting in `NOT 'a'` being recognized as a `TypedString` instead of
-                // an unary negation `NOT ('a' LIKE 'b')`. To solve this, we don't accept the
-                // `type 'string'` syntax for the custom data types at all ...
-                //
-                // ... with the exception of `xml '...'` on dialects that support XML
-                // expressions, which is a valid PostgreSQL typed string literal.
+                // Custom names need dialect consent, else `NOT 'a'` would read as a typed string.
                 case DataType.Custom { Name: var name, Modifiers: var modifiers }
                     when modifiers.IsEmpty
-                        && IsSimpleUnquotedObjectName(name, "xml")
-                        && parser._dialect.SupportsXmlExpressions:
+                        && ((IsSimpleUnquotedObjectName(name, "xml")
+                                && parser._dialect.SupportsXmlExpressions)
+                            || (firstKeyword is { } kw && parser.PeekCustomTypedString(kw, name))):
                     return new Expr.TypedString(new TypedString(
                         DataType: new DataType.Custom(name, modifiers),
                         Value: parser.ParseValue(),
@@ -774,13 +800,21 @@ public sealed partial class Parser
                             case { } someExpr:
                                 chain.Add(new AccessExpr.Dot(someExpr));
                                 break;
-                            // If the expression is not a valid suffix, fall back to
-                            // parsing as an identifier. This handles cases like `T.interval`
-                            // where `interval` is a keyword but should be treated as an identifier.
                             case null:
-                                chain.Add(new AccessExpr.Dot(new Expr.Identifier(
-                                    ParseIdentifier())));
+                            {
+                                var ident = ParseIdentifier();
+                                Expr field;
+                                if (PeekTokenRef().Token is Token.LParen)
+                                {
+                                    field = ParseFunction(ObjectName.From(Sequence.Of(ident)));
+                                }
+                                else
+                                {
+                                    field = new Expr.Identifier(ident);
+                                }
+                                chain.Add(new AccessExpr.Dot(field));
                                 break;
+                            }
                         }
                         break;
                     }

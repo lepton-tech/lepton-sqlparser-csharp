@@ -331,6 +331,10 @@ namespace LeptonTech.SqlParser.Core.Ast
                     flow = VisitVariant((global::LeptonTech.SqlParser.Core.Ast.DataType.NamedTable)this, visitor);
                     if (flow.IsBreak) return flow;
                     break;
+                case global::LeptonTech.SqlParser.Core.Ast.DataType.Zerofill:
+                    flow = VisitVariant((global::LeptonTech.SqlParser.Core.Ast.DataType.Zerofill)this, visitor);
+                    if (flow.IsBreak) return flow;
+                    break;
                 case global::LeptonTech.SqlParser.Core.Ast.DataType.Collate:
                     flow = VisitVariant((global::LeptonTech.SqlParser.Core.Ast.DataType.Collate)this, visitor);
                     if (flow.IsBreak) return flow;
@@ -426,6 +430,19 @@ namespace LeptonTech.SqlParser.Core.Ast
                         if (flow.IsBreak) return flow;
                     }
                 }
+            }
+            return global::LeptonTech.SqlParser.Core.ControlFlow<TBreak>.Continue;
+        }
+
+        // Zerofill
+        private static global::LeptonTech.SqlParser.Core.ControlFlow<TBreak> VisitVariant<TBreak>(global::LeptonTech.SqlParser.Core.Ast.DataType.Zerofill v, global::LeptonTech.SqlParser.Core.Ast.Visitor<TBreak> visitor)
+        {
+            global::LeptonTech.SqlParser.Core.ControlFlow<TBreak> flow;
+            // Value
+            if (v.Value is { } x1)
+            {
+                flow = x1.Visit(visitor);
+                if (flow.IsBreak) return flow;
             }
             return global::LeptonTech.SqlParser.Core.ControlFlow<TBreak>.Continue;
         }
@@ -660,6 +677,9 @@ namespace LeptonTech.SqlParser.Core.Ast
                 case global::LeptonTech.SqlParser.Core.Ast.DataType.NamedTable:
                     flow = VisitMutVariant(ref node, (global::LeptonTech.SqlParser.Core.Ast.DataType.NamedTable)node, visitor);
                     break;
+                case global::LeptonTech.SqlParser.Core.Ast.DataType.Zerofill:
+                    flow = VisitMutVariant(ref node, (global::LeptonTech.SqlParser.Core.Ast.DataType.Zerofill)node, visitor);
+                    break;
                 case global::LeptonTech.SqlParser.Core.Ast.DataType.Collate:
                     flow = VisitMutVariant(ref node, (global::LeptonTech.SqlParser.Core.Ast.DataType.Collate)node, visitor);
                     break;
@@ -777,6 +797,26 @@ namespace LeptonTech.SqlParser.Core.Ast
                     if (a4 is not null) x3 = global::LeptonTech.SqlParser.Core.Sequence<global::LeptonTech.SqlParser.Core.Ast.ColumnDef>.FromArrayNoCopy(a4);
                 }
                 if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(x3, n.Columns)) n = n with { Columns = x3 };
+                if (flow.IsBreak) { node = n; return flow; }
+            }
+            node = n;
+            return flow;
+        }
+
+        // Zerofill
+        private static global::LeptonTech.SqlParser.Core.ControlFlow<TBreak> VisitMutVariant<TBreak>(ref global::LeptonTech.SqlParser.Core.Ast.DataType node, global::LeptonTech.SqlParser.Core.Ast.DataType.Zerofill v, global::LeptonTech.SqlParser.Core.Ast.VisitorMut<TBreak> visitor)
+        {
+            var flow = global::LeptonTech.SqlParser.Core.ControlFlow<TBreak>.Continue;
+            var n = v;
+            // Value
+            {
+                var x1 = n.Value;
+                if (x1 is { } y2)
+                {
+                    flow = global::LeptonTech.SqlParser.Core.Ast.DataType.VisitMut(ref y2, visitor);
+                    x1 = y2;
+                }
+                if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(x1, n.Value)) n = n with { Value = x1 };
                 if (flow.IsBreak) { node = n; return flow; }
             }
             node = n;

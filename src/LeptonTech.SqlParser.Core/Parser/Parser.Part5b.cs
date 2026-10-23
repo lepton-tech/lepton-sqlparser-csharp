@@ -187,10 +187,13 @@ public sealed partial class Parser
             var table = ParseKeyword(Keyword.TABLE);
             var tableObject = ParseTableObject();
 
-            // `BY NAME` is an INSERT clause, not a table alias.
+            // `BY NAME` and `OVERRIDING { SYSTEM | USER } VALUE` are INSERT clauses, not table
+            // aliases.
             TableAliasWithoutColumns? tableAlias;
             if (_dialect.SupportsInsertTableAlias
                 && !PeekKeywords(Keyword.BY, Keyword.NAME)
+                && !PeekKeywords(Keyword.OVERRIDING, Keyword.SYSTEM)
+                && !PeekKeywords(Keyword.OVERRIDING, Keyword.USER)
                 && !PeekSubQuery()
                 && PeekOneOfKeywords(Keyword.DEFAULT, Keyword.VALUES) is null)
             {
@@ -217,6 +220,7 @@ public sealed partial class Parser
             var isMysql = _dialect is MySqlDialect;
 
             var byName = false;
+            InsertOverriding? overriding = null;
             // Rust: `let (columns, partitioned, after_columns, output, source, assignments) = if .. { .. } else { .. };`
             // Locais declarados antes e atribuídos em cada ramo (decisão 7 da B2). A tupla interna
             // `(columns, partitioned, after_columns)` do ramo `else` tem os mesmos nomes e é atribuída direto.
@@ -261,6 +265,8 @@ public sealed partial class Parser
                     partitioned = null;
                     afterColumns = Sequence<Ident>.Empty;
                 }
+
+                overriding = ParseInsertOverriding();
 
                 output = MaybeParseOutputClause();
 
@@ -409,6 +415,7 @@ public sealed partial class Parser
                 Partitioned: partitioned,
                 Columns: columns,
                 AfterColumns: afterColumns,
+                Overriding: overriding,
                 Source: source,
                 Assignments: assignments,
                 HasTableKeyword: table,
@@ -508,6 +515,30 @@ public sealed partial class Parser
         }
     }
 
+    /// <summary>Parse PostgreSQL's <c>OVERRIDING { SYSTEM | USER } VALUE</c> in an <c>INSERT</c>, if present.</summary>
+    internal InsertOverriding? ParseInsertOverriding()
+    {
+        if (!ParseKeyword(Keyword.OVERRIDING))
+        {
+            return null;
+        }
+        InsertOverriding overriding;
+        if (ParseKeyword(Keyword.SYSTEM))
+        {
+            overriding = new InsertOverriding.System();
+        }
+        else if (ParseKeyword(Keyword.USER))
+        {
+            overriding = new InsertOverriding.User();
+        }
+        else
+        {
+            return ExpectedRef<InsertOverriding>("SYSTEM or USER", PeekTokenRef());
+        }
+        ExpectKeywordIs(Keyword.VALUE);
+        return overriding;
+    }
+
     /// <summary>Parse an optional <c>PARTITION (...)</c> clause for INSERT statements.</summary>
     public Sequence<Expr>? ParseInsertPartition()
     {
@@ -553,6 +584,7 @@ public sealed partial class Parser
         var optimizerHints = MaybeParseOptimizerHints();
         var @or = ParseConflictClause();
         var table = ParseTableAndJoins();
+        var onCluster = ParseOptionalOnCluster();
         UpdateTableFromKind? fromBeforeSet;
         if (ParseKeyword(Keyword.FROM))
         {
@@ -615,10 +647,12 @@ public sealed partial class Parser
         {
             limit = null;
         }
+        var settings = ParseSettings();
         return Statement.From(new Update(
             UpdateToken: AttachedToken.From(updateToken),
             OptimizerHints: optimizerHints,
             Table: table,
+            OnCluster: onCluster,
             Assignments: assignments,
             From: @from,
             Selection: selection,
@@ -626,7 +660,8 @@ public sealed partial class Parser
             Output: output,
             Or: @or,
             OrderBy: orderBy,
-            Limit: limit));
+            Limit: limit,
+            Settings: settings));
     }
 
     /// <summary>Parse a <c>var = expr</c> assignment, used in an UPDATE statement</summary>

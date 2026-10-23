@@ -60,6 +60,10 @@ namespace LeptonTech.SqlParser.Core.Ast;
 /// </param>
 /// <param name="Partitioned">partitioned insert (Hive)</param>
 /// <param name="AfterColumns">Columns defined after PARTITION</param>
+/// <param name="Overriding">
+/// PostgreSQL <c>OVERRIDING { SYSTEM | USER } VALUE</c>, between the column list and the source.
+/// <para>See <see href="https://www.postgresql.org/docs/current/sql-insert.html"/></para>
+/// </param>
 /// <param name="HasTableKeyword">whether the insert has the table keyword (Hive)</param>
 /// <param name="On">ON INSERT</param>
 /// <param name="Returning">RETURNING</param>
@@ -119,6 +123,7 @@ public sealed partial record Insert(
     Sequence<Assignment> Assignments,
     Sequence<Expr>? Partitioned,
     Sequence<Ident> AfterColumns,
+    InsertOverriding? Overriding,
     bool HasTableKeyword,
     OnInsert? On,
     Sequence<SelectItem>? Returning,
@@ -225,6 +230,12 @@ public sealed partial record Insert(
         if (!AfterColumns.IsEmpty)
         {
             f.Write($"({DisplayCommaSeparated(AfterColumns)})");
+            SpaceOrNewline.Instance.Fmt(f);
+        }
+
+        if (Overriding is { } overriding)
+        {
+            f.Write($"{overriding}");
             SpaceOrNewline.Instance.Fmt(f);
         }
 

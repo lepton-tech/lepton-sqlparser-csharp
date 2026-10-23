@@ -640,7 +640,8 @@ public abstract partial record Statement
     /// </para>
     /// </summary>
     /// <param name="Stmts">Cursor declaration statements collected by <c>DECLARE</c>.</param>
-    public sealed record Declare(Sequence<Ast.Declare> Stmts) : Statement;
+    /// <param name="Separator">Separator between <c>stmts</c> in the rendered SQL.</param>
+    public sealed record Declare(Sequence<Ast.Declare> Stmts, DeclareSeparator Separator) : Statement;
 
     /// <summary>
     /// <code>

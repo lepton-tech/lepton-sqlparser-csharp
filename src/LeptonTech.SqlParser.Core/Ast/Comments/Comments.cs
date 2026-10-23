@@ -63,6 +63,54 @@ public sealed class Comments
         }
     }
 
+    /// <summary>Finds comments immediately before the token starting at <c>location</c>, in source order.</summary>
+    /// <example>
+    /// <code>
+    /// use sqlparser::{dialect::GenericDialect, parser::Parser, tokenizer::Location};
+    ///
+    /// let sql = r#"SELECT 1; -- one
+    /// -- two
+    /// SELECT 2"#;
+    /// let (_, comments) = Parser::parse_sql_with_comments(&amp;GenericDialect, sql).unwrap();
+    ///
+    /// let second = Location::new(3, 1);
+    /// assert_eq!(
+    ///    &amp;comments.find_before(second).map(|c| c.as_str()).collect::&lt;Vec&lt;_&gt;&gt;(),
+    ///    &amp;[" one", " two"]);
+    /// </code>
+    /// </example>
+    public IEnumerable<CommentWithSpan> FindBefore(Location location)
+    {
+        var end = EndIndex(new Bound<Location>.Excluded(location));
+        var lo = 0;
+        var hi = end;
+        while (lo < hi)
+        {
+            var mid = lo + (hi - lo) / 2;
+            if (_value[mid].NextTokenStart != location)
+            {
+                lo = mid + 1;
+            }
+            else
+            {
+                hi = mid;
+            }
+        }
+        var start = lo;
+        for (var i = start; i < end; i++)
+        {
+            yield return _value[i];
+        }
+    }
+
+    internal void SetNextTokenStart(Location nextTokenStart)
+    {
+        for (var i = _value.Count - 1; i >= 0 && _value[i].NextTokenStart is null; i--)
+        {
+            _value[i] = _value[i] with { NextTokenStart = nextTokenStart };
+        }
+    }
+
     /// <summary>Find the index of the first comment starting "before" the given location.</summary>
     /// <remarks>The returned index is _inclusive_ and within the range of <c>0..=self.0.len()</c>.</remarks>
     private int StartIndex(Bound<Location> location)
@@ -143,8 +191,10 @@ public sealed class Comments
 /// <summary>A source code comment with information of its entire span.</summary>
 /// <param name="Comment">The source code comment iself</param>
 /// <param name="Span">The span of the comment including its markers</param>
+/// <param name="PrevTokenEnd">End of the previous non-whitespace source token, or <c>None</c> before the first token.</param>
+/// <param name="NextTokenStart">Start of the next non-whitespace source token, or <c>None</c> after the last token.</param>
 // `impl Deref for CommentWithSpan` (→ `Comment`) não é traduzido: use Comment (caso 34).
-public sealed partial record CommentWithSpan(Comment Comment, Span Span);
+public sealed partial record CommentWithSpan(Comment Comment, Span Span, Location? PrevTokenEnd, Location? NextTokenStart);
 
 /// <summary>A unified type of the different source code comment formats.</summary>
 public abstract record Comment

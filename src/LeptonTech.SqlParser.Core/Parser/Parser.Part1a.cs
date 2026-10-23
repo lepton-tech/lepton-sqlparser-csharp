@@ -1031,7 +1031,7 @@ public sealed partial class Parser
         static bool Validator(bool @explicit, Keyword kw, Parser _parser) =>
             @explicit || !ParseExprWithAliasAndOrderByValidatorKeywords.Contains(kw);
 
-        var alias = ParseOptionalAliasInner(null, Validator);
+        var alias = ParseOptionalAliasInner(null, AliasKind.Column, Validator);
         var orderBy = new OrderByOptions(
             Sort: ParseOptionalOrderBySort(),
             NullsFirst: null);

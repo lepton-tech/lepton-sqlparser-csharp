@@ -1067,20 +1067,10 @@ public class SqlParserPostgresTests2
         foreach (var negatableKw in negatables)
         {
             sql = $"CREATE ROLE abc {negatableKw} NO{negatableKw}";
-            bool isOk;
-            try
-            {
-                Pg().ParseSqlStatements(sql);
-                isOk = true;
-            }
-            catch (ParserException)
-            {
-                isOk = false;
-            }
-            if (isOk)
-            {
-                Assert.Fail($"Should not be able to parse CREATE ROLE containing both negated and non-negated versions of the same keyword: {negatableKw}");
-            }
+            Assert.Equal(
+                Assert.Throws<ParserException>(() => Pg().ParseSqlStatements(sql)).Error,
+                new ParserError.ParserErrorValue(
+                    $"Found multiple {negatableKw} or NO{negatableKw}"));
         }
     }
 
@@ -1517,7 +1507,9 @@ public class SqlParserPostgresTests2
                 RemoteConnection: null)));
 
         var incorrectSql = "CREATE FUNCTION add(function(struct<a,b> int64), b INTEGER) RETURNS INTEGER LANGUAGE SQL IMMUTABLE STRICT PARALLEL SAFE AS 'select $1 + $2;'";
-        Assert.Throws<ParserException>(() => Pg().ParseSqlStatements(incorrectSql));
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => Pg().ParseSqlStatements(incorrectSql)).Error,
+            new ParserError.ParserErrorValue("Expected: type modifiers, found: <"));
     }
 
     [Fact]
@@ -1667,7 +1659,10 @@ public class SqlParserPostgresTests2
     public void parse_incorrect_create_function_parallel()
     {
         var sql = "CREATE FUNCTION add(INTEGER, INTEGER) RETURNS INTEGER LANGUAGE SQL PARALLEL BLAH AS 'select $1 + $2;'";
-        Assert.Throws<ParserException>(() => Pg().ParseSqlStatements(sql));
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => Pg().ParseSqlStatements(sql)).Error,
+            new ParserError.ParserErrorValue(
+                "Expected: one of UNSAFE | RESTRICTED | SAFE, found: BLAH"));
     }
 
     [Fact]
@@ -1947,14 +1942,26 @@ public class SqlParserPostgresTests2
     [Fact]
     public void parse_incorrect_dollar_quoted_string()
     {
-        var sql = "SELECT $x$hello$$";
-        Assert.Throws<ParserException>(() => Pg().ParseSqlStatements(sql));
-
-        sql = "SELECT $hello$$";
-        Assert.Throws<ParserException>(() => Pg().ParseSqlStatements(sql));
-
-        sql = "SELECT $$$";
-        Assert.Throws<ParserException>(() => Pg().ParseSqlStatements(sql));
+        foreach (var (sql, expected) in new (string, string)[]
+        {
+            (
+                "SELECT $x$hello$$",
+                "Unterminated dollar-quoted, expected $ at Line: 1, Column: 18"
+            ),
+            (
+                "SELECT $hello$$",
+                "Unterminated dollar-quoted, expected $ at Line: 1, Column: 16"
+            ),
+            (
+                "SELECT $$$",
+                "Unterminated dollar-quoted string at Line: 1, Column: 11"
+            ),
+        })
+        {
+            Assert.Equal(
+                Assert.Throws<ParserException>(() => Pg().ParseSqlStatements(sql)).Error,
+                new ParserError.TokenizerError(expected));
+        }
     }
 
     [Fact]
@@ -2380,6 +2387,7 @@ public class SqlParserPostgresTests2
                 Assignments: Sequence<Assignment>.Empty,
                 Partitioned: null,
                 AfterColumns: Sequence<Ident>.Empty,
+                Overriding: null,
                 HasTableKeyword: false,
                 On: null,
                 Returning: null,
@@ -2442,6 +2450,7 @@ public class SqlParserPostgresTests2
                 Assignments: Sequence<Assignment>.Empty,
                 Partitioned: null,
                 AfterColumns: Sequence<Ident>.Empty,
+                Overriding: null,
                 HasTableKeyword: false,
                 On: null,
                 Returning: null,

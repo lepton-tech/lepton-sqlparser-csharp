@@ -501,7 +501,7 @@ public sealed partial record CreateTable : ISpanned
         //     file_format: _,       // enum
         //     location: _,          // string, no span
         //     query,
-        //     without_rowid: _, // bool
+        //     sqlite_table_options: _, // keywords, no span
         //     like: _,
         //     clone,
         //     comment: _, // todo, no span
@@ -515,7 +515,6 @@ public sealed partial record CreateTable : ISpanned
         //     inherits: _,     // todo, PostgreSQL specific
         //     partition_of,
         //     for_values,
-        //     strict: _,                          // bool
         //     copy_grants: _,                     // bool
         //     enable_schema_evolution: _,         // bool
         //     change_tracking: _,                 // bool
@@ -928,12 +927,14 @@ public sealed partial record Delete : ISpanned
         //     optimizer_hints: _,
         //     tables,
         //     from,
+        //     on_cluster,
         //     using,
         //     selection,
         //     returning,
         //     output,
         //     order_by,
         //     limit,
+        //     settings,
         // } = self;
 
         return UnionSpans(
@@ -941,6 +942,7 @@ public sealed partial record Delete : ISpanned
                 Tables
                     .Select(i => i.Span())
                     .Concat(Once(From.Span()))
+                    .Concat(OptionIter(OnCluster).Select(i => i.Span))
                     .Concat(
                         OptionIter(Using)
                             .Select(u => UnionSpans(u.Select(i => i.Span()))))
@@ -948,7 +950,8 @@ public sealed partial record Delete : ISpanned
                     .Concat(OptionIter(Returning).SelectMany(i => i.Select(k => k.Span())))
                     .Concat(OptionIter(Output).Select(i => i.Span()))
                     .Concat(OrderBy.Select(i => i.Span()))
-                    .Concat(OptionIter(Limit).Select(i => i.Span()))));
+                    .Concat(OptionIter(Limit).Select(i => i.Span()))
+                    .Concat(OptionIter(Settings).SelectMany(i => i).Select(i => i.Span()))));
     }
 }
 
@@ -961,6 +964,7 @@ public sealed partial record Update : ISpanned
         //     update_token,
         //     optimizer_hints: _,
         //     table,
+        //     on_cluster,
         //     assignments,
         //     from,
         //     selection,
@@ -969,17 +973,20 @@ public sealed partial record Update : ISpanned
         //     or: _,
         //     order_by,
         //     limit,
+        //     settings,
         // } = self;
 
         return UnionSpans(
             Once(Table.Span())
                 .Concat(Once(UpdateToken.Value.Span))
+                .Concat(OptionIter(OnCluster).Select(i => i.Span))
                 .Concat(Assignments.Select(i => i.Span()))
                 .Concat(OptionIter(From).Select(i => i.Span()))
                 .Concat(OptionIter(Selection).Select(i => i.Span()))
                 .Concat(OptionIter(Returning).SelectMany(i => i.Select(k => k.Span())))
                 .Concat(OptionIter(Output).Select(i => i.Span()))
                 .Concat(OrderBy.Select(i => i.Span()))
-                .Concat(OptionIter(Limit).Select(i => i.Span())));
+                .Concat(OptionIter(Limit).Select(i => i.Span()))
+                .Concat(OptionIter(Settings).SelectMany(i => i).Select(i => i.Span())));
     }
 }

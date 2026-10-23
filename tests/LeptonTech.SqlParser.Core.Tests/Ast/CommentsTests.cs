@@ -38,16 +38,24 @@ public class CommentsTests
         var comments = new Comments();
         comments.Offer(new CommentWithSpan(
             Comment: new Comment.SingleLine(Content: " abc", Prefix: "--"),
-            Span: new Span(Location.From((1, 1)), Location.From((1, 7)))));
+            Span: new Span(Location.From((1, 1)), Location.From((1, 7))),
+            PrevTokenEnd: null,
+            NextTokenStart: null));
         comments.Offer(new CommentWithSpan(
             Comment: new Comment.MultiLine(" hello "),
-            Span: new Span(Location.From((2, 3)), Location.From((2, 14)))));
+            Span: new Span(Location.From((2, 3)), Location.From((2, 14))),
+            PrevTokenEnd: null,
+            NextTokenStart: null));
         comments.Offer(new CommentWithSpan(
             Comment: new Comment.SingleLine(Content: ", world", Prefix: "--"),
-            Span: new Span(Location.From((2, 14)), Location.From((2, 21)))));
+            Span: new Span(Location.From((2, 14)), Location.From((2, 21))),
+            PrevTokenEnd: null,
+            NextTokenStart: null));
         comments.Offer(new CommentWithSpan(
             Comment: new Comment.MultiLine(" def\n ghi\n jkl\n"),
-            Span: new Span(Location.From((3, 3)), Location.From((7, 1)))));
+            Span: new Span(Location.From((3, 3)), Location.From((7, 1))),
+            PrevTokenEnd: null,
+            NextTokenStart: null));
 
         // ~ end-points only --------------------------------------------------
         Assert.Equal(Find(comments, RangeBounds.RangeTo(new Location(0, 0))), new List<string>());
@@ -108,4 +116,64 @@ public class CommentsTests
 
     private static List<string> Find(Comments comments, RangeBounds<Location> range) =>
         comments.Find(range).Select(c => c.Comment.AsStr()).ToList();
+
+    [Fact]
+    public void test_find_before()
+    {
+        var firstToken = new Location(2, 1);
+        var secondToken = new Location(4, 1);
+        var comments = new Comments();
+        foreach (var comment in new[]
+        {
+            new CommentWithSpan(
+                Comment: new Comment.SingleLine(Content: " first", Prefix: "--"),
+                Span: new Span(Location.From((1, 1)), Location.From((1, 9))),
+                PrevTokenEnd: null,
+                NextTokenStart: firstToken),
+            new CommentWithSpan(
+                Comment: new Comment.SingleLine(Content: " second", Prefix: "--"),
+                Span: new Span(Location.From((2, 11)), Location.From((2, 20))),
+                PrevTokenEnd: new Location(2, 10),
+                NextTokenStart: secondToken),
+            new CommentWithSpan(
+                Comment: new Comment.SingleLine(Content: " third", Prefix: "--"),
+                Span: new Span(Location.From((3, 1)), Location.From((3, 9))),
+                PrevTokenEnd: new Location(2, 10),
+                NextTokenStart: secondToken),
+            new CommentWithSpan(
+                Comment: new Comment.SingleLine(Content: " tail", Prefix: "--"),
+                Span: new Span(Location.From((4, 11)), Location.From((4, 18))),
+                PrevTokenEnd: new Location(4, 10),
+                NextTokenStart: null),
+        })
+        {
+            comments.Offer(comment);
+        }
+
+        static List<string> FindBefore(Comments comments, Location location) =>
+            comments.FindBefore(location).Select(c => c.Comment.AsStr()).ToList();
+
+        Assert.Equal(FindBefore(comments, firstToken), new List<string> { " first" });
+        Assert.Equal(
+            FindBefore(comments, secondToken),
+            new List<string> { " second", " third" });
+        foreach (var location in new[]
+        {
+            new Location(0, 0),
+            new Location(1, 3),
+            new Location(2, 8),
+            new Location(3, 12),
+            new Location(4, 3),
+            new Location(5, 1),
+        })
+        {
+            TestUtils.AssertEqualWithMessage(
+                FindBefore(comments, location),
+                new List<string>(),
+                location.ToDebugString());
+        }
+        Assert.Equal(
+            FindBefore(new Comments(), firstToken),
+            new List<string>());
+    }
 }

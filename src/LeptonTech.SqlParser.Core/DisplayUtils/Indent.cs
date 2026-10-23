@@ -46,15 +46,22 @@ internal sealed class Indent<T> : IDisplay, IFmtWrite
     }
 
     /// <summary>Adds an indent to the inner writer</summary>
-    public void WriteStr(string s)
+    public bool WriteStr(string s)
     {
         var inner = (IFmtWrite)Value!;
-        inner.WriteStr(s);
+        if (!inner.WriteStr(s))
+        {
+            return false;
+        }
         // Our NewLine and SpaceOrNewline utils always print individual newlines as a single-character string.
         if (s == "\n")
         {
-            inner.WriteStr(DisplayUtils.INDENT);
+            if (!inner.WriteStr(DisplayUtils.INDENT))
+            {
+                return false;
+            }
         }
+        return true;
     }
 
     public override string ToString() => Formatter.Format(this);

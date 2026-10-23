@@ -165,7 +165,10 @@ public class SqlParserCustomDialectTests
     {
         var dialect = new TestMapSyntaxNotSupportDefault.MyDialect();
         var sql = "SELECT MAP {1: 2}";
-        Assert.Throws<ParserException>(() => Parser.ParseSql(dialect, sql)); // assert!(ast.is_err())
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => Parser.ParseSql(dialect, sql)).Error,
+            new ParserError.ParserErrorValue(
+                "Expected: end of statement, found: { at Line: 1, Column: 12"));
     }
 
     private static class CustomDialectSupportsTablePartitions
@@ -201,8 +204,10 @@ public class SqlParserCustomDialectTests
         Assert.Equal(sql, $"{ast[0]}");
 
         // A dialect that does not opt in still rejects the clause.
-        // assert!(Parser::parse_sql(&WithoutPartitions {}, sql).is_err())
-        Assert.Throws<ParserException>(() => Parser.ParseSql(new CustomDialectSupportsTablePartitions.WithoutPartitions(), sql));
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => Parser.ParseSql(new CustomDialectSupportsTablePartitions.WithoutPartitions(), sql)).Error,
+            new ParserError.ParserErrorValue(
+                "Expected: end of statement, found: PARTITION at Line: 1, Column: 25"));
     }
 
     private static bool IsIdentifierStart(char ch) =>
@@ -324,7 +329,9 @@ public class SqlParserCustomDialectTests
         Assert.Equal(
             sql,
             $"{Parser.ParseSql(dialect, sql)[0]}");
-        // assert!(Parser::parse_sql(..).is_err())
-        Assert.Throws<ParserException>(() => Parser.ParseSql(dialect, "SELECT transform(xs, lambda x : x + 1)"));
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => Parser.ParseSql(dialect, "SELECT transform(xs, lambda x : x + 1)")).Error,
+            new ParserError.ParserErrorValue(
+                "Expected: ), found: x at Line: 1, Column: 29"));
     }
 }

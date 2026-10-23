@@ -258,7 +258,7 @@ namespace LeptonTech.SqlParser.Core.Ast
                 flow = x10.Visit(visitor);
                 if (flow.IsBreak) return flow;
             }
-            // WithoutRowid: nenhum gancho alcançável
+            // SqliteTableOptions: nenhum gancho alcançável
             // Like
             if (this.Like is { } x11)
             {
@@ -342,7 +342,6 @@ namespace LeptonTech.SqlParser.Core.Ast
                 flow = x25.Visit(visitor);
                 if (flow.IsBreak) return flow;
             }
-            // Strict: nenhum gancho alcançável
             // CopyGrants: nenhum gancho alcançável
             // EnableSchemaEvolution: nenhum gancho alcançável
             // ChangeTracking: nenhum gancho alcançável
@@ -559,7 +558,7 @@ namespace LeptonTech.SqlParser.Core.Ast
                 if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(x17, node.Query)) node = node with { Query = x17 };
                 if (flow.IsBreak) return flow;
             }
-            // WithoutRowid: nenhum gancho alcançável
+            // SqliteTableOptions: nenhum gancho alcançável
             // Like
             {
                 var x19 = node.Like;
@@ -712,7 +711,6 @@ namespace LeptonTech.SqlParser.Core.Ast
                 if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(x45, node.ForValues)) node = node with { ForValues = x45 };
                 if (flow.IsBreak) return flow;
             }
-            // Strict: nenhum gancho alcançável
             // CopyGrants: nenhum gancho alcançável
             // EnableSchemaEvolution: nenhum gancho alcançável
             // ChangeTracking: nenhum gancho alcançável

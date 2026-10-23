@@ -190,29 +190,12 @@ public abstract partial record Expr : IDisplay
     /// <param name="Negated"><c>true</c> when <c>NOT</c> is present.</param>
     public sealed record IsNormalized(Expr Expr, NormalizationForm? Form, bool Negated) : Expr;
 
-    /// <summary><c>[ GLOBAL ] [ NOT ] IN (val1, val2, ...)</c></summary>
+    /// <summary><c>&lt;expr&gt; [ GLOBAL ] [ NOT ] IN &lt;target&gt;</c></summary>
     /// <param name="Expr">Left-hand expression to test for membership.</param>
-    /// <param name="List">Literal list of expressions to check against.</param>
+    /// <param name="Target">What <c>expr</c> is tested against.</param>
     /// <param name="Negated"><c>true</c> when the <c>NOT</c> modifier is present.</param>
     /// <param name="Global"><c>true</c> when the ClickHouse <c>GLOBAL</c> modifier is present.</param>
-    public sealed record InList(Expr Expr, Sequence<Expr> List, bool Negated, bool Global) : Expr;
-
-    /// <summary><c>[ GLOBAL ] [ NOT ] IN (SELECT ...)</c></summary>
-    /// <param name="Expr">Left-hand expression to test for membership.</param>
-    /// <param name="Subquery">The subquery providing the candidate values.</param>
-    /// <param name="Negated"><c>true</c> when the <c>NOT</c> modifier is present.</param>
-    /// <param name="Global"><c>true</c> when the ClickHouse <c>GLOBAL</c> modifier is present.</param>
-    public sealed record InSubquery(Expr Expr, Query Subquery, bool Negated, bool Global) : Expr
-    {
-        /// <summary>The subquery providing the candidate values.</summary>
-        public new Query Subquery { get; init; } = Subquery;
-    }
-
-    /// <summary><c>[ NOT ] IN UNNEST(array_expression)</c></summary>
-    /// <param name="Expr">Left-hand expression to test for membership.</param>
-    /// <param name="ArrayExpr">Array expression being unnested.</param>
-    /// <param name="Negated"><c>true</c> when the <c>NOT</c> modifier is present.</param>
-    public sealed record InUnnest(Expr Expr, Expr ArrayExpr, bool Negated) : Expr;
+    public sealed record In(Expr Expr, InTarget Target, bool Negated, bool Global) : Expr;
 
     /// <summary><c>&lt;expr&gt; [ NOT ] BETWEEN &lt;low&gt; AND &lt;high&gt;</c></summary>
     /// <param name="Expr">Expression being compared.</param>
@@ -368,7 +351,11 @@ public abstract partial record Expr : IDisplay
     /// <param name="Expr">Expression to search for.</param>
     /// <param name="In">Expression to search in.</param>
     // In: Rust: `r#in`.
-    public sealed record Position(Expr Expr, Expr In) : Expr;
+    public sealed record Position(Expr Expr, Expr In) : Expr
+    {
+        /// <summary>Expression to search in.</summary>
+        public new Expr In { get; init; } = In;
+    }
 
     /// <summary>
     /// <code>

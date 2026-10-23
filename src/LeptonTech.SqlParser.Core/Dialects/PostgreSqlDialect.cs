@@ -45,6 +45,160 @@ public class PostgreSqlDialect : Dialect
         Keyword.VIEW,
     };
 
+    private static readonly Keyword[] ReservedTypeNameKeywords =
+    {
+        Keyword.ALL,
+        Keyword.ANALYZE,
+        Keyword.AND,
+        Keyword.ANY,
+        Keyword.ARRAY,
+        Keyword.AS,
+        Keyword.ASC,
+        Keyword.ASYMMETRIC,
+        Keyword.BOTH,
+        Keyword.CASE,
+        Keyword.CAST,
+        Keyword.CHECK,
+        Keyword.COLLATE,
+        Keyword.COLUMN,
+        Keyword.CONSTRAINT,
+        Keyword.CREATE,
+        Keyword.CURRENT_CATALOG,
+        Keyword.CURRENT_DATE,
+        Keyword.CURRENT_ROLE,
+        Keyword.CURRENT_TIME,
+        Keyword.CURRENT_TIMESTAMP,
+        Keyword.CURRENT_USER,
+        Keyword.DEFAULT,
+        Keyword.DEFERRABLE,
+        Keyword.DESC,
+        Keyword.DISTINCT,
+        Keyword.DO,
+        Keyword.ELSE,
+        Keyword.END,
+        Keyword.EXCEPT,
+        Keyword.FALSE,
+        Keyword.FETCH,
+        Keyword.FOR,
+        Keyword.FOREIGN,
+        Keyword.FROM,
+        Keyword.GRANT,
+        Keyword.GROUP,
+        Keyword.HAVING,
+        Keyword.IN,
+        Keyword.INITIALLY,
+        Keyword.INTERSECT,
+        Keyword.INTO,
+        Keyword.LATERAL,
+        Keyword.LEADING,
+        Keyword.LIMIT,
+        Keyword.LOCALTIME,
+        Keyword.LOCALTIMESTAMP,
+        Keyword.NOT,
+        Keyword.NULL,
+        Keyword.OFFSET,
+        Keyword.ON,
+        Keyword.ONLY,
+        Keyword.OR,
+        Keyword.ORDER,
+        Keyword.PLACING,
+        Keyword.PRIMARY,
+        Keyword.REFERENCES,
+        Keyword.RETURNING,
+        Keyword.SELECT,
+        Keyword.SESSION_USER,
+        Keyword.SOME,
+        Keyword.SYMMETRIC,
+        Keyword.SYSTEM_USER,
+        Keyword.TABLE,
+        Keyword.THEN,
+        Keyword.TO,
+        Keyword.TRAILING,
+        Keyword.TRUE,
+        Keyword.UNION,
+        Keyword.UNIQUE,
+        Keyword.USER,
+        Keyword.USING,
+        Keyword.VARIADIC,
+        Keyword.WHEN,
+        Keyword.WHERE,
+        Keyword.WINDOW,
+        Keyword.WITH,
+    };
+
+    private static readonly Keyword[] ColNameKeywords =
+    {
+        Keyword.BETWEEN,
+        Keyword.BIGINT,
+        Keyword.BIT,
+        Keyword.BOOLEAN,
+        Keyword.CHAR,
+        Keyword.CHARACTER,
+        Keyword.COALESCE,
+        Keyword.DEC,
+        Keyword.DECIMAL,
+        Keyword.EXISTS,
+        Keyword.EXTRACT,
+        Keyword.FLOAT,
+        Keyword.GROUPING,
+        Keyword.INOUT,
+        Keyword.INT,
+        Keyword.INTEGER,
+        Keyword.INTERVAL,
+        Keyword.JSON,
+        Keyword.JSON_TABLE,
+        Keyword.LEAST,
+        Keyword.NATIONAL,
+        Keyword.NCHAR,
+        Keyword.NONE,
+        Keyword.NORMALIZE,
+        Keyword.NULLIF,
+        Keyword.NUMERIC,
+        Keyword.OUT,
+        Keyword.OVERLAY,
+        Keyword.POSITION,
+        Keyword.PRECISION,
+        Keyword.REAL,
+        Keyword.ROW,
+        Keyword.SETOF,
+        Keyword.SMALLINT,
+        Keyword.SUBSTRING,
+        Keyword.TIME,
+        Keyword.TIMESTAMP,
+        Keyword.TREAT,
+        Keyword.TRIM,
+        Keyword.VALUES,
+        Keyword.VARCHAR,
+        Keyword.XMLNAMESPACES,
+        Keyword.XMLTABLE,
+    };
+
+    private static readonly Keyword[] TypeFuncNameKeywords =
+    {
+        Keyword.AUTHORIZATION,
+        Keyword.BINARY,
+        Keyword.COLLATION,
+        Keyword.CONCURRENTLY,
+        Keyword.CROSS,
+        Keyword.CURRENT_SCHEMA,
+        Keyword.FREEZE,
+        Keyword.FULL,
+        Keyword.ILIKE,
+        Keyword.INNER,
+        Keyword.IS,
+        Keyword.JOIN,
+        Keyword.LEFT,
+        Keyword.LIKE,
+        Keyword.NATURAL,
+        Keyword.NOTNULL,
+        Keyword.OUTER,
+        Keyword.OVERLAPS,
+        Keyword.RIGHT,
+        Keyword.SIMILAR,
+        Keyword.TABLESAMPLE,
+        Keyword.VERBOSE,
+    };
+
     private const byte PeriodPrec = 200;
     private const byte DoubleColonPrec = 140;
     private const byte BracketPrec = 130;
@@ -62,6 +216,8 @@ public class PostgreSqlDialect : Dialect
     private const byte NotPrec = 30;
     private const byte AndPrec = 20;
     private const byte OrPrec = 10;
+
+    public override bool SupportsCteMaterialization => true;
 
     public override char? IdentifierQuoteStyle(string identifier) => '"';
 
@@ -94,6 +250,18 @@ public class PostgreSqlDialect : Dialect
     public override bool IsTableAlias(Keyword kw, Parser parser) =>
         !Keywords.ReservedForTableAlias.Contains(kw)
             || ReservedExclusionsForTableAlias.Contains(kw);
+
+    /// <summary>
+    /// Aliases are identifiers, see <c>output_name</c> and <c>alias</c> in
+    /// <see href="https://www.postgresql.org/docs/current/sql-select.html"/>
+    /// </summary>
+    public override bool SupportsStringLiteralColumnAlias(bool @explicit) => false;
+
+    /// <summary>
+    /// Aliases are identifiers, see <c>alias</c> in
+    /// <see href="https://www.postgresql.org/docs/current/sql-select.html"/>
+    /// </summary>
+    public override bool SupportsStringLiteralTableAlias(bool @explicit) => false;
 
     /// <summary>
     /// See <see href="https://www.postgresql.org/docs/current/sql-createoperator.html"/>
@@ -258,6 +426,9 @@ public class PostgreSqlDialect : Dialect
     /// <code>
     /// SELECT from table_name
     /// </code>
+    /// <para>
+    /// The target list is optional in <see href="https://www.postgresql.org/docs/current/sql-select.html"/>
+    /// </para>
     /// </summary>
     public override bool SupportsEmptyProjections => true;
 
@@ -310,6 +481,18 @@ public class PostgreSqlDialect : Dialect
 
     public override bool SupportsXmlExpressions => true;
 
+    /// <summary>
+    /// See <see href="https://www.postgresql.org/docs/current/sql-keywords-appendix.html"/>.
+    /// </summary>
+    public override bool IsCustomTypeTypedString(Keyword firstKeyword, bool qualified)
+    {
+        var notATypeName = qualified
+            ? TypeFuncNameKeywords
+            : ColNameKeywords;
+        return !ReservedTypeNameKeywords.Contains(firstKeyword)
+            && !notATypeName.Contains(firstKeyword);
+    }
+
     public override bool SupportsAliasedFunctionArgs => true;
 
     /// <summary>
@@ -320,4 +503,9 @@ public class PostgreSqlDialect : Dialect
     /// </para>
     /// </summary>
     public override bool SupportsCommentOptimizerHint => true;
+
+    /// <summary>
+    /// See <see href="https://www.postgresql.org/docs/current/sql-altertable.html"/>
+    /// </summary>
+    public override bool SupportsAddColumnIfNotExists => true;
 }

@@ -1020,12 +1020,14 @@ public class SqlParserSnowflakeTests1
     [Fact]
     public void parse_sf_create_or_replace_view_with_comment_missing_equal()
     {
-        // assert!(..is_ok()): se lançar, o teste falha
-        _ = SnowflakeAndGeneric()
-            .ParseSqlStatements("CREATE OR REPLACE VIEW v COMMENT = 'hello, world' AS SELECT 1");
+        SnowflakeAndGeneric()
+            .VerifiedStmt("CREATE OR REPLACE VIEW v COMMENT = 'hello, world' AS SELECT 1");
 
-        Assert.Throws<ParserException>(() => SnowflakeAndGeneric()
-            .ParseSqlStatements("CREATE OR REPLACE VIEW v COMMENT 'hello, world' AS SELECT 1"));
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => SnowflakeAndGeneric()
+                .ParseSqlStatements("CREATE OR REPLACE VIEW v COMMENT 'hello, world' AS SELECT 1")).Error,
+            new ParserError.ParserErrorValue(
+                "Expected: =, found: 'hello, world'"));
     }
 
     [Fact]

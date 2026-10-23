@@ -434,7 +434,7 @@ public sealed partial class Parser
         static bool Validator(bool @explicit, Keyword kw, Parser parser) =>
             // ~ for a PIVOT aggregate function the alias must not be a "FOR"; in any dialect
             kw != Keyword.FOR && parser._dialect.IsSelectItemAlias(@explicit, kw, parser);
-        var alias = ParseOptionalAliasInner(null, Validator);
+        var alias = ParseOptionalAliasInner(null, AliasKind.Column, Validator);
         return new ExprWithAlias(Expr: expr, Alias: alias);
     }
 
@@ -584,7 +584,16 @@ public sealed partial class Parser
         else if (ParseKeyword(Keyword.USING))
         {
             var columns = ParseParenthesizedQualifiedColumnList(IsOptional.Mandatory, false);
-            return new JoinConstraint.Using(columns);
+            if (ParseKeyword(Keyword.AS))
+            {
+                return new JoinConstraint.UsingAlias(
+                    columns,
+                    ParseIdentifier());
+            }
+            else
+            {
+                return new JoinConstraint.Using(columns);
+            }
         }
         else
         {

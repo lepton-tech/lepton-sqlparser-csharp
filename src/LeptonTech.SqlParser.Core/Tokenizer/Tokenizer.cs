@@ -36,6 +36,9 @@ namespace LeptonTech.SqlParser.Core;
 // `unescape_single_quoted_string`...) são membros estáticos desta classe (convencoes.md §13 #5).
 public class Tokenizer
 {
+    /// <summary>Chars that may join a preceding <c>-</c> or <c>!</c> into one token.</summary>
+    internal const string OperatorChars = "+-*/<>=~!@%#^&|";
+
     /// <summary>Case-insensitive keyword lookup using binary search over <c>ALL_KEYWORDS</c>.</summary>
     // Rust: função livre privada do módulo (declarada antes de `struct Tokenizer`) → internal static.
     // A comparação é a do Rust: bytes do keyword contra `to_ascii_uppercase` dos bytes da palavra.
@@ -310,6 +313,10 @@ public class Tokenizer
 
         switch (ch)
         {
+            case var c when prevToken is Token.Period
+                && (RustChar.IsAsciiLowercase(c) || RustChar.IsAsciiUppercase(c))
+                && _dialect.SupportsLiteralPrefixInQualifiedName:
+                return TokenizeIdentifierOrKeyword(new[] { c }, chars);
             case ' ':
                 return ConsumeAndReturn(chars, new Token.Whitespace(new Whitespace.Space()));
             case '\t':
@@ -1082,9 +1089,11 @@ public class Tokenizer
                 return ConsumeAndReturn(chars, new Token.LBrace());
             case '}':
                 return ConsumeAndReturn(chars, new Token.RBrace());
-            case '#' when _dialect is SnowflakeDialect or BigQueryDialect or MySqlDialect or HiveDialect:
+            case '#' when _dialect.SupportsHashComment
+                && (!_dialect.RequiresHashCommentSpace
+                    || chars.Peekable.Nth(1) is ' ' or '!'):
             {
-                chars.Next(); // consume the '#', starting a snowflake single-line comment
+                chars.Next(); // consume the '#', starting a single-line comment
                 var comment = TokenizeSingleLineComment(chars);
                 return new Token.Whitespace(new Whitespace.SingleLineComment(comment, "#"));
             }
@@ -1815,6 +1824,10 @@ public class Tokenizer
             }
             else
             {
+                if (_dialect.SupportsUnterminatedBlockComments)
+                {
+                    return new Token.Whitespace(new Whitespace.MultiLineComment(s.ToString()));
+                }
                 return TokenizerErrorAt<Token?>(
                     chars.Location(),
                     "Unexpected EOF while in a multi-line comment");

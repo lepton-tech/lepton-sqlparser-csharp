@@ -148,8 +148,13 @@ public abstract partial record Statement : IDisplay
                 break;
             case Declare declare:
             {
-                f.Write($"DECLARE ");
-                f.Write($"{DisplaySeparated(declare.Stmts, "; ")}");
+                var sep = declare.Separator switch
+                {
+                    DeclareSeparator.Comma => ", ",
+                    DeclareSeparator.Semicolon => "; ",
+                    _ => throw new InvalidOperationException($"Variante de DeclareSeparator não tratada: {declare.Separator}"),
+                };
+                f.Write($"DECLARE {DisplaySeparated(declare.Stmts, sep)}");
                 break;
             }
             case Fetch fetch:
@@ -431,10 +436,7 @@ public abstract partial record Statement : IDisplay
             case CreateMacro createMacro:
             {
                 f.Write($"CREATE {(createMacro.OrReplace ? "OR REPLACE " : "")}{(createMacro.Temporary ? "TEMPORARY " : "")}MACRO {createMacro.Name}");
-                if (createMacro.Args is { } args)
-                {
-                    f.Write($"({DisplayCommaSeparated(args)})");
-                }
+                f.Write($"({DisplayCommaSeparated(createMacro.Args ?? Sequence<MacroArg>.Empty)})");
                 switch (createMacro.Definition)
                 {
                     case MacroDefinition.Expr expr:

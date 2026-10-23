@@ -42,6 +42,8 @@ public class GenericDialect : Dialect
 
     public override bool SupportsUnicodeStringLiteral => true;
 
+    public override bool SupportsLiteralPrefixInQualifiedName => true;
+
     public override bool SupportsPartitionByAfterOrderBy => true;
 
     public override bool SupportsArrayJoinSyntax => true;
@@ -136,6 +138,8 @@ public class GenericDialect : Dialect
 
     public override bool SupportsDataTypeSignedSuffix => true;
 
+    public override bool SupportsDataTypeZerofillSuffix => true;
+
     public override bool SupportsIntervalOptions => true;
 
     public override bool SupportsQuoteDelimitedString => true;
@@ -183,4 +187,6 @@ public class GenericDialect : Dialect
     public override bool SupportsAliasedFunctionArgs => true;
 
     public override bool SupportsAlterColumnPosition => true;
+
+    public override bool SupportsAddColumnIfNotExists => true;
 }

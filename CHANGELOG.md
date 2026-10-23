@@ -6,6 +6,26 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). A
 
 ## [Não lançado]
 
+Sincronização com o sqlparser-rs até o commit `9119ec6` (Rodada 2: 46 PRs depois de `dacdbc9`; não há tag nova do Rust). Detalhes por PR em `docs/port/upstream-ledger.md`; impacto na API em [ADR-0009](docs/adr/0009-api-publica-fase-2.md), "Impacto da Rodada 2".
+
+### Adicionado
+
+- MySQL: `ZEROFILL` nos tipos numéricos.
+- PostgreSQL: `INSERT .. OVERRIDING { SYSTEM | USER } VALUE`, `JOIN .. USING (..) AS alias`, `SELECT` sem lista de colunas, literais tipados com tipo customizado (`mood 'happy'`) e chamadas qualificadas de funções com nome de palavra-chave (`pg_catalog.floor(3)`).
+- ClickHouse: `ON CLUSTER` e `SETTINGS` em `DELETE` e `UPDATE`; comentários `# ..` (com espaço ou `!` depois do `#`); `$` em identificadores.
+- SQLite: lista de opções de tabela separada por vírgula (`WITHOUT ROWID, STRICT`), `$` em identificadores, `FROM (t)`, comentário de bloco sem fechamento no fim da entrada, `&` e `|` com a mesma precedência.
+- Snowflake: `ALTER TABLE .. ADD COLUMN IF NOT EXISTS`.
+- DuckDB: `WITH .. AS [NOT] MATERIALIZED`.
+- `OVER (nome ..)` aceita nomes de janela que são palavras-chave; `Comments.FindBefore(Location)` e as posições dos tokens vizinhos em cada comentário (`CommentWithSpan.PrevTokenEnd`/`NextTokenStart`).
+
+### Alterado
+
+- **Quebra de compatibilidade (Core):** `Expr.InList`, `Expr.InSubquery` e `Expr.InUnnest` viram `Expr.In` com `InTarget`; campos novos nos records `Insert`, `Delete`, `Update`, `Statement.Declare` e `CommentWithSpan`; `CreateTable.WithoutRowid`/`Strict` viram `SqliteTableOptions` (também no `CreateTableBuilder`); o `enum` `Keyword` foi renumerado (`OVERRIDING`, `ZEROFILL`); `IFmtWrite.WriteStr` e os métodos de escrita do `Formatter` devolvem `bool` (o `fmt::Result` do Rust) em vez de `void`. Lista completa no ADR-0009.
+- Aliases com string literal (`SELECT 1 AS 'x'`, `FROM t 'y'`) passam a seguir cada banco: recusados no PostgreSQL, Spark, Databricks, Hive e ClickHouse; só depois de `AS` no DuckDB; só no `SELECT` no MySQL.
+- MySQL: `&&` com a precedência de `AND`; `t.x'ff'` lê `x` como coluna (com o alias `'ff'`), não como literal hexadecimal.
+- SQL gerado: `DECLARE` do MsSql com vírgulas, `CREATE MACRO` sempre com parênteses, nome do `ENGINE` com as aspas originais, espaço depois de `-`/`!` prefixo decidido pelo primeiro caractere renderizado.
+- As mensagens de erro foram conferidas uma a uma contra as asserções exatas que o upstream acrescentou aos testes (#2628–#2631): já eram iguais.
+
 ## [0.63.1-preview.4] - 2026-10-19
 
 Renome do pacote, dos assemblies e dos namespaces para `LeptonTech.SqlParser` ([ADR-0012](docs/adr/0012-renome-leptontech-sqlparser.md)). O nuget.org recusou o ID `Lepton.SqlParser` (`409`, prefixo reservado), e a `0.63.1-preview.3` não foi publicada. O Rust portado é o mesmo (commit `dacdbc9`): a AST, o comportamento e o SQL gerado não mudam.

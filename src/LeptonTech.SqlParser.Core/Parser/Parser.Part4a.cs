@@ -139,7 +139,7 @@ public sealed partial class Parser
         // Rust: `fn validator(..)` aninhada → função local estática (decisão 9 da B1).
         static bool Validator(bool @explicit, Keyword kw, Parser parser) =>
             parser._dialect.IsSelectItemAlias(@explicit, kw, parser);
-        return ParseOptionalAliasInner(null, Validator);
+        return ParseOptionalAliasInner(null, AliasKind.Column, Validator);
     }
 
     /// <summary>
@@ -152,7 +152,7 @@ public sealed partial class Parser
         static bool Validator(bool @explicit, Keyword kw, Parser parser) =>
             parser._dialect.IsTableFactorAlias(@explicit, kw, parser);
         var @explicit = PeekKeyword(Keyword.AS);
-        switch (ParseOptionalAliasInner(null, Validator))
+        switch (ParseOptionalAliasInner(null, AliasKind.Table, Validator))
         {
             case { } name:
             {
@@ -271,7 +271,7 @@ public sealed partial class Parser
     public Ident? ParseOptionalAlias(params Keyword[] reservedKwds)
     {
         static bool Validator(bool _explicit, Keyword _kw, Parser _parser) => false;
-        return ParseOptionalAliasInner(reservedKwds, Validator);
+        return ParseOptionalAliasInner(reservedKwds, AliasKind.Column, Validator);
     }
 
     /// <summary>
@@ -285,6 +285,7 @@ public sealed partial class Parser
     /// </remarks>
     internal Ident? ParseOptionalAliasInner(
         Keyword[]? reservedKwds,
+        AliasKind kind,
         Func<bool, Keyword, Parser, bool> validator)
     {
         var afterAs = ParseKeyword(Keyword.AS);
@@ -303,8 +304,13 @@ public sealed partial class Parser
             // dialect-specific logic.
             case Token.Word { Value: var w } when validator(afterAs, w.Keyword, this):
                 return w.IntoIdent(nextToken.Span);
-            // For backwards-compatibility, we accept quoted strings as aliases regardless of the context.
-            case Token.SingleQuotedString { Value: var s }:
+            case Token.SingleQuotedString { Value: var s }
+                when kind switch
+                {
+                    AliasKind.Column => _dialect.SupportsStringLiteralColumnAlias(afterAs),
+                    AliasKind.Table => _dialect.SupportsStringLiteralTableAlias(afterAs),
+                    _ => throw new InvalidOperationException($"Variante de AliasKind não tratada: {kind}"),
+                }:
                 return Ident.WithQuote('\'', s);
             case Token.DoubleQuotedString { Value: var s }:
                 return Ident.WithQuote('"', s);
@@ -1464,6 +1470,7 @@ public sealed partial class Parser
         }
 
         var @from = ParseCommaSeparated(p => p.ParseTableAndJoins());
+        var onCluster = ParseOptionalOnCluster();
 
         var output = MaybeParseOutputClause();
 
@@ -1512,6 +1519,7 @@ public sealed partial class Parser
         {
             limit = null;
         }
+        var settings = ParseSettings();
 
         return new Statement.Delete(new Delete(
             DeleteToken: AttachedToken.From(deleteToken),
@@ -1520,12 +1528,14 @@ public sealed partial class Parser
             From: withFromKeyword
                 ? (FromTable)new FromTable.WithFromKeyword(@from)
                 : new FromTable.WithoutKeyword(@from),
+            OnCluster: onCluster,
             Using: @using,
             Selection: selection,
             Returning: returning,
             Output: output,
             OrderBy: orderBy,
-            Limit: limit));
+            Limit: limit,
+            Settings: settings));
     }
 
     /// <summary>
