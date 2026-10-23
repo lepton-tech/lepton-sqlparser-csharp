@@ -4,7 +4,7 @@ Parser SQL para .NET: port em C# do [sqlparser-rs](https://github.com/apache/dat
 
 - **`netstandard2.0`**: roda no .NET Framework 4.8 e no .NET 8/10, sem Rust, sem DLLs nativas e sem pacotes de runtime.
 - **16 dialetos**, AST completa, SQL de volta como texto (inclusive formatado), visitors, reescrita e análise sintática.
-- **Versão atual:** `0.63.1-preview.4` (pré-lançamento), com o Rust até o commit `dacdbc9`, depois da `v0.63.0` ([`CHANGELOG.md`](CHANGELOG.md)).
+- **Versão atual:** `0.63.1-preview.5` (pré-lançamento), com o Rust até o commit `9119ec6`, depois da `v0.63.0` ([`CHANGELOG.md`](CHANGELOG.md)).
 
 O pacote `LeptonTech.SqlParser` traz duas DLLs: `LeptonTech.SqlParser.Core.dll`, o port fiel (namespaces `LeptonTech.SqlParser.Core*`), e `LeptonTech.SqlParser.dll`, a API pública (namespace `LeptonTech.SqlParser`), no estilo do [SqlParser-cs](https://github.com/TylerBrinks/SqlParser-cs). Até a `0.63.1-preview.2`, o pacote se chamava `LeptonTI.SqlParser` e os namespaces eram `SqlParser` e `SqlParser.Core`; na `0.63.1-preview.3`, que não chegou ao nuget.org, tudo era `Lepton.SqlParser` ([ADR-0011](docs/adr/0011-renome-lepton-sqlparser.md), [ADR-0012](docs/adr/0012-renome-leptontech-sqlparser.md)). Código-fonte: [github.com/lepton-tech/lepton-sqlparser-csharp](https://github.com/lepton-tech/lepton-sqlparser-csharp).
 
@@ -15,7 +15,7 @@ Por enquanto o pacote só existe localmente: nada é publicado em feed ([ADR-001
 ```bash
 pwsh tools/pack/Pack.ps1        # compila, roda os testes e gera artifacts/LeptonTech.SqlParser.<versão>.nupkg
 dotnet nuget add source "<caminho do repositório>/artifacts" --name leptontech-local
-dotnet add package LeptonTech.SqlParser --version 0.63.1-preview.4
+dotnet add package LeptonTech.SqlParser --version 0.63.1-preview.5
 ```
 
 O `Pack.ps1` só empacota com a árvore do Git limpa (tudo commitado), para que o commit gravado nas DLLs identifique o conteúdo; `-AllowDirty` empacota assim mesmo, para teste, com `.dirty` no fim da `InformationalVersion`. Os símbolos de depuração (PDB) vão embutidos nas DLLs, então a depuração funciona a partir de qualquer feed, sem `.snupkg`.

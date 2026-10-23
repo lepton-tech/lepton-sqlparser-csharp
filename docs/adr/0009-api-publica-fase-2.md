@@ -243,7 +243,7 @@ A Rodada 1 levou o Core de `v0.63.0` a `dacdbc9` (63 PRs; `docs/port/upstream-le
 
 ## Impacto da Rodada 2 de sincronização com o upstream (2026-10-23)
 
-A Rodada 2 levou o Core de `dacdbc9` a `9119ec6` (46 PRs; `docs/port/upstream-ledger.md`). De novo, a camada pública **não precisou de mudança de código**: os 279 testes de `tests/LeptonTech.SqlParser.Tests` passam sem alteração nos três alvos, e as análises (`GetReferencedTables`, `GetReferencedColumns`...) atravessam os tipos novos pelo visitor gerado. As quebras do Core chegam ao consumidor pelo mesmo caminho da Rodada 1 (ADR-0008, decisão 1); a próxima versão do pacote é de **quebra de compatibilidade**.
+A Rodada 2 levou o Core de `dacdbc9` a `9119ec6` (46 PRs; `docs/port/upstream-ledger.md`). De novo, a camada pública **não precisou de mudança de código**: os 279 testes de `tests/LeptonTech.SqlParser.Tests` passam sem alteração nos três alvos, e as análises (`GetReferencedTables`, `GetReferencedColumns`...) atravessam os tipos novos pelo visitor gerado. As quebras do Core chegam ao consumidor pelo mesmo caminho da Rodada 1 (ADR-0008, decisão 1); a `0.63.1-preview.5` é de **quebra de compatibilidade**.
 
 **Assinaturas públicas do Core que mudaram (quebra de código-fonte):**
 

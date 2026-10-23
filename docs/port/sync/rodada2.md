@@ -38,7 +38,7 @@ A observação de cada PR (arquivos, decisões, testes) está no ledger. Aqui fi
 - **convencoes.md §13, caso 141:** `fmt::Result` → `bool` em `IFmtWrite.WriteStr` e nos métodos de escrita do `Formatter`, com o erro guardado no `Formatter` raiz no lugar do `?` dos `Fmt`; sem exceção. A §7 aponta para o caso.
 - **nomes.md:** `JoinConstraint::UsingAlias`, `Parser.GeometricTypeKindOf` (o nome mecânico colidiria com o tipo `GeometricTypeKind`), `DisplayUtils.FirstCharWrite` (colidiria com o método `FirstChar`), `core::fmt::Error` → `false` e as classes de escopo dos testes novos.
 - **divergencias.md:** DIV-005 (o `Display` de `SetExpr` é protegido no Rust desde o #2623) e DIV-008 (`DeclareSeparator`). Nenhuma divergência nova, nenhum `Skip` novo.
-- **API pública:** sem mudança de código na camada `LeptonTech.SqlParser`; quebras e mudanças de comportamento no ADR-0009, "Impacto da Rodada 2", e no `CHANGELOG.md`, "Não lançado". A versão do pacote não foi alterada.
+- **API pública:** sem mudança de código na camada `LeptonTech.SqlParser`; quebras e mudanças de comportamento no ADR-0009, "Impacto da Rodada 2", e no `CHANGELOG.md`, `0.63.1-preview.5` (versão publicada depois da rodada, em commit próprio).
 
 ## Verificações
 

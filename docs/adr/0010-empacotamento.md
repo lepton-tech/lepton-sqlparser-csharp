@@ -45,9 +45,9 @@ Metadados: `PackageId` `LeptonTech.SqlParser`, `Authors`/`Company` "Lepton TI", 
 
 | Propriedade | Valor | Regra |
 |---|---|---|
-| `VersionPrefix` / `VersionSuffix` | `0.63.1` / `preview.4` (atual; a primeira foi `preview.1`) | Versão do pacote; a única coisa a mudar a cada versão (com o `CHANGELOG.md`) |
+| `VersionPrefix` / `VersionSuffix` | `0.63.1` / `preview.5` (atual; a primeira foi `preview.1`) | Versão do pacote; a única coisa a mudar a cada versão (com o `CHANGELOG.md`) |
 | `AssemblyVersion` e `FileVersion` | `0.63.1.0` | `<VersionPrefix>.0`, sem o sufixo. Sem assinatura forte, o .NET Framework não usa a `AssemblyVersion` na vinculação. Se a assinatura forte for adotada, rever (ex.: fixar `0.<minor>.0.0` para reduzir *binding redirects*) |
-| `InformationalVersion` | `0.63.1-preview.4+sqlparser-rs.dacdbc9.<commit deste repositório>` | `$(Version)+sqlparser-rs.<commit curto>`, com o commit lido do `UPSTREAM.json` (`portedThroughCommit`); o SDK acrescenta o commit do Git deste repositório (`SourceRevisionId`). Com alterações não commitadas, esse commit não identificaria o conteúdo: o `Pack.ps1` recusa empacotar, e com `-AllowDirty` a versão termina em `.dirty` (`SqlParserDirtyBuild=true`, alvo `_SqlParserMarkDirtyBuild` em `Directory.Build.targets`) |
+| `InformationalVersion` | `0.63.1-preview.5+sqlparser-rs.9119ec6.<commit deste repositório>` | `$(Version)+sqlparser-rs.<commit curto>`, com o commit lido do `UPSTREAM.json` (`portedThroughCommit`); o SDK acrescenta o commit do Git deste repositório (`SourceRevisionId`). Com alterações não commitadas, esse commit não identificaria o conteúdo: o `Pack.ps1` recusa empacotar, e com `-AllowDirty` a versão termina em `.dirty` (`SqlParserDirtyBuild=true`, alvo `_SqlParserMarkDirtyBuild` em `Directory.Build.targets`) |
 | `AssemblyMetadata` | `SqlParserRsBaselineTag`, `SqlParserRsCommit` | Tag-base e commit completo do Rust, também lidos do `UPSTREAM.json` |
 
 **Documentação XML.** Gerada nas duas DLLs. A API pública (`LeptonTech.SqlParser`) não suprime nada: todo membro público tem `<summary>`. O Core suprime só o CS1591 (membro público sem comentário XML; cerca de 1.500 membros), porque a documentação do Core é a do Rust, verbatim (`convencoes.md` §12), e itens sem doc no Rust não ganham texto inventado. Os demais avisos de XML doc continuam valendo.
@@ -102,6 +102,6 @@ O `user` do `NuGet/login` é o **nome de perfil** no nuget.org (não o e-mail) d
 3. Crie a tag na `main` e envie-a:
 
    ```powershell
-   git tag v0.63.1-preview.4 origin/main
-   git push origin v0.63.1-preview.4
+   git tag v0.63.1-preview.5 origin/main
+   git push origin v0.63.1-preview.5
    ```
