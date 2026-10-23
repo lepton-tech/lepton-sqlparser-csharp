@@ -343,8 +343,11 @@ public class SqlParserRedshiftTests
         // trim spaces
         Redshift().OneStatementParsesTo("SELECT 1 AS [ \" 1 \" ]", "SELECT 1 AS [\" 1 \"]");
         // invalid query
-        Assert.Throws<ParserException>(() => Redshift()
-            .ParseSqlStatements("SELECT 1 AS [\"1]"));
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => Redshift()
+                .ParseSqlStatements("SELECT 1 AS [\"1]")).Error,
+            new ParserError.TokenizerError(
+                "Expected close delimiter '\"' before EOF. at Line: 1, Column: 14"));
     }
 
     [Fact]

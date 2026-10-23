@@ -78,6 +78,8 @@ public class BigQueryDialect : Dialect
     /// </summary>
     public override char? IdentifierQuoteStyle(string identifier) => '`';
 
+    public override bool SupportsHashComment => true;
+
     public override bool SupportsProjectionTrailingCommas => true;
 
     /// <summary>
@@ -161,4 +163,9 @@ public class BigQueryDialect : Dialect
     public override bool SupportsSelectWildcardReplace => true;
 
     public override bool SupportsCommaSeparatedTrim => true;
+
+    /// <summary>
+    /// See <see href="https://cloud.google.com/bigquery/docs/reference/standard-sql/data-definition-language#alter_table_add_column_statement"/>
+    /// </summary>
+    public override bool SupportsAddColumnIfNotExists => true;
 }

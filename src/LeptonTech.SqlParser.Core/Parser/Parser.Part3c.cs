@@ -1932,6 +1932,17 @@ public sealed partial class Parser
                 break;
         }
 
+        // The `>>` that closed this type also closed the enclosing one, so any suffix belongs to that.
+        if (trailingBracket.Value)
+        {
+            return (data, trailingBracket);
+        }
+
+        if (IsZerofillAllowed(nextTokenIndex) && ParseKeyword(Keyword.ZEROFILL))
+        {
+            data = new DataType.Zerofill(data);
+        }
+
         if (_dialect.SupportsArrayTypedefWithBrackets)
         {
             while (ConsumeToken(new Token.LBracket()))
@@ -1975,5 +1986,36 @@ public sealed partial class Parser
             dataType = new DataType.Collate(dataType, ParseObjectName(false));
         }
         return (dataType, trailingBracket);
+    }
+
+    internal bool IsZerofillAllowed(int tokenIndex)
+    {
+        if (!_dialect.SupportsDataTypeZerofillSuffix)
+        {
+            return false;
+        }
+        switch (TokenAt(tokenIndex).Token)
+        {
+            case Token.Word { Value: var w }:
+                return w.Keyword is Keyword.TINYINT
+                    or Keyword.SMALLINT
+                    or Keyword.MEDIUMINT
+                    or Keyword.INT
+                    or Keyword.INTEGER
+                    or Keyword.BIGINT
+                    or Keyword.INT2
+                    or Keyword.INT4
+                    or Keyword.INT8
+                    or Keyword.DECIMAL
+                    or Keyword.DEC
+                    or Keyword.NUMERIC
+                    or Keyword.FLOAT
+                    or Keyword.FLOAT4
+                    or Keyword.FLOAT8
+                    or Keyword.DOUBLE
+                    or Keyword.REAL;
+            default:
+                return false;
+        }
     }
 }

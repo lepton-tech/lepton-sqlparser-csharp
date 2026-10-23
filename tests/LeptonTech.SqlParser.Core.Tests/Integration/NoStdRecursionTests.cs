@@ -58,10 +58,12 @@ public class NoStdRecursionTests
         var dialect = new GenericDialect();
         var sql = $"SELECT * FROM t WHERE {Repeat("NOT ", 1024)}a";
 
-        // Note: Error is generic "expected end of statement" error rather than
-        // `RecursionLimitExceeded`. Either way, the important property is that deep
-        // nesting errors instead of overflowing the stack.
-        Assert.Throws<ParserException>(() => Parser.ParseSql(dialect, sql)); // assert!(result.is_err())
+        // Deep nesting errors with a generic "expected end of statement" error
+        // rather than `RecursionLimitExceeded`, instead of overflowing the stack.
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => Parser.ParseSql(dialect, sql)).Error,
+            new ParserError.ParserErrorValue(
+                "Expected: end of statement, found: NOT at Line: 1, Column: 211"));
     }
 
     [Fact]
@@ -69,8 +71,6 @@ public class NoStdRecursionTests
     {
         var dialect = new GenericDialect();
 
-        // let result = Parser::parse_sql(..); assert!(result.is_ok()): ParseSql lança
-        // ParserException em caso de erro, e a exceção reprova o teste.
         Parser.ParseSql(dialect, "SELECT 1 + (2 + 3)");
     }
 

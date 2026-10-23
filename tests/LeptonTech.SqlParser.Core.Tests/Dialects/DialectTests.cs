@@ -200,11 +200,7 @@ public class DialectTests
     [Fact]
     public void parse_with_wrapped_dialect()
     {
-        // #[allow(clippy::needless_raw_string_hashes)]: não traduzido.
-        // r#"SELECT 'Wayne\'s World'"# → string verbatim (a barra invertida é literal).
         var statement = @"SELECT 'Wayne\'s World'";
-        // Parser::parse_sql devolve Result; em C#, ParseSql lança em caso de erro, e
-        // `assert!(res1.is_ok())` equivale a a chamada não lançar.
         var res1 = Parser.ParseSql(new MySqlDialect(), statement);
         var res2 = Parser.ParseSql(new WrappedDialect(new MySqlDialect()), statement);
         Assert.Equal(res1, res2);

@@ -56,65 +56,86 @@ namespace LeptonTech.SqlParser.Core.Ast
                 flow = x4.Visit(visitor);
                 if (flow.IsBreak) return flow;
             }
+            // OnCluster
+            if (this.OnCluster is { } x5)
+            {
+                flow = x5.Visit(visitor);
+                if (flow.IsBreak) return flow;
+            }
             // Using
-            if (this.Using is { } x5)
+            if (this.Using is { } x6)
             {
                 {
-                    var s6 = x5;
-                    for (var i7 = 0; i7 < s6.Count; i7++)
+                    var s7 = x6;
+                    for (var i8 = 0; i8 < s7.Count; i8++)
                     {
-                        if (s6[i7] is { } x8)
+                        if (s7[i8] is { } x9)
                         {
-                            flow = x8.Visit(visitor);
+                            flow = x9.Visit(visitor);
                             if (flow.IsBreak) return flow;
                         }
                     }
                 }
             }
             // Selection
-            if (this.Selection is { } x9)
+            if (this.Selection is { } x10)
             {
-                flow = x9.Visit(visitor);
+                flow = x10.Visit(visitor);
                 if (flow.IsBreak) return flow;
             }
             // Returning
-            if (this.Returning is { } x10)
+            if (this.Returning is { } x11)
             {
                 {
-                    var s11 = x10;
-                    for (var i12 = 0; i12 < s11.Count; i12++)
+                    var s12 = x11;
+                    for (var i13 = 0; i13 < s12.Count; i13++)
                     {
-                        if (s11[i12] is { } x13)
+                        if (s12[i13] is { } x14)
                         {
-                            flow = x13.Visit(visitor);
+                            flow = x14.Visit(visitor);
                             if (flow.IsBreak) return flow;
                         }
                     }
                 }
             }
             // Output
-            if (this.Output is { } x14)
+            if (this.Output is { } x15)
             {
-                flow = x14.Visit(visitor);
+                flow = x15.Visit(visitor);
                 if (flow.IsBreak) return flow;
             }
             // OrderBy
             {
-                var s15 = this.OrderBy;
-                for (var i16 = 0; i16 < s15.Count; i16++)
+                var s16 = this.OrderBy;
+                for (var i17 = 0; i17 < s16.Count; i17++)
                 {
-                    if (s15[i16] is { } x17)
+                    if (s16[i17] is { } x18)
                     {
-                        flow = x17.Visit(visitor);
+                        flow = x18.Visit(visitor);
                         if (flow.IsBreak) return flow;
                     }
                 }
             }
             // Limit
-            if (this.Limit is { } x18)
+            if (this.Limit is { } x19)
             {
-                flow = x18.Visit(visitor);
+                flow = x19.Visit(visitor);
                 if (flow.IsBreak) return flow;
+            }
+            // Settings
+            if (this.Settings is { } x20)
+            {
+                {
+                    var s21 = x20;
+                    for (var i22 = 0; i22 < s21.Count; i22++)
+                    {
+                        if (s21[i22] is { } x23)
+                        {
+                            flow = x23.Visit(visitor);
+                            if (flow.IsBreak) return flow;
+                        }
+                    }
+                }
             }
             return global::LeptonTech.SqlParser.Core.ControlFlow<TBreak>.Continue;
         }
@@ -171,120 +192,160 @@ namespace LeptonTech.SqlParser.Core.Ast
                 if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(x6, node.From)) node = node with { From = x6 };
                 if (flow.IsBreak) return flow;
             }
-            // Using
+            // OnCluster
             {
-                var x8 = node.Using;
+                var x8 = node.OnCluster;
                 if (x8 is { } y9)
                 {
+                    flow = global::LeptonTech.SqlParser.Core.Ast.Ident.VisitMut(ref y9, visitor);
+                    x8 = y9;
+                }
+                if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(x8, node.OnCluster)) node = node with { OnCluster = x8 };
+                if (flow.IsBreak) return flow;
+            }
+            // Using
+            {
+                var x10 = node.Using;
+                if (x10 is { } y11)
+                {
                     {
-                        global::LeptonTech.SqlParser.Core.Ast.TableWithJoins[]? a10 = null;
-                        for (var i11 = 0; i11 < y9.Count; i11++)
+                        global::LeptonTech.SqlParser.Core.Ast.TableWithJoins[]? a12 = null;
+                        for (var i13 = 0; i13 < y11.Count; i13++)
                         {
-                            var e12 = y9[i11];
-                            if (e12 is { } y13)
+                            var e14 = y11[i13];
+                            if (e14 is { } y15)
                             {
-                                flow = global::LeptonTech.SqlParser.Core.Ast.TableWithJoins.VisitMut(ref y13, visitor);
-                                e12 = y13;
+                                flow = global::LeptonTech.SqlParser.Core.Ast.TableWithJoins.VisitMut(ref y15, visitor);
+                                e14 = y15;
                             }
-                            if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(e12, y9[i11]))
+                            if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(e14, y11[i13]))
                             {
-                                a10 ??= global::System.Linq.Enumerable.ToArray(y9);
-                                a10[i11] = e12;
+                                a12 ??= global::System.Linq.Enumerable.ToArray(y11);
+                                a12[i13] = e14;
                             }
                             if (flow.IsBreak) break;
                         }
-                        if (a10 is not null) y9 = global::LeptonTech.SqlParser.Core.Sequence<global::LeptonTech.SqlParser.Core.Ast.TableWithJoins>.FromArrayNoCopy(a10);
+                        if (a12 is not null) y11 = global::LeptonTech.SqlParser.Core.Sequence<global::LeptonTech.SqlParser.Core.Ast.TableWithJoins>.FromArrayNoCopy(a12);
                     }
-                    x8 = y9;
+                    x10 = y11;
                 }
-                if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(x8, node.Using)) node = node with { Using = x8 };
+                if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(x10, node.Using)) node = node with { Using = x10 };
                 if (flow.IsBreak) return flow;
             }
             // Selection
             {
-                var x14 = node.Selection;
-                if (x14 is { } y15)
+                var x16 = node.Selection;
+                if (x16 is { } y17)
                 {
-                    flow = global::LeptonTech.SqlParser.Core.Ast.Expr.VisitMut(ref y15, visitor);
-                    x14 = y15;
+                    flow = global::LeptonTech.SqlParser.Core.Ast.Expr.VisitMut(ref y17, visitor);
+                    x16 = y17;
                 }
-                if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(x14, node.Selection)) node = node with { Selection = x14 };
+                if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(x16, node.Selection)) node = node with { Selection = x16 };
                 if (flow.IsBreak) return flow;
             }
             // Returning
             {
-                var x16 = node.Returning;
-                if (x16 is { } y17)
+                var x18 = node.Returning;
+                if (x18 is { } y19)
                 {
                     {
-                        global::LeptonTech.SqlParser.Core.Ast.SelectItem[]? a18 = null;
-                        for (var i19 = 0; i19 < y17.Count; i19++)
+                        global::LeptonTech.SqlParser.Core.Ast.SelectItem[]? a20 = null;
+                        for (var i21 = 0; i21 < y19.Count; i21++)
                         {
-                            var e20 = y17[i19];
-                            if (e20 is { } y21)
+                            var e22 = y19[i21];
+                            if (e22 is { } y23)
                             {
-                                flow = global::LeptonTech.SqlParser.Core.Ast.SelectItem.VisitMut(ref y21, visitor);
-                                e20 = y21;
+                                flow = global::LeptonTech.SqlParser.Core.Ast.SelectItem.VisitMut(ref y23, visitor);
+                                e22 = y23;
                             }
-                            if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(e20, y17[i19]))
+                            if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(e22, y19[i21]))
                             {
-                                a18 ??= global::System.Linq.Enumerable.ToArray(y17);
-                                a18[i19] = e20;
+                                a20 ??= global::System.Linq.Enumerable.ToArray(y19);
+                                a20[i21] = e22;
                             }
                             if (flow.IsBreak) break;
                         }
-                        if (a18 is not null) y17 = global::LeptonTech.SqlParser.Core.Sequence<global::LeptonTech.SqlParser.Core.Ast.SelectItem>.FromArrayNoCopy(a18);
+                        if (a20 is not null) y19 = global::LeptonTech.SqlParser.Core.Sequence<global::LeptonTech.SqlParser.Core.Ast.SelectItem>.FromArrayNoCopy(a20);
                     }
-                    x16 = y17;
+                    x18 = y19;
                 }
-                if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(x16, node.Returning)) node = node with { Returning = x16 };
+                if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(x18, node.Returning)) node = node with { Returning = x18 };
                 if (flow.IsBreak) return flow;
             }
             // Output
             {
-                var x22 = node.Output;
-                if (x22 is { } y23)
+                var x24 = node.Output;
+                if (x24 is { } y25)
                 {
-                    flow = global::LeptonTech.SqlParser.Core.Ast.OutputClause.VisitMut(ref y23, visitor);
-                    x22 = y23;
+                    flow = global::LeptonTech.SqlParser.Core.Ast.OutputClause.VisitMut(ref y25, visitor);
+                    x24 = y25;
                 }
-                if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(x22, node.Output)) node = node with { Output = x22 };
+                if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(x24, node.Output)) node = node with { Output = x24 };
                 if (flow.IsBreak) return flow;
             }
             // OrderBy
             {
-                var x24 = node.OrderBy;
+                var x26 = node.OrderBy;
                 {
-                    global::LeptonTech.SqlParser.Core.Ast.OrderByExpr[]? a25 = null;
-                    for (var i26 = 0; i26 < x24.Count; i26++)
+                    global::LeptonTech.SqlParser.Core.Ast.OrderByExpr[]? a27 = null;
+                    for (var i28 = 0; i28 < x26.Count; i28++)
                     {
-                        var e27 = x24[i26];
-                        if (e27 is { } y28)
+                        var e29 = x26[i28];
+                        if (e29 is { } y30)
                         {
-                            flow = global::LeptonTech.SqlParser.Core.Ast.OrderByExpr.VisitMut(ref y28, visitor);
-                            e27 = y28;
+                            flow = global::LeptonTech.SqlParser.Core.Ast.OrderByExpr.VisitMut(ref y30, visitor);
+                            e29 = y30;
                         }
-                        if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(e27, x24[i26]))
+                        if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(e29, x26[i28]))
                         {
-                            a25 ??= global::System.Linq.Enumerable.ToArray(x24);
-                            a25[i26] = e27;
+                            a27 ??= global::System.Linq.Enumerable.ToArray(x26);
+                            a27[i28] = e29;
                         }
                         if (flow.IsBreak) break;
                     }
-                    if (a25 is not null) x24 = global::LeptonTech.SqlParser.Core.Sequence<global::LeptonTech.SqlParser.Core.Ast.OrderByExpr>.FromArrayNoCopy(a25);
+                    if (a27 is not null) x26 = global::LeptonTech.SqlParser.Core.Sequence<global::LeptonTech.SqlParser.Core.Ast.OrderByExpr>.FromArrayNoCopy(a27);
                 }
-                if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(x24, node.OrderBy)) node = node with { OrderBy = x24 };
+                if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(x26, node.OrderBy)) node = node with { OrderBy = x26 };
                 if (flow.IsBreak) return flow;
             }
             // Limit
             {
-                var x29 = node.Limit;
-                if (x29 is { } y30)
+                var x31 = node.Limit;
+                if (x31 is { } y32)
                 {
-                    flow = global::LeptonTech.SqlParser.Core.Ast.Expr.VisitMut(ref y30, visitor);
-                    x29 = y30;
+                    flow = global::LeptonTech.SqlParser.Core.Ast.Expr.VisitMut(ref y32, visitor);
+                    x31 = y32;
                 }
-                if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(x29, node.Limit)) node = node with { Limit = x29 };
+                if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(x31, node.Limit)) node = node with { Limit = x31 };
+                if (flow.IsBreak) return flow;
+            }
+            // Settings
+            {
+                var x33 = node.Settings;
+                if (x33 is { } y34)
+                {
+                    {
+                        global::LeptonTech.SqlParser.Core.Ast.Setting[]? a35 = null;
+                        for (var i36 = 0; i36 < y34.Count; i36++)
+                        {
+                            var e37 = y34[i36];
+                            if (e37 is { } y38)
+                            {
+                                flow = global::LeptonTech.SqlParser.Core.Ast.Setting.VisitMut(ref y38, visitor);
+                                e37 = y38;
+                            }
+                            if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(e37, y34[i36]))
+                            {
+                                a35 ??= global::System.Linq.Enumerable.ToArray(y34);
+                                a35[i36] = e37;
+                            }
+                            if (flow.IsBreak) break;
+                        }
+                        if (a35 is not null) y34 = global::LeptonTech.SqlParser.Core.Sequence<global::LeptonTech.SqlParser.Core.Ast.Setting>.FromArrayNoCopy(a35);
+                    }
+                    x33 = y34;
+                }
+                if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(x33, node.Settings)) node = node with { Settings = x33 };
                 if (flow.IsBreak) return flow;
             }
             return flow;
@@ -376,6 +437,7 @@ namespace LeptonTech.SqlParser.Core.Ast
                     }
                 }
             }
+            // Overriding: nenhum gancho alcançável
             // HasTableKeyword: nenhum gancho alcançável
             // On
             if (this.On is { } x17)
@@ -634,6 +696,7 @@ namespace LeptonTech.SqlParser.Core.Ast
                 if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(x23, node.AfterColumns)) node = node with { AfterColumns = x23 };
                 if (flow.IsBreak) return flow;
             }
+            // Overriding: nenhum gancho alcançável
             // HasTableKeyword: nenhum gancho alcançável
             // On
             {
@@ -820,6 +883,21 @@ namespace LeptonTech.SqlParser.Core.Ast
                 if (flow.IsBreak) return flow;
             }
             return flow;
+        }
+    }
+
+    // Rust: src/ast/dml.rs, enum InsertOverriding. C#: Ast/Dml/InsertOverriding.cs.
+    public abstract partial record InsertOverriding : global::LeptonTech.SqlParser.Core.Ast.IVisit, global::LeptonTech.SqlParser.Core.Ast.IVisitMut<global::LeptonTech.SqlParser.Core.Ast.InsertOverriding>
+    {
+        /// <inheritdoc/>
+        // Nenhum campo alcança um gancho do Visitor<TBreak>: a visita do derive Rust não tem efeito.
+        public global::LeptonTech.SqlParser.Core.ControlFlow<TBreak> Visit<TBreak>(global::LeptonTech.SqlParser.Core.Ast.Visitor<TBreak> visitor) => global::LeptonTech.SqlParser.Core.ControlFlow<TBreak>.Continue;
+
+        /// <inheritdoc/>
+        public global::LeptonTech.SqlParser.Core.ControlFlow<TBreak> Visit<TBreak>(global::LeptonTech.SqlParser.Core.Ast.VisitorMut<TBreak> visitor, out global::LeptonTech.SqlParser.Core.Ast.InsertOverriding self)
+        {
+            self = this;
+            return global::LeptonTech.SqlParser.Core.ControlFlow<TBreak>.Continue;
         }
     }
 
@@ -2060,69 +2138,90 @@ namespace LeptonTech.SqlParser.Core.Ast
                 flow = x1.Visit(visitor);
                 if (flow.IsBreak) return flow;
             }
+            // OnCluster
+            if (this.OnCluster is { } x2)
+            {
+                flow = x2.Visit(visitor);
+                if (flow.IsBreak) return flow;
+            }
             // Assignments
             {
-                var s2 = this.Assignments;
-                for (var i3 = 0; i3 < s2.Count; i3++)
+                var s3 = this.Assignments;
+                for (var i4 = 0; i4 < s3.Count; i4++)
                 {
-                    if (s2[i3] is { } x4)
+                    if (s3[i4] is { } x5)
                     {
-                        flow = x4.Visit(visitor);
+                        flow = x5.Visit(visitor);
                         if (flow.IsBreak) return flow;
                     }
                 }
             }
             // From
-            if (this.From is { } x5)
-            {
-                flow = x5.Visit(visitor);
-                if (flow.IsBreak) return flow;
-            }
-            // Selection
-            if (this.Selection is { } x6)
+            if (this.From is { } x6)
             {
                 flow = x6.Visit(visitor);
                 if (flow.IsBreak) return flow;
             }
+            // Selection
+            if (this.Selection is { } x7)
+            {
+                flow = x7.Visit(visitor);
+                if (flow.IsBreak) return flow;
+            }
             // Returning
-            if (this.Returning is { } x7)
+            if (this.Returning is { } x8)
             {
                 {
-                    var s8 = x7;
-                    for (var i9 = 0; i9 < s8.Count; i9++)
+                    var s9 = x8;
+                    for (var i10 = 0; i10 < s9.Count; i10++)
                     {
-                        if (s8[i9] is { } x10)
+                        if (s9[i10] is { } x11)
                         {
-                            flow = x10.Visit(visitor);
+                            flow = x11.Visit(visitor);
                             if (flow.IsBreak) return flow;
                         }
                     }
                 }
             }
             // Output
-            if (this.Output is { } x11)
+            if (this.Output is { } x12)
             {
-                flow = x11.Visit(visitor);
+                flow = x12.Visit(visitor);
                 if (flow.IsBreak) return flow;
             }
             // Or: nenhum gancho alcançável
             // OrderBy
             {
-                var s12 = this.OrderBy;
-                for (var i13 = 0; i13 < s12.Count; i13++)
+                var s13 = this.OrderBy;
+                for (var i14 = 0; i14 < s13.Count; i14++)
                 {
-                    if (s12[i13] is { } x14)
+                    if (s13[i14] is { } x15)
                     {
-                        flow = x14.Visit(visitor);
+                        flow = x15.Visit(visitor);
                         if (flow.IsBreak) return flow;
                     }
                 }
             }
             // Limit
-            if (this.Limit is { } x15)
+            if (this.Limit is { } x16)
             {
-                flow = x15.Visit(visitor);
+                flow = x16.Visit(visitor);
                 if (flow.IsBreak) return flow;
+            }
+            // Settings
+            if (this.Settings is { } x17)
+            {
+                {
+                    var s18 = x17;
+                    for (var i19 = 0; i19 < s18.Count; i19++)
+                    {
+                        if (s18[i19] is { } x20)
+                        {
+                            flow = x20.Visit(visitor);
+                            if (flow.IsBreak) return flow;
+                        }
+                    }
+                }
             }
             return global::LeptonTech.SqlParser.Core.ControlFlow<TBreak>.Continue;
         }
@@ -2154,128 +2253,168 @@ namespace LeptonTech.SqlParser.Core.Ast
                 if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(x1, node.Table)) node = node with { Table = x1 };
                 if (flow.IsBreak) return flow;
             }
+            // OnCluster
+            {
+                var x3 = node.OnCluster;
+                if (x3 is { } y4)
+                {
+                    flow = global::LeptonTech.SqlParser.Core.Ast.Ident.VisitMut(ref y4, visitor);
+                    x3 = y4;
+                }
+                if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(x3, node.OnCluster)) node = node with { OnCluster = x3 };
+                if (flow.IsBreak) return flow;
+            }
             // Assignments
             {
-                var x3 = node.Assignments;
+                var x5 = node.Assignments;
                 {
-                    global::LeptonTech.SqlParser.Core.Ast.Assignment[]? a4 = null;
-                    for (var i5 = 0; i5 < x3.Count; i5++)
+                    global::LeptonTech.SqlParser.Core.Ast.Assignment[]? a6 = null;
+                    for (var i7 = 0; i7 < x5.Count; i7++)
                     {
-                        var e6 = x3[i5];
-                        if (e6 is { } y7)
+                        var e8 = x5[i7];
+                        if (e8 is { } y9)
                         {
-                            flow = global::LeptonTech.SqlParser.Core.Ast.Assignment.VisitMut(ref y7, visitor);
-                            e6 = y7;
+                            flow = global::LeptonTech.SqlParser.Core.Ast.Assignment.VisitMut(ref y9, visitor);
+                            e8 = y9;
                         }
-                        if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(e6, x3[i5]))
+                        if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(e8, x5[i7]))
                         {
-                            a4 ??= global::System.Linq.Enumerable.ToArray(x3);
-                            a4[i5] = e6;
+                            a6 ??= global::System.Linq.Enumerable.ToArray(x5);
+                            a6[i7] = e8;
                         }
                         if (flow.IsBreak) break;
                     }
-                    if (a4 is not null) x3 = global::LeptonTech.SqlParser.Core.Sequence<global::LeptonTech.SqlParser.Core.Ast.Assignment>.FromArrayNoCopy(a4);
+                    if (a6 is not null) x5 = global::LeptonTech.SqlParser.Core.Sequence<global::LeptonTech.SqlParser.Core.Ast.Assignment>.FromArrayNoCopy(a6);
                 }
-                if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(x3, node.Assignments)) node = node with { Assignments = x3 };
+                if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(x5, node.Assignments)) node = node with { Assignments = x5 };
                 if (flow.IsBreak) return flow;
             }
             // From
             {
-                var x8 = node.From;
-                if (x8 is { } y9)
+                var x10 = node.From;
+                if (x10 is { } y11)
                 {
-                    flow = global::LeptonTech.SqlParser.Core.Ast.UpdateTableFromKind.VisitMut(ref y9, visitor);
-                    x8 = y9;
+                    flow = global::LeptonTech.SqlParser.Core.Ast.UpdateTableFromKind.VisitMut(ref y11, visitor);
+                    x10 = y11;
                 }
-                if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(x8, node.From)) node = node with { From = x8 };
+                if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(x10, node.From)) node = node with { From = x10 };
                 if (flow.IsBreak) return flow;
             }
             // Selection
             {
-                var x10 = node.Selection;
-                if (x10 is { } y11)
+                var x12 = node.Selection;
+                if (x12 is { } y13)
                 {
-                    flow = global::LeptonTech.SqlParser.Core.Ast.Expr.VisitMut(ref y11, visitor);
-                    x10 = y11;
+                    flow = global::LeptonTech.SqlParser.Core.Ast.Expr.VisitMut(ref y13, visitor);
+                    x12 = y13;
                 }
-                if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(x10, node.Selection)) node = node with { Selection = x10 };
+                if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(x12, node.Selection)) node = node with { Selection = x12 };
                 if (flow.IsBreak) return flow;
             }
             // Returning
             {
-                var x12 = node.Returning;
-                if (x12 is { } y13)
+                var x14 = node.Returning;
+                if (x14 is { } y15)
                 {
                     {
-                        global::LeptonTech.SqlParser.Core.Ast.SelectItem[]? a14 = null;
-                        for (var i15 = 0; i15 < y13.Count; i15++)
+                        global::LeptonTech.SqlParser.Core.Ast.SelectItem[]? a16 = null;
+                        for (var i17 = 0; i17 < y15.Count; i17++)
                         {
-                            var e16 = y13[i15];
-                            if (e16 is { } y17)
+                            var e18 = y15[i17];
+                            if (e18 is { } y19)
                             {
-                                flow = global::LeptonTech.SqlParser.Core.Ast.SelectItem.VisitMut(ref y17, visitor);
-                                e16 = y17;
+                                flow = global::LeptonTech.SqlParser.Core.Ast.SelectItem.VisitMut(ref y19, visitor);
+                                e18 = y19;
                             }
-                            if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(e16, y13[i15]))
+                            if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(e18, y15[i17]))
                             {
-                                a14 ??= global::System.Linq.Enumerable.ToArray(y13);
-                                a14[i15] = e16;
+                                a16 ??= global::System.Linq.Enumerable.ToArray(y15);
+                                a16[i17] = e18;
                             }
                             if (flow.IsBreak) break;
                         }
-                        if (a14 is not null) y13 = global::LeptonTech.SqlParser.Core.Sequence<global::LeptonTech.SqlParser.Core.Ast.SelectItem>.FromArrayNoCopy(a14);
+                        if (a16 is not null) y15 = global::LeptonTech.SqlParser.Core.Sequence<global::LeptonTech.SqlParser.Core.Ast.SelectItem>.FromArrayNoCopy(a16);
                     }
-                    x12 = y13;
+                    x14 = y15;
                 }
-                if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(x12, node.Returning)) node = node with { Returning = x12 };
+                if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(x14, node.Returning)) node = node with { Returning = x14 };
                 if (flow.IsBreak) return flow;
             }
             // Output
             {
-                var x18 = node.Output;
-                if (x18 is { } y19)
+                var x20 = node.Output;
+                if (x20 is { } y21)
                 {
-                    flow = global::LeptonTech.SqlParser.Core.Ast.OutputClause.VisitMut(ref y19, visitor);
-                    x18 = y19;
+                    flow = global::LeptonTech.SqlParser.Core.Ast.OutputClause.VisitMut(ref y21, visitor);
+                    x20 = y21;
                 }
-                if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(x18, node.Output)) node = node with { Output = x18 };
+                if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(x20, node.Output)) node = node with { Output = x20 };
                 if (flow.IsBreak) return flow;
             }
             // Or: nenhum gancho alcançável
             // OrderBy
             {
-                var x20 = node.OrderBy;
+                var x22 = node.OrderBy;
                 {
-                    global::LeptonTech.SqlParser.Core.Ast.OrderByExpr[]? a21 = null;
-                    for (var i22 = 0; i22 < x20.Count; i22++)
+                    global::LeptonTech.SqlParser.Core.Ast.OrderByExpr[]? a23 = null;
+                    for (var i24 = 0; i24 < x22.Count; i24++)
                     {
-                        var e23 = x20[i22];
-                        if (e23 is { } y24)
+                        var e25 = x22[i24];
+                        if (e25 is { } y26)
                         {
-                            flow = global::LeptonTech.SqlParser.Core.Ast.OrderByExpr.VisitMut(ref y24, visitor);
-                            e23 = y24;
+                            flow = global::LeptonTech.SqlParser.Core.Ast.OrderByExpr.VisitMut(ref y26, visitor);
+                            e25 = y26;
                         }
-                        if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(e23, x20[i22]))
+                        if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(e25, x22[i24]))
                         {
-                            a21 ??= global::System.Linq.Enumerable.ToArray(x20);
-                            a21[i22] = e23;
+                            a23 ??= global::System.Linq.Enumerable.ToArray(x22);
+                            a23[i24] = e25;
                         }
                         if (flow.IsBreak) break;
                     }
-                    if (a21 is not null) x20 = global::LeptonTech.SqlParser.Core.Sequence<global::LeptonTech.SqlParser.Core.Ast.OrderByExpr>.FromArrayNoCopy(a21);
+                    if (a23 is not null) x22 = global::LeptonTech.SqlParser.Core.Sequence<global::LeptonTech.SqlParser.Core.Ast.OrderByExpr>.FromArrayNoCopy(a23);
                 }
-                if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(x20, node.OrderBy)) node = node with { OrderBy = x20 };
+                if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(x22, node.OrderBy)) node = node with { OrderBy = x22 };
                 if (flow.IsBreak) return flow;
             }
             // Limit
             {
-                var x25 = node.Limit;
-                if (x25 is { } y26)
+                var x27 = node.Limit;
+                if (x27 is { } y28)
                 {
-                    flow = global::LeptonTech.SqlParser.Core.Ast.Expr.VisitMut(ref y26, visitor);
-                    x25 = y26;
+                    flow = global::LeptonTech.SqlParser.Core.Ast.Expr.VisitMut(ref y28, visitor);
+                    x27 = y28;
                 }
-                if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(x25, node.Limit)) node = node with { Limit = x25 };
+                if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(x27, node.Limit)) node = node with { Limit = x27 };
+                if (flow.IsBreak) return flow;
+            }
+            // Settings
+            {
+                var x29 = node.Settings;
+                if (x29 is { } y30)
+                {
+                    {
+                        global::LeptonTech.SqlParser.Core.Ast.Setting[]? a31 = null;
+                        for (var i32 = 0; i32 < y30.Count; i32++)
+                        {
+                            var e33 = y30[i32];
+                            if (e33 is { } y34)
+                            {
+                                flow = global::LeptonTech.SqlParser.Core.Ast.Setting.VisitMut(ref y34, visitor);
+                                e33 = y34;
+                            }
+                            if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(e33, y30[i32]))
+                            {
+                                a31 ??= global::System.Linq.Enumerable.ToArray(y30);
+                                a31[i32] = e33;
+                            }
+                            if (flow.IsBreak) break;
+                        }
+                        if (a31 is not null) y30 = global::LeptonTech.SqlParser.Core.Sequence<global::LeptonTech.SqlParser.Core.Ast.Setting>.FromArrayNoCopy(a31);
+                    }
+                    x29 = y30;
+                }
+                if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(x29, node.Settings)) node = node with { Settings = x29 };
                 if (flow.IsBreak) return flow;
             }
             return flow;

@@ -621,14 +621,11 @@ public class SqlParserPostgresTests1
 
         // Dialects that do not opt in via `supports_exclude_constraint` must
         // refuse to parse `EXCLUDE` constraints.
-        var unsupported = TestUtils.AllDialectsWhere(d => !d.SupportsExcludeConstraint);
-        sql = "CREATE TABLE t (col INT, EXCLUDE USING gist (col WITH =))";
-        foreach (var dialect in unsupported.Dialects)
-        {
-            var parser = new TestedDialects(new List<Dialect> { dialect });
-            // assert!(parser.parse_sql_statements(sql).is_err(), "dialect unexpectedly accepted EXCLUDE: {sql}")
-            Assert.Throws<ParserException>(() => parser.ParseSqlStatements(sql));
-        }
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => TestUtils.AllDialectsWhere(d => !d.SupportsExcludeConstraint)
+                .ParseSqlStatements("CREATE TABLE t (col INT, EXCLUDE USING gist (col WITH =))")).Error,
+            new ParserError.ParserErrorValue(
+                "Expected: ',' or ')' after column definition, found: gist"));
     }
 
     [Fact]

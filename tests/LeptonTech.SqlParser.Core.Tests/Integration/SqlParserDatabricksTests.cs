@@ -413,11 +413,17 @@ public class SqlParserDatabricksTests
         TestUtils.AllDialectsWhere(d => d.SupportsTableVersioning)
             .VerifiedOnlySelect("SELECT 1 FROM t1 VERSION AS OF 1");
 
-        Assert.Throws<ParserException>(() => Databricks()
-            .ParseSqlStatements("SELECT 1 FROM t1 FOR TIMESTAMP AS OF 'some_timestamp'"));
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => Databricks()
+                .ParseSqlStatements("SELECT 1 FROM t1 FOR TIMESTAMP AS OF 'some_timestamp'")).Error,
+            new ParserError.ParserErrorValue(
+                "Expected: one of UPDATE or SHARE, found: TIMESTAMP"));
 
-        Assert.Throws<ParserException>(() => TestUtils.AllDialectsWhere(d => d.SupportsTableVersioning)
-            .ParseSqlStatements("SELECT 1 FROM t1 VERSION AS OF 1 - 2"));
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => TestUtils.AllDialectsWhere(d => d.SupportsTableVersioning)
+                .ParseSqlStatements("SELECT 1 FROM t1 VERSION AS OF 1 - 2")).Error,
+            new ParserError.ParserErrorValue(
+                "Expected: end of statement, found: -"));
     }
 
     [Fact]
@@ -690,8 +696,11 @@ public class SqlParserDatabricksTests
         DatabricksAndGeneric()
             .VerifiedQuery("WITH cte (col1, col2) AS (SELECT 1, 2) SELECT * FROM cte");
 
-        Assert.Throws<ParserException>(() => TestUtils.AllDialectsWhere(d => !d.SupportsCteWithoutAs)
-            .ParseSqlStatements("WITH cte (SELECT 1) SELECT * FROM cte"));
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => TestUtils.AllDialectsWhere(d => !d.SupportsCteWithoutAs)
+                .ParseSqlStatements("WITH cte (SELECT 1) SELECT * FROM cte")).Error,
+            new ParserError.ParserErrorValue(
+                "Expected: ), found: 1"));
     }
 
     [Fact]
@@ -721,8 +730,10 @@ public class SqlParserDatabricksTests
             "CREATE TABLE t (name STRING COLLATE UTF8_BINARY, values ARRAY<STRING COLLATE UTF8_LCASE>, attrs MAP<STRING COLLATE UTF8_BINARY, STRING COLLATE UTF8_LCASE>)");
         Databricks().VerifiedStmt("CREATE TABLE t (s STRUCT<a STRING COLLATE UTF8_LCASE>)");
         Databricks().VerifiedStmt("CREATE TABLE t (c ARRAY<ARRAY<STRING>> COLLATE UTF8_LCASE)");
-        // assert!(..parse_sql_statements(..).is_err())
-        Assert.Throws<ParserException>(() => new TestedDialects(new List<Dialect> { new GenericDialect() })
-            .ParseSqlStatements("CREATE TABLE t (c ARRAY<STRING COLLATE UTF8_LCASE>)"));
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => new TestedDialects(new List<Dialect> { new GenericDialect() })
+                .ParseSqlStatements("CREATE TABLE t (c ARRAY<STRING COLLATE UTF8_LCASE>)")).Error,
+            new ParserError.ParserErrorValue(
+                "Expected: >, found: COLLATE"));
     }
 }

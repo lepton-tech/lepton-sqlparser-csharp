@@ -4,7 +4,7 @@
     "repository": "https://github.com/apache/datafusion-sqlparser-rs.git",
     "baselineTag": "v0.63.0",
     "baselineCommit": "85b1a6f2223bf95d98cf1bc504971abd191dc869",
-    "portedThroughCommit": "dacdbc99cd16c335fccd353ba41f6c18a7cd73b8",
+    "portedThroughCommit": "9119ec6bef4acadea510bb6e7bd89eb30b904b6b",
     "localPath": "upstream/sqlparser-rs"
   },
   "SqlParser-cs": {

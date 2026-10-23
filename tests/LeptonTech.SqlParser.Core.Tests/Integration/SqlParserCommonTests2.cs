@@ -356,15 +356,8 @@ public class SqlParserCommonTests2
             "ASSERT (SELECT COUNT(*) FROM my_table) > 0 AS 'No rows in my_table'");
         switch (ast)
         {
-            case Statement.Assert { Message: { } message }:
-                switch (message)
-                {
-                    case Expr.Value { Inner: { Value: Value.SingleQuotedString { Value: var s } } }:
-                        Assert.Equal("No rows in my_table", s);
-                        break;
-                    default:
-                        throw new InvalidOperationException(Unreachable);
-                }
+            case Statement.Assert { Message: Expr.Value { Inner: { Value: Value.SingleQuotedString { Value: var s } } } }:
+                Assert.Equal("No rows in my_table", s);
                 break;
             default:
                 throw new InvalidOperationException(Unreachable);
@@ -1037,13 +1030,7 @@ public class SqlParserCommonTests2
     [Fact]
     public void parse_alter_table_add_column_if_not_exists()
     {
-        var dialects = new TestedDialects(new List<Dialect>
-        {
-            new PostgreSqlDialect(),
-            new BigQueryDialect(),
-            new GenericDialect(),
-            new DuckDbDialect(),
-        });
+        var dialects = TestUtils.AllDialectsWhere(d => d.SupportsAddColumnIfNotExists);
 
         switch (TestUtils.AlterTableOp(dialects.VerifiedStmt("ALTER TABLE tab ADD IF NOT EXISTS foo TEXT")))
         {

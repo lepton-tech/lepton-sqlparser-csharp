@@ -128,8 +128,10 @@ public class SqlParserCommonTests4
             new DuckDbDialect(),
             new MsSqlDialect(),
         });
-        Assert.Throws<ParserException>(() => supportedDialects
-            .ParseSqlStatements("SELECT 💝 FROM table1"));
+        Assert.Equal(
+            new ParserError.ParserErrorValue("Expected: an expression, found: 💝"),
+            Assert.Throws<ParserException>(() => supportedDialects
+                .ParseSqlStatements("SELECT 💝 FROM table1")).Error);
     }
 
     [Fact]
@@ -717,25 +719,71 @@ public class SqlParserCommonTests4
     [Fact]
     public void test_comment_hash_syntax()
     {
-        var dialects = new TestedDialects(new List<Dialect>
-        {
-            new BigQueryDialect(),
-            new SnowflakeDialect(),
-            new MySqlDialect(),
-            new HiveDialect(),
-        });
-        // r#"..."# com várias linhas: quebras e indentação explícitas.
         var sql =
             "\n" +
             "    # comment\n" +
             "    SELECT a, b, c # , d, e\n" +
             "    FROM T\n" +
             "    ####### comment #################\n" +
-            "    WHERE true\n" +
+            "    WHERE true # it's a comment\n" +
             "    # comment\n" +
             "    ";
         var canonical = "SELECT a, b, c FROM T WHERE true";
+        TestUtils.AllDialectsWhere(d => d.SupportsHashComment && !d.RequiresHashCommentSpace)
+            .VerifiedOnlySelectWithCanonical(sql, canonical);
+
+        // Elsewhere `#` is an operator, so the apostrophe starts an unterminated string.
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => TestUtils.AllDialectsWhere(d => !d.SupportsHashComment)
+                .ParseSqlStatements("SELECT 1 # it's a comment")).Error,
+            new ParserError.TokenizerError(
+                "Unterminated string literal at Line: 1, Column: 14"));
+    }
+
+    [Fact]
+    public void test_comment_hash_requires_space()
+    {
+        var dialects = TestUtils.AllDialectsWhere(d => d.RequiresHashCommentSpace);
+
+        var sql =
+            "\n" +
+            "    # comment\n" +
+            "    #! shebang comment\n" +
+            "    SELECT a, b, c # , d, e\n" +
+            "    FROM T\n" +
+            "    WHERE true #! it's a comment\n" +
+            "    ";
+        var canonical = "SELECT a, b, c FROM T WHERE true";
         dialects.VerifiedOnlySelectWithCanonical(sql, canonical);
+
+        // Without a space or `!` after it, `#` is an operator token, which the parser rejects.
+        foreach (var invalidSql in new[]
+        {
+            "SELECT 1 #comment",
+            "SELECT 1 ####### comment",
+            "SELECT 1 #",
+            "SELECT 1 #\tcomment",
+        })
+        {
+            TestUtils.AssertEqualWithMessage<ParserError>(
+                Assert.Throws<ParserException>(() => dialects.ParseSqlStatements(invalidSql)).Error,
+                new ParserError.ParserErrorValue("No infix parser for token Sharp"),
+                invalidSql);
+        }
+        dialects.TokenizesTo(
+            "SELECT 1 ### comment",
+            new List<Token>
+            {
+                Token.MakeKeyword("SELECT"),
+                new Token.Whitespace(new Whitespace.Space()),
+                new Token.Number("1", false),
+                new Token.Whitespace(new Whitespace.Space()),
+                new Token.Sharp(),
+                new Token.Sharp(),
+                new Token.Whitespace(new Whitespace.SingleLineComment(
+                    Prefix: "#",
+                    Comment: " comment")),
+            });
     }
 
     [Fact]
@@ -1383,13 +1431,21 @@ public class SqlParserCommonTests4
                     new MatchRecognizePattern.Symbol(new MatchRecognizeSymbol.Named(new Ident("S3"))),
                     new RepetitionQuantifier.Reluctant(new RepetitionQuantifier.Range(2, 4))))));
 
-        foreach (var pattern in new[] { "S1**", "S1+++", "S1???", "S1{2,4}+" })
+        foreach (var (pattern, found) in new (string, string)[]
+        {
+            ("S1**", "*"),
+            ("S1+++", "+"),
+            ("S1???", "?"),
+            ("S1{2,4}+", "+"),
+        })
         {
             var sql =
                 $"SELECT * FROM my_table MATCH_RECOGNIZE(PATTERN ({pattern}) DEFINE DUMMY AS 1 = 1)";
-            // "stacked quantifier should fail: {pattern}"
-            Assert.Throws<ParserException>(() => TestUtils.AllDialectsWhere(d => d.SupportsMatchRecognize)
-                .ParseSqlStatements(sql));
+            TestUtils.AssertEqualWithMessage<ParserError>(
+                Assert.Throws<ParserException>(() => TestUtils.AllDialectsWhere(d => d.SupportsMatchRecognize).ParseSqlStatements(sql)).Error,
+                new ParserError.ParserErrorValue(
+                    $"Expected: identifier, found: {found}"),
+                pattern);
         }
 
         // range quantifiers in an alternation
@@ -3150,6 +3206,94 @@ public class SqlParserCommonTests4
     }
 
     [Fact]
+    public void test_qualified_keyword_function_calls()
+    {
+        var pg = new TestedDialects(new List<Dialect> { new PostgreSqlDialect() });
+
+        foreach (var (qualifier, func) in new (string, string)[]
+        {
+            ("public", "floor"),
+            ("pg_catalog", "floor"),
+            ("pg_catalog", "ceil"),
+        })
+        {
+            var sql = $"SELECT {qualifier}.{func}(3)";
+            switch (TestUtils.ExprFromProjection(pg.VerifiedOnlySelect(sql).Projection[0]))
+            {
+                case Expr.Function
+                {
+                    Value:
+                    {
+                        Name: var name,
+                        Args: FunctionArguments.List { Value.Args: var args },
+                    },
+                }:
+                    Assert.Equal(
+                        name,
+                        ObjectName.From(Sequence.Of(new Ident(qualifier), new Ident(func))));
+                    Assert.Equal(
+                        args.ToArray(),
+                        new FunctionArg[]
+                        {
+                            new FunctionArg.Unnamed(new FunctionArgExpr.Expr(Expr.MakeValue(
+                                TestUtils.Number("3")))),
+                        });
+                    break;
+                case var other:
+                    throw new InvalidOperationException($"Expected a qualified function call, got: {other}");
+            }
+        }
+
+        foreach (var (func, sqlArgs) in new (string, string)[]
+        {
+            ("extract", "3"),
+            ("trim", "'abc'"),
+            ("substring", "'abc', 1, 2"),
+            ("overlay", "'abc', 'xy', 1"),
+            ("position", "'a', 'b'"),
+            ("convert", "'abc', 1"),
+            ("array", "1, 2, 3"),
+        })
+        {
+            var sql = $"SELECT pg_catalog.{func}({sqlArgs})";
+            switch (TestUtils.ExprFromProjection(pg.VerifiedOnlySelect(sql).Projection[0]))
+            {
+                case Expr.Function { Value.Name: var name }:
+                    Assert.Equal(
+                        name,
+                        ObjectName.From(Sequence.Of(new Ident("pg_catalog"), new Ident(func))));
+                    break;
+                case var other:
+                    throw new InvalidOperationException($"Expected a qualified function call, got: {other}");
+            }
+        }
+
+        Assert.IsType<ParserError.ParserErrorValue>(Assert.Throws<ParserException>(
+            () => pg.ParseSqlStatements("SELECT pg_catalog.overlay('abc' PLACING 'xy' FROM 1)")).Error);
+        Assert.IsType<ParserError.ParserErrorValue>(Assert.Throws<ParserException>(
+            () => pg.ParseSqlStatements("SELECT pg_catalog.position('a' IN 'b')")).Error);
+
+        switch (TestUtils.ExprFromProjection(pg.VerifiedOnlySelect("SELECT FLOOR(3)").Projection[0]))
+        {
+            case Expr.Floor:
+                break;
+            case var other:
+                throw new InvalidOperationException($"Expected Expr::Floor, got: {other}");
+        }
+
+        switch (TestUtils.ExprFromProjection(
+            pg.VerifiedOnlySelect("SELECT t.interval FROM tbl t")
+                .Projection[0]))
+        {
+            case Expr.CompoundIdentifier { Value: var idents }:
+                Assert.Equal(idents, Sequence.Of(new Ident("t"), new Ident("interval")));
+                break;
+            case var other:
+                throw new InvalidOperationException($"Expected CompoundIdentifier, got: {other}");
+        }
+    }
+
+    [Fact]
     public void parse_create_table_with_bit_types()
     {
         var sql = "CREATE TABLE t (a BIT, b BIT VARYING, c BIT(42), d BIT VARYING(43))";
@@ -3359,6 +3503,61 @@ public class SqlParserCommonTests4
         Assert.Equal(statement.ToString(), sql);
     }
 
+    [Fact]
+    public void long_set_operation_chain_display_does_not_stack_overflow()
+    {
+        // Small stack so the check does not depend on the platform's default
+        // test-thread stack: without recursive-protection this chain overflows it.
+        static void DropChainIteratively(SetExpr expr)
+        {
+            // Iterative teardown: recursive drop glue would also overflow.
+            while (true)
+            {
+                switch (expr)
+                {
+                    case SetExpr.SetOperation { Left: var left }:
+                        expr = left;
+                        break;
+                    default:
+                        return;
+                }
+            }
+        }
+
+        System.Runtime.ExceptionServices.ExceptionDispatchInfo? error = null;
+        var thread = new System.Threading.Thread(
+            () =>
+            {
+                try
+                {
+                    var sql = new System.Text.StringBuilder("SELECT 1");
+                    for (var i = 2; i <= 25_000; i++)
+                    {
+                        sql.Append($" UNION ALL SELECT {i}");
+                    }
+
+                    var statements = Parser.ParseSql(new GenericDialect(), sql.ToString());
+                    var statement = statements[statements.Count - 1];
+                    Assert.Equal(statement.ToString(), sql.ToString());
+
+                    if (statement is not Statement.Query { Value: var query })
+                    {
+                        throw new InvalidOperationException("expected a query");
+                    }
+                    var body = query.Body;
+                    DropChainIteratively(body);
+                }
+                catch (Exception e)
+                {
+                    error = System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(e);
+                }
+            },
+            256 * 1024);
+        thread.Start();
+        thread.Join();
+        error?.Throw();
+    }
+
     // FALHA (não é divergência): no C#, o parse estoura a pilha (StackOverflowException, que não pode
     // ser capturada) por volta do 116º nível de aninhamento, apesar da proteção de DIV-005
     // (RecursionCounter.TryDecrease + EnsureSufficientExecutionStack). O estouro derruba o processo de
@@ -3394,6 +3593,41 @@ public class SqlParserCommonTests4
     {
         var dialects = TestUtils.AllDialectsWhere(d => d.SupportsEmptyProjections);
         dialects.VerifiedStmt("SELECT FROM users");
+        foreach (var sql in new[]
+        {
+            "SELECT",
+            "SELECT ALL",
+            "SELECT INTO t",
+            "SELECT WHERE true",
+            "SELECT GROUP BY () HAVING true",
+            "SELECT WINDOW w AS ()",
+            "SELECT ORDER BY 1",
+            "SELECT LIMIT 1",
+            "SELECT OFFSET 1",
+            "SELECT FETCH FIRST 1 ROWS ONLY",
+            "SELECT FOR UPDATE",
+            "SELECT UNION SELECT",
+            "SELECT INTERSECT SELECT",
+            "SELECT EXCEPT SELECT",
+            "SELECT EXISTS (SELECT)",
+            "SELECT * FROM (SELECT) AS t",
+        })
+        {
+            dialects.VerifiedStmt(sql);
+        }
+        Assert.Equal(
+            2,
+            dialects
+                .ParseSqlStatements("SELECT; SELECT")
+                .Count);
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => dialects.ParseSqlStatements("SELECT WHERE")).Error,
+            new ParserError.ParserErrorValue("Expected: an expression, found: EOF"));
+
+        dialects = TestUtils.AllDialectsWhere(d => !d.SupportsEmptyProjections);
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => dialects.ParseSqlStatements("SELECT")).Error,
+            new ParserError.ParserErrorValue("Expected: an expression, found: EOF"));
     }
 
     [Fact]

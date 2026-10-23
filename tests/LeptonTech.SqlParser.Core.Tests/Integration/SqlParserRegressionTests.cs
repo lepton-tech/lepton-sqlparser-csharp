@@ -39,8 +39,6 @@ public class SqlParserRegressionTests
     private static void TpchTest(int value)
     {
         var dialect = new GenericDialect();
-        // let res = Parser::parse_sql(..); assert!(res.is_ok()): ParseSql lança ParserException em
-        // caso de erro, e a exceção (com a mensagem do Rust) reprova o teste.
         Parser.ParseSql(dialect, Query(value));
     }
 

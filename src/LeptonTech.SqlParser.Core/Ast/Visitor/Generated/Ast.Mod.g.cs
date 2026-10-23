@@ -5733,16 +5733,8 @@ namespace LeptonTech.SqlParser.Core.Ast
                     flow = VisitVariant((global::LeptonTech.SqlParser.Core.Ast.Expr.IsNormalized)this, visitor);
                     if (flow.IsBreak) return flow;
                     break;
-                case global::LeptonTech.SqlParser.Core.Ast.Expr.InList:
-                    flow = VisitVariant((global::LeptonTech.SqlParser.Core.Ast.Expr.InList)this, visitor);
-                    if (flow.IsBreak) return flow;
-                    break;
-                case global::LeptonTech.SqlParser.Core.Ast.Expr.InSubquery:
-                    flow = VisitVariant((global::LeptonTech.SqlParser.Core.Ast.Expr.InSubquery)this, visitor);
-                    if (flow.IsBreak) return flow;
-                    break;
-                case global::LeptonTech.SqlParser.Core.Ast.Expr.InUnnest:
-                    flow = VisitVariant((global::LeptonTech.SqlParser.Core.Ast.Expr.InUnnest)this, visitor);
+                case global::LeptonTech.SqlParser.Core.Ast.Expr.In:
+                    flow = VisitVariant((global::LeptonTech.SqlParser.Core.Ast.Expr.In)this, visitor);
                     if (flow.IsBreak) return flow;
                     break;
                 case global::LeptonTech.SqlParser.Core.Ast.Expr.Between:
@@ -6174,8 +6166,8 @@ namespace LeptonTech.SqlParser.Core.Ast
             return global::LeptonTech.SqlParser.Core.ControlFlow<TBreak>.Continue;
         }
 
-        // InList
-        private static global::LeptonTech.SqlParser.Core.ControlFlow<TBreak> VisitVariant<TBreak>(global::LeptonTech.SqlParser.Core.Ast.Expr.InList v, global::LeptonTech.SqlParser.Core.Ast.Visitor<TBreak> visitor)
+        // In
+        private static global::LeptonTech.SqlParser.Core.ControlFlow<TBreak> VisitVariant<TBreak>(global::LeptonTech.SqlParser.Core.Ast.Expr.In v, global::LeptonTech.SqlParser.Core.Ast.Visitor<TBreak> visitor)
         {
             global::LeptonTech.SqlParser.Core.ControlFlow<TBreak> flow;
             // Expr
@@ -6184,61 +6176,14 @@ namespace LeptonTech.SqlParser.Core.Ast
                 flow = x1.Visit(visitor);
                 if (flow.IsBreak) return flow;
             }
-            // List
-            {
-                var s2 = v.List;
-                for (var i3 = 0; i3 < s2.Count; i3++)
-                {
-                    if (s2[i3] is { } x4)
-                    {
-                        flow = x4.Visit(visitor);
-                        if (flow.IsBreak) return flow;
-                    }
-                }
-            }
-            // Negated: nenhum gancho alcançável
-            // Global: nenhum gancho alcançável
-            return global::LeptonTech.SqlParser.Core.ControlFlow<TBreak>.Continue;
-        }
-
-        // InSubquery
-        private static global::LeptonTech.SqlParser.Core.ControlFlow<TBreak> VisitVariant<TBreak>(global::LeptonTech.SqlParser.Core.Ast.Expr.InSubquery v, global::LeptonTech.SqlParser.Core.Ast.Visitor<TBreak> visitor)
-        {
-            global::LeptonTech.SqlParser.Core.ControlFlow<TBreak> flow;
-            // Expr
-            if (v.Expr is { } x1)
-            {
-                flow = x1.Visit(visitor);
-                if (flow.IsBreak) return flow;
-            }
-            // Subquery
-            if (v.Subquery is { } x2)
+            // Target
+            if (v.Target is { } x2)
             {
                 flow = x2.Visit(visitor);
                 if (flow.IsBreak) return flow;
             }
             // Negated: nenhum gancho alcançável
             // Global: nenhum gancho alcançável
-            return global::LeptonTech.SqlParser.Core.ControlFlow<TBreak>.Continue;
-        }
-
-        // InUnnest
-        private static global::LeptonTech.SqlParser.Core.ControlFlow<TBreak> VisitVariant<TBreak>(global::LeptonTech.SqlParser.Core.Ast.Expr.InUnnest v, global::LeptonTech.SqlParser.Core.Ast.Visitor<TBreak> visitor)
-        {
-            global::LeptonTech.SqlParser.Core.ControlFlow<TBreak> flow;
-            // Expr
-            if (v.Expr is { } x1)
-            {
-                flow = x1.Visit(visitor);
-                if (flow.IsBreak) return flow;
-            }
-            // ArrayExpr
-            if (v.ArrayExpr is { } x2)
-            {
-                flow = x2.Visit(visitor);
-                if (flow.IsBreak) return flow;
-            }
-            // Negated: nenhum gancho alcançável
             return global::LeptonTech.SqlParser.Core.ControlFlow<TBreak>.Continue;
         }
 
@@ -7208,14 +7153,8 @@ namespace LeptonTech.SqlParser.Core.Ast
                 case global::LeptonTech.SqlParser.Core.Ast.Expr.IsNormalized:
                     flow = VisitMutVariant(ref node, (global::LeptonTech.SqlParser.Core.Ast.Expr.IsNormalized)node, visitor);
                     break;
-                case global::LeptonTech.SqlParser.Core.Ast.Expr.InList:
-                    flow = VisitMutVariant(ref node, (global::LeptonTech.SqlParser.Core.Ast.Expr.InList)node, visitor);
-                    break;
-                case global::LeptonTech.SqlParser.Core.Ast.Expr.InSubquery:
-                    flow = VisitMutVariant(ref node, (global::LeptonTech.SqlParser.Core.Ast.Expr.InSubquery)node, visitor);
-                    break;
-                case global::LeptonTech.SqlParser.Core.Ast.Expr.InUnnest:
-                    flow = VisitMutVariant(ref node, (global::LeptonTech.SqlParser.Core.Ast.Expr.InUnnest)node, visitor);
+                case global::LeptonTech.SqlParser.Core.Ast.Expr.In:
+                    flow = VisitMutVariant(ref node, (global::LeptonTech.SqlParser.Core.Ast.Expr.In)node, visitor);
                     break;
                 case global::LeptonTech.SqlParser.Core.Ast.Expr.Between:
                     flow = VisitMutVariant(ref node, (global::LeptonTech.SqlParser.Core.Ast.Expr.Between)node, visitor);
@@ -7751,8 +7690,8 @@ namespace LeptonTech.SqlParser.Core.Ast
             return flow;
         }
 
-        // InList
-        private static global::LeptonTech.SqlParser.Core.ControlFlow<TBreak> VisitMutVariant<TBreak>(ref global::LeptonTech.SqlParser.Core.Ast.Expr node, global::LeptonTech.SqlParser.Core.Ast.Expr.InList v, global::LeptonTech.SqlParser.Core.Ast.VisitorMut<TBreak> visitor)
+        // In
+        private static global::LeptonTech.SqlParser.Core.ControlFlow<TBreak> VisitMutVariant<TBreak>(ref global::LeptonTech.SqlParser.Core.Ast.Expr node, global::LeptonTech.SqlParser.Core.Ast.Expr.In v, global::LeptonTech.SqlParser.Core.Ast.VisitorMut<TBreak> visitor)
         {
             var flow = global::LeptonTech.SqlParser.Core.ControlFlow<TBreak>.Continue;
             var n = v;
@@ -7767,98 +7706,19 @@ namespace LeptonTech.SqlParser.Core.Ast
                 if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(x1, n.Expr)) n = n with { Expr = x1 };
                 if (flow.IsBreak) { node = n; return flow; }
             }
-            // List
+            // Target
             {
-                var x3 = n.List;
+                var x3 = n.Target;
+                if (x3 is { } y4)
                 {
-                    global::LeptonTech.SqlParser.Core.Ast.Expr[]? a4 = null;
-                    for (var i5 = 0; i5 < x3.Count; i5++)
-                    {
-                        var e6 = x3[i5];
-                        if (e6 is { } y7)
-                        {
-                            flow = global::LeptonTech.SqlParser.Core.Ast.Expr.VisitMut(ref y7, visitor);
-                            e6 = y7;
-                        }
-                        if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(e6, x3[i5]))
-                        {
-                            a4 ??= global::System.Linq.Enumerable.ToArray(x3);
-                            a4[i5] = e6;
-                        }
-                        if (flow.IsBreak) break;
-                    }
-                    if (a4 is not null) x3 = global::LeptonTech.SqlParser.Core.Sequence<global::LeptonTech.SqlParser.Core.Ast.Expr>.FromArrayNoCopy(a4);
+                    flow = global::LeptonTech.SqlParser.Core.Ast.InTarget.VisitMut(ref y4, visitor);
+                    x3 = y4;
                 }
-                if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(x3, n.List)) n = n with { List = x3 };
+                if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(x3, n.Target)) n = n with { Target = x3 };
                 if (flow.IsBreak) { node = n; return flow; }
             }
             // Negated: nenhum gancho alcançável
             // Global: nenhum gancho alcançável
-            node = n;
-            return flow;
-        }
-
-        // InSubquery
-        private static global::LeptonTech.SqlParser.Core.ControlFlow<TBreak> VisitMutVariant<TBreak>(ref global::LeptonTech.SqlParser.Core.Ast.Expr node, global::LeptonTech.SqlParser.Core.Ast.Expr.InSubquery v, global::LeptonTech.SqlParser.Core.Ast.VisitorMut<TBreak> visitor)
-        {
-            var flow = global::LeptonTech.SqlParser.Core.ControlFlow<TBreak>.Continue;
-            var n = v;
-            // Expr
-            {
-                var x1 = n.Expr;
-                if (x1 is { } y2)
-                {
-                    flow = global::LeptonTech.SqlParser.Core.Ast.Expr.VisitMut(ref y2, visitor);
-                    x1 = y2;
-                }
-                if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(x1, n.Expr)) n = n with { Expr = x1 };
-                if (flow.IsBreak) { node = n; return flow; }
-            }
-            // Subquery
-            {
-                var x3 = n.Subquery;
-                if (x3 is { } y4)
-                {
-                    flow = global::LeptonTech.SqlParser.Core.Ast.Query.VisitMut(ref y4, visitor);
-                    x3 = y4;
-                }
-                if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(x3, n.Subquery)) n = n with { Subquery = x3 };
-                if (flow.IsBreak) { node = n; return flow; }
-            }
-            // Negated: nenhum gancho alcançável
-            // Global: nenhum gancho alcançável
-            node = n;
-            return flow;
-        }
-
-        // InUnnest
-        private static global::LeptonTech.SqlParser.Core.ControlFlow<TBreak> VisitMutVariant<TBreak>(ref global::LeptonTech.SqlParser.Core.Ast.Expr node, global::LeptonTech.SqlParser.Core.Ast.Expr.InUnnest v, global::LeptonTech.SqlParser.Core.Ast.VisitorMut<TBreak> visitor)
-        {
-            var flow = global::LeptonTech.SqlParser.Core.ControlFlow<TBreak>.Continue;
-            var n = v;
-            // Expr
-            {
-                var x1 = n.Expr;
-                if (x1 is { } y2)
-                {
-                    flow = global::LeptonTech.SqlParser.Core.Ast.Expr.VisitMut(ref y2, visitor);
-                    x1 = y2;
-                }
-                if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(x1, n.Expr)) n = n with { Expr = x1 };
-                if (flow.IsBreak) { node = n; return flow; }
-            }
-            // ArrayExpr
-            {
-                var x3 = n.ArrayExpr;
-                if (x3 is { } y4)
-                {
-                    flow = global::LeptonTech.SqlParser.Core.Ast.Expr.VisitMut(ref y4, visitor);
-                    x3 = y4;
-                }
-                if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(x3, n.ArrayExpr)) n = n with { ArrayExpr = x3 };
-                if (flow.IsBreak) { node = n; return flow; }
-            }
-            // Negated: nenhum gancho alcançável
             node = n;
             return flow;
         }
@@ -14122,6 +13982,182 @@ namespace LeptonTech.SqlParser.Core.Ast
                 if (flow.IsBreak) return flow;
             }
             // EndToken: nenhum gancho alcançável
+            return flow;
+        }
+    }
+
+    // Rust: src/ast/mod.rs, enum InTarget. C#: Ast/Mod/InTarget.cs.
+    public abstract partial record InTarget : global::LeptonTech.SqlParser.Core.Ast.IVisit, global::LeptonTech.SqlParser.Core.Ast.IVisitMut<global::LeptonTech.SqlParser.Core.Ast.InTarget>
+    {
+        /// <inheritdoc/>
+        public global::LeptonTech.SqlParser.Core.ControlFlow<TBreak> Visit<TBreak>(global::LeptonTech.SqlParser.Core.Ast.Visitor<TBreak> visitor)
+        {
+            // #[cfg_attr(feature = "recursive-protection", recursive::recursive)]
+            if (global::LeptonTech.SqlParser.Core.Ast.VisitSupport.StackIsLow()) return global::LeptonTech.SqlParser.Core.Ast.VisitSupport.VisitOnNewStack(this, visitor);
+            global::LeptonTech.SqlParser.Core.ControlFlow<TBreak> flow;
+            switch (this)
+            {
+                case global::LeptonTech.SqlParser.Core.Ast.InTarget.List:
+                    flow = VisitVariant((global::LeptonTech.SqlParser.Core.Ast.InTarget.List)this, visitor);
+                    if (flow.IsBreak) return flow;
+                    break;
+                case global::LeptonTech.SqlParser.Core.Ast.InTarget.Subquery:
+                    flow = VisitVariant((global::LeptonTech.SqlParser.Core.Ast.InTarget.Subquery)this, visitor);
+                    if (flow.IsBreak) return flow;
+                    break;
+                case global::LeptonTech.SqlParser.Core.Ast.InTarget.Unnest:
+                    flow = VisitVariant((global::LeptonTech.SqlParser.Core.Ast.InTarget.Unnest)this, visitor);
+                    if (flow.IsBreak) return flow;
+                    break;
+            }
+            return global::LeptonTech.SqlParser.Core.ControlFlow<TBreak>.Continue;
+        }
+
+        // List
+        private static global::LeptonTech.SqlParser.Core.ControlFlow<TBreak> VisitVariant<TBreak>(global::LeptonTech.SqlParser.Core.Ast.InTarget.List v, global::LeptonTech.SqlParser.Core.Ast.Visitor<TBreak> visitor)
+        {
+            global::LeptonTech.SqlParser.Core.ControlFlow<TBreak> flow;
+            // Value
+            {
+                var s1 = v.Value;
+                for (var i2 = 0; i2 < s1.Count; i2++)
+                {
+                    if (s1[i2] is { } x3)
+                    {
+                        flow = x3.Visit(visitor);
+                        if (flow.IsBreak) return flow;
+                    }
+                }
+            }
+            return global::LeptonTech.SqlParser.Core.ControlFlow<TBreak>.Continue;
+        }
+
+        // Subquery
+        private static global::LeptonTech.SqlParser.Core.ControlFlow<TBreak> VisitVariant<TBreak>(global::LeptonTech.SqlParser.Core.Ast.InTarget.Subquery v, global::LeptonTech.SqlParser.Core.Ast.Visitor<TBreak> visitor)
+        {
+            global::LeptonTech.SqlParser.Core.ControlFlow<TBreak> flow;
+            // Value
+            if (v.Value is { } x1)
+            {
+                flow = x1.Visit(visitor);
+                if (flow.IsBreak) return flow;
+            }
+            return global::LeptonTech.SqlParser.Core.ControlFlow<TBreak>.Continue;
+        }
+
+        // Unnest
+        private static global::LeptonTech.SqlParser.Core.ControlFlow<TBreak> VisitVariant<TBreak>(global::LeptonTech.SqlParser.Core.Ast.InTarget.Unnest v, global::LeptonTech.SqlParser.Core.Ast.Visitor<TBreak> visitor)
+        {
+            global::LeptonTech.SqlParser.Core.ControlFlow<TBreak> flow;
+            // Value
+            if (v.Value is { } x1)
+            {
+                flow = x1.Visit(visitor);
+                if (flow.IsBreak) return flow;
+            }
+            return global::LeptonTech.SqlParser.Core.ControlFlow<TBreak>.Continue;
+        }
+
+        /// <inheritdoc/>
+        public global::LeptonTech.SqlParser.Core.ControlFlow<TBreak> Visit<TBreak>(global::LeptonTech.SqlParser.Core.Ast.VisitorMut<TBreak> visitor, out global::LeptonTech.SqlParser.Core.Ast.InTarget self)
+        {
+            var node = this;
+            var flow = VisitMut(ref node, visitor);
+            self = node;
+            return flow;
+        }
+
+        internal static global::LeptonTech.SqlParser.Core.ControlFlow<TBreak> VisitMut<TBreak>(ref global::LeptonTech.SqlParser.Core.Ast.InTarget node, global::LeptonTech.SqlParser.Core.Ast.VisitorMut<TBreak> visitor)
+        {
+            // #[cfg_attr(feature = "recursive-protection", recursive::recursive)]
+            if (global::LeptonTech.SqlParser.Core.Ast.VisitSupport.StackIsLow()) return global::LeptonTech.SqlParser.Core.Ast.VisitSupport.VisitMutOnNewStack(ref node, visitor);
+            var flow = global::LeptonTech.SqlParser.Core.ControlFlow<TBreak>.Continue;
+            switch (node)
+            {
+                case global::LeptonTech.SqlParser.Core.Ast.InTarget.List:
+                    flow = VisitMutVariant(ref node, (global::LeptonTech.SqlParser.Core.Ast.InTarget.List)node, visitor);
+                    break;
+                case global::LeptonTech.SqlParser.Core.Ast.InTarget.Subquery:
+                    flow = VisitMutVariant(ref node, (global::LeptonTech.SqlParser.Core.Ast.InTarget.Subquery)node, visitor);
+                    break;
+                case global::LeptonTech.SqlParser.Core.Ast.InTarget.Unnest:
+                    flow = VisitMutVariant(ref node, (global::LeptonTech.SqlParser.Core.Ast.InTarget.Unnest)node, visitor);
+                    break;
+            }
+            return flow;
+        }
+
+        // List
+        private static global::LeptonTech.SqlParser.Core.ControlFlow<TBreak> VisitMutVariant<TBreak>(ref global::LeptonTech.SqlParser.Core.Ast.InTarget node, global::LeptonTech.SqlParser.Core.Ast.InTarget.List v, global::LeptonTech.SqlParser.Core.Ast.VisitorMut<TBreak> visitor)
+        {
+            var flow = global::LeptonTech.SqlParser.Core.ControlFlow<TBreak>.Continue;
+            var n = v;
+            // Value
+            {
+                var x1 = n.Value;
+                {
+                    global::LeptonTech.SqlParser.Core.Ast.Expr[]? a2 = null;
+                    for (var i3 = 0; i3 < x1.Count; i3++)
+                    {
+                        var e4 = x1[i3];
+                        if (e4 is { } y5)
+                        {
+                            flow = global::LeptonTech.SqlParser.Core.Ast.Expr.VisitMut(ref y5, visitor);
+                            e4 = y5;
+                        }
+                        if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(e4, x1[i3]))
+                        {
+                            a2 ??= global::System.Linq.Enumerable.ToArray(x1);
+                            a2[i3] = e4;
+                        }
+                        if (flow.IsBreak) break;
+                    }
+                    if (a2 is not null) x1 = global::LeptonTech.SqlParser.Core.Sequence<global::LeptonTech.SqlParser.Core.Ast.Expr>.FromArrayNoCopy(a2);
+                }
+                if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(x1, n.Value)) n = n with { Value = x1 };
+                if (flow.IsBreak) { node = n; return flow; }
+            }
+            node = n;
+            return flow;
+        }
+
+        // Subquery
+        private static global::LeptonTech.SqlParser.Core.ControlFlow<TBreak> VisitMutVariant<TBreak>(ref global::LeptonTech.SqlParser.Core.Ast.InTarget node, global::LeptonTech.SqlParser.Core.Ast.InTarget.Subquery v, global::LeptonTech.SqlParser.Core.Ast.VisitorMut<TBreak> visitor)
+        {
+            var flow = global::LeptonTech.SqlParser.Core.ControlFlow<TBreak>.Continue;
+            var n = v;
+            // Value
+            {
+                var x1 = n.Value;
+                if (x1 is { } y2)
+                {
+                    flow = global::LeptonTech.SqlParser.Core.Ast.Query.VisitMut(ref y2, visitor);
+                    x1 = y2;
+                }
+                if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(x1, n.Value)) n = n with { Value = x1 };
+                if (flow.IsBreak) { node = n; return flow; }
+            }
+            node = n;
+            return flow;
+        }
+
+        // Unnest
+        private static global::LeptonTech.SqlParser.Core.ControlFlow<TBreak> VisitMutVariant<TBreak>(ref global::LeptonTech.SqlParser.Core.Ast.InTarget node, global::LeptonTech.SqlParser.Core.Ast.InTarget.Unnest v, global::LeptonTech.SqlParser.Core.Ast.VisitorMut<TBreak> visitor)
+        {
+            var flow = global::LeptonTech.SqlParser.Core.ControlFlow<TBreak>.Continue;
+            var n = v;
+            // Value
+            {
+                var x1 = n.Value;
+                if (x1 is { } y2)
+                {
+                    flow = global::LeptonTech.SqlParser.Core.Ast.Expr.VisitMut(ref y2, visitor);
+                    x1 = y2;
+                }
+                if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(x1, n.Value)) n = n with { Value = x1 };
+                if (flow.IsBreak) { node = n; return flow; }
+            }
+            node = n;
             return flow;
         }
     }
@@ -21379,6 +21415,7 @@ namespace LeptonTech.SqlParser.Core.Ast
                     }
                 }
             }
+            // Separator: nenhum gancho alcançável
             return global::LeptonTech.SqlParser.Core.ControlFlow<TBreak>.Continue;
         }
 
@@ -25112,6 +25149,7 @@ namespace LeptonTech.SqlParser.Core.Ast
                 if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(x1, n.Stmts)) n = n with { Stmts = x1 };
                 if (flow.IsBreak) { node = n; return flow; }
             }
+            // Separator: nenhum gancho alcançável
             node = n;
             return flow;
         }

@@ -40,4 +40,27 @@ internal static class DisplayUtils
         SpaceOrNewline.Instance.Fmt(f);
         new Indent<DisplayCommaSeparated<T>>(new DisplayCommaSeparated<T>(items)).Fmt(f);
     }
+
+    /// <summary>The first char <c>value</c> displays, rendering only up to it.</summary>
+    /// <remarks>
+    /// The sink fails once it holds a char. Stopping there relies on every
+    /// <c>Display</c> impl propagating the formatter's errors.
+    /// </remarks>
+    internal static char? FirstChar<T>(T value)
+    {
+        var first = new FirstCharWrite();
+        new Formatter(first).Write($"{value}");
+        return first.Value;
+    }
+
+    private sealed class FirstCharWrite : IFmtWrite
+    {
+        internal char? Value;
+
+        public bool WriteStr(string s)
+        {
+            Value ??= s.Length > 0 ? s[0] : null;
+            return Value is null;
+        }
+    }
 }

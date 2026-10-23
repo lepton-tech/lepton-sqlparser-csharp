@@ -34,6 +34,18 @@ public class SparkSqlDialect : Dialect
     public override bool IsDelimitedIdentifierStart(char ch) => ch is '`';
 
     /// <summary>
+    /// Aliases are identifiers, see <c>named_expression</c> in
+    /// <see href="https://spark.apache.org/docs/latest/sql-ref-syntax-qry-select.html"/> and
+    /// <see href="https://spark.apache.org/docs/latest/sql-ref-identifier.html"/>
+    /// </summary>
+    public override bool SupportsStringLiteralColumnAlias(bool @explicit) => false;
+
+    /// <summary>
+    /// Aliases are identifiers, see <see href="https://spark.apache.org/docs/latest/sql-ref-identifier.html"/>
+    /// </summary>
+    public override bool SupportsStringLiteralTableAlias(bool @explicit) => false;
+
+    /// <summary>
     /// See <see href="https://spark.apache.org/docs/latest/sql-ref-identifier.html"/>
     /// </summary>
     public override char? IdentifierQuoteStyle(string identifier) => '`';

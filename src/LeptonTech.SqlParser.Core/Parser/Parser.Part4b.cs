@@ -687,7 +687,7 @@ public sealed partial class Parser
         }
 
         CteAsMaterialized? isMaterialized = null;
-        if (_dialect is PostgreSqlDialect)
+        if (_dialect.SupportsCteMaterialization)
         {
             if (ParseKeyword(Keyword.MATERIALIZED))
             {
@@ -952,7 +952,7 @@ public sealed partial class Parser
         }
 
         Sequence<SelectItem> projection;
-        if (_dialect.SupportsEmptyProjections && PeekKeyword(Keyword.FROM))
+        if (_dialect.SupportsEmptyProjections && PeekEmptyProjection())
         {
             projection = Sequence<SelectItem>.Empty;
         }
@@ -1166,6 +1166,33 @@ public sealed partial class Parser
             Flavor: isFromFirst
                 ? SelectFlavor.FromFirst
                 : SelectFlavor.Standard);
+    }
+
+    /// <summary>Returns true if the next token ends a <c>SELECT</c> target list before it begins.</summary>
+    internal bool PeekEmptyProjection()
+    {
+        switch (PeekTokenRef().Token)
+        {
+            case Token.EOF or Token.SemiColon or Token.RParen:
+                return true;
+            case Token.Word { Value: var w }:
+                return w.Keyword is Keyword.INTO
+                    or Keyword.FROM
+                    or Keyword.WHERE
+                    or Keyword.GROUP
+                    or Keyword.HAVING
+                    or Keyword.WINDOW
+                    or Keyword.ORDER
+                    or Keyword.LIMIT
+                    or Keyword.OFFSET
+                    or Keyword.FETCH
+                    or Keyword.FOR
+                    or Keyword.UNION
+                    or Keyword.INTERSECT
+                    or Keyword.EXCEPT;
+            default:
+                return false;
+        }
     }
 
     /// <summary>Parses optimizer hints at the current token position.</summary>

@@ -29,7 +29,20 @@ public class ClickHouseDialect : Dialect
         // See https://clickhouse.com/docs/en/sql-reference/syntax/#syntax-identifiers
         (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || ch == '_';
 
-    public override bool IsIdentifierPart(char ch) => IsIdentifierStart(ch) || (ch >= '0' && ch <= '9');
+    /// <summary>
+    /// Aliases are identifiers, quoted with <c>"</c> or a backtick, see
+    /// <see href="https://clickhouse.com/docs/reference/syntax#identifiers"/>
+    /// </summary>
+    public override bool SupportsStringLiteralColumnAlias(bool @explicit) => false;
+
+    /// <summary>
+    /// See <see href="https://clickhouse.com/docs/reference/syntax#identifiers"/>
+    /// </summary>
+    public override bool SupportsStringLiteralTableAlias(bool @explicit) => false;
+
+    // Undocumented, but the server accepts `$` in identifiers for MySQL compatibility
+    // since https://github.com/ClickHouse/ClickHouse/pull/14232
+    public override bool IsIdentifierPart(char ch) => IsIdentifierStart(ch) || (ch >= '0' && ch <= '9') || ch == '$';
 
     /// <summary>
     /// ClickHouse accepts both backticks and double quotes, but its own
@@ -99,6 +112,16 @@ public class ClickHouseDialect : Dialect
     /// See <see href="https://clickhouse.com/docs/whats-new/changelog/2020#backward-incompatible-change-2"/>
     /// </summary>
     public override bool SupportsNestedComments => true;
+
+    /// <summary>
+    /// See <see href="https://clickhouse.com/docs/sql-reference/syntax#comments"/>
+    /// </summary>
+    public override bool SupportsHashComment => true;
+
+    /// <summary>
+    /// See <see href="https://github.com/ClickHouse/ClickHouse/blob/master/src/Parsers/Lexer.cpp"/>
+    /// </summary>
+    public override bool RequiresHashCommentSpace => true;
 
     /// <summary>
     /// See <see href="https://clickhouse.com/docs/en/sql-reference/statements/optimize"/>

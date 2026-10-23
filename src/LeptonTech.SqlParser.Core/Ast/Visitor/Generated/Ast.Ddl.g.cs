@@ -9426,7 +9426,7 @@ namespace LeptonTech.SqlParser.Core.Ast
                 flow = x11.Visit(visitor);
                 if (flow.IsBreak) return flow;
             }
-            // WithoutRowid: nenhum gancho alcançável
+            // SqliteTableOptions: nenhum gancho alcançável
             // Like
             if (this.Like is { } x12)
             {
@@ -9514,7 +9514,6 @@ namespace LeptonTech.SqlParser.Core.Ast
                 flow = x26.Visit(visitor);
                 if (flow.IsBreak) return flow;
             }
-            // Strict: nenhum gancho alcançável
             // CopyGrants: nenhum gancho alcançável
             // EnableSchemaEvolution: nenhum gancho alcançável
             // ChangeTracking: nenhum gancho alcançável
@@ -9745,7 +9744,7 @@ namespace LeptonTech.SqlParser.Core.Ast
                 if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(x20, node.Query)) node = node with { Query = x20 };
                 if (flow.IsBreak) return flow;
             }
-            // WithoutRowid: nenhum gancho alcançável
+            // SqliteTableOptions: nenhum gancho alcançável
             // Like
             {
                 var x22 = node.Like;
@@ -9907,7 +9906,6 @@ namespace LeptonTech.SqlParser.Core.Ast
                 if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(x49, node.ForValues)) node = node with { ForValues = x49 };
                 if (flow.IsBreak) return flow;
             }
-            // Strict: nenhum gancho alcançável
             // CopyGrants: nenhum gancho alcançável
             // EnableSchemaEvolution: nenhum gancho alcançável
             // ChangeTracking: nenhum gancho alcançável
@@ -13973,6 +13971,36 @@ namespace LeptonTech.SqlParser.Core.Ast
             }
             node = n;
             return flow;
+        }
+    }
+
+    // Rust: src/ast/ddl.rs, enum SqliteTableOption. C#: Ast/Ddl/SqliteTableOption.cs.
+    public abstract partial record SqliteTableOption : global::LeptonTech.SqlParser.Core.Ast.IVisit, global::LeptonTech.SqlParser.Core.Ast.IVisitMut<global::LeptonTech.SqlParser.Core.Ast.SqliteTableOption>
+    {
+        /// <inheritdoc/>
+        // Nenhum campo alcança um gancho do Visitor<TBreak>: a visita do derive Rust não tem efeito.
+        public global::LeptonTech.SqlParser.Core.ControlFlow<TBreak> Visit<TBreak>(global::LeptonTech.SqlParser.Core.Ast.Visitor<TBreak> visitor) => global::LeptonTech.SqlParser.Core.ControlFlow<TBreak>.Continue;
+
+        /// <inheritdoc/>
+        public global::LeptonTech.SqlParser.Core.ControlFlow<TBreak> Visit<TBreak>(global::LeptonTech.SqlParser.Core.Ast.VisitorMut<TBreak> visitor, out global::LeptonTech.SqlParser.Core.Ast.SqliteTableOption self)
+        {
+            self = this;
+            return global::LeptonTech.SqlParser.Core.ControlFlow<TBreak>.Continue;
+        }
+    }
+
+    // Rust: src/ast/ddl.rs, struct SqliteTableOptions. C#: Ast/Ddl/SqliteTableOptions.cs.
+    public sealed partial record SqliteTableOptions : global::LeptonTech.SqlParser.Core.Ast.IVisit, global::LeptonTech.SqlParser.Core.Ast.IVisitMut<global::LeptonTech.SqlParser.Core.Ast.SqliteTableOptions>
+    {
+        /// <inheritdoc/>
+        // Nenhum campo alcança um gancho do Visitor<TBreak>: a visita do derive Rust não tem efeito.
+        public global::LeptonTech.SqlParser.Core.ControlFlow<TBreak> Visit<TBreak>(global::LeptonTech.SqlParser.Core.Ast.Visitor<TBreak> visitor) => global::LeptonTech.SqlParser.Core.ControlFlow<TBreak>.Continue;
+
+        /// <inheritdoc/>
+        public global::LeptonTech.SqlParser.Core.ControlFlow<TBreak> Visit<TBreak>(global::LeptonTech.SqlParser.Core.Ast.VisitorMut<TBreak> visitor, out global::LeptonTech.SqlParser.Core.Ast.SqliteTableOptions self)
+        {
+            self = this;
+            return global::LeptonTech.SqlParser.Core.ControlFlow<TBreak>.Continue;
         }
     }
 

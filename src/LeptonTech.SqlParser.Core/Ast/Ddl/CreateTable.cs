@@ -49,7 +49,7 @@ namespace LeptonTech.SqlParser.Core.Ast;
 /// <param name="FileFormat">General comment for the table</param>
 /// <param name="Location">Location of the table data</param>
 /// <param name="Query">Query used to populate the table</param>
-/// <param name="WithoutRowid">If the table should be created without a rowid (SQLite)</param>
+/// <param name="SqliteTableOptions">SQLite <c>table-options</c></param>
 /// <param name="Like"><c>LIKE</c> clause</param>
 /// <param name="CloneValue">
 /// <c>CLONE</c> clause
@@ -105,11 +105,6 @@ namespace LeptonTech.SqlParser.Core.Ast;
 /// <param name="ForValues">
 /// PostgreSQL partition bound specification for PARTITION OF.
 /// <see href="https://www.postgresql.org/docs/current/sql-createtable.html"/>
-/// </param>
-/// <param name="Strict">
-/// SQLite "STRICT" clause.
-/// if the "STRICT" table-option keyword is added to the end, after the closing ")",
-/// then strict typing rules apply to that table.
 /// </param>
 /// <param name="CopyGrants">
 /// Snowflake "COPY GRANTS" clause
@@ -248,7 +243,7 @@ public sealed partial record CreateTable(
     FileFormat? FileFormat,
     string? Location,
     Query? Query,
-    bool WithoutRowid,
+    SqliteTableOptions SqliteTableOptions,
     CreateTableLikeKind? Like,
     ObjectName? CloneValue,
     TableVersion? Version,
@@ -263,7 +258,6 @@ public sealed partial record CreateTable(
     Sequence<ObjectName>? Inherits,
     [property: VisitWith("visit_relation")] ObjectName? PartitionOf,
     ForValues? ForValues,
-    bool Strict,
     bool CopyGrants,
     bool? EnableSchemaEvolution,
     bool? ChangeTracking,
@@ -375,12 +369,6 @@ public sealed partial record CreateTable(
             f.Write($" COMMENT '{comment}'");
         }
 
-        // Only for SQLite
-        if (WithoutRowid)
-        {
-            f.Write($" WITHOUT ROWID");
-        }
-
         if (Like is CreateTableLikeKind.Plain { Value: var like })
         {
             f.Write($" {like}");
@@ -394,6 +382,15 @@ public sealed partial record CreateTable(
         if (Version is { } version)
         {
             f.Write($" {version}");
+        }
+
+        if (!SqliteTableOptions.Options.IsEmpty)
+        {
+            if (SqliteTableOptions.LeadingComma)
+            {
+                f.WriteStr(",");
+            }
+            f.Write($" {DisplayCommaSeparated(SqliteTableOptions.Options)}");
         }
 
         switch (HiveDistribution)
@@ -642,10 +639,6 @@ public sealed partial record CreateTable(
                 _ => throw new InvalidOperationException($"Variante de OnCommit não tratada: {OnCommit}"),
             };
             f.Write($" {onCommit}");
-        }
-        if (Strict)
-        {
-            f.Write($" STRICT");
         }
         if (Backup is { } backup)
         {

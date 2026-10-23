@@ -27,7 +27,7 @@ public interface IDisplay
 public interface IFmtWrite
 {
     /// <summary>Rust: <c>Write::write_str</c>.</summary>
-    void WriteStr(string value);
+    bool WriteStr(string value);
 }
 
 /// <summary>
@@ -50,6 +50,8 @@ public interface IFmtWrite
 public sealed class Formatter : IFmtWrite
 {
     private readonly IFmtWrite _sink;
+    private readonly Formatter _root;
+    private bool _error;
 
     /// <summary>Cria um formatador que escreve em <paramref name="buffer"/>.</summary>
     public Formatter(StringBuilder buffer, bool alternate = false)
@@ -65,38 +67,67 @@ public sealed class Formatter : IFmtWrite
     {
         _sink = sink ?? throw new ArgumentNullException(nameof(sink));
         Alternate = alternate;
+        _root = this;
+    }
+
+    private Formatter(IFmtWrite sink, bool alternate, Formatter root)
+    {
+        _sink = sink;
+        Alternate = alternate;
+        _root = root;
     }
 
     /// <summary>Rust: <c>f.alternate()</c>, verdadeiro quando formatado com <c>{:#}</c>.</summary>
     public bool Alternate { get; }
 
     /// <summary>Rust: <c>f.write_str(s)</c>.</summary>
-    public void WriteStr(string value) => _sink.WriteStr(value);
+    public bool WriteStr(string value)
+    {
+        if (_root._error)
+        {
+            return false;
+        }
+        if (_sink.WriteStr(value))
+        {
+            return true;
+        }
+        _root._error = true;
+        return false;
+    }
 
     /// <summary>
     /// Rust: <c>f.write_char(c)</c>. Vai ao destino como uma string de um caractere, como no Rust
     /// (<c>write_char</c> chama <c>write_str</c>), o que importa para o <c>Indent</c>, que reage a <c>"\n"</c>.
     /// </summary>
-    public void WriteChar(char value) => _sink.WriteStr(value.ToString());
+    public bool WriteChar(char value) => WriteStr(value.ToString());
 
     /// <summary>Rust: <c>write!(f, "{}", value)</c>. O valor é formatado no mesmo destino, com flags novos (sem <c>#</c>).</summary>
-    public void Write(IDisplay value) => value.Fmt(new Formatter(_sink));
+    public bool Write(IDisplay value) => WriteDisplay(value, alternate: false);
 
     /// <summary>Rust: <c>write!(f, "{:#}", value)</c>.</summary>
-    public void WriteAlternate(IDisplay value) => value.Fmt(new Formatter(_sink, alternate: true));
+    public bool WriteAlternate(IDisplay value) => WriteDisplay(value, alternate: true);
 
     /// <summary>Rust: <c>write!(f, "{}", n)</c> para inteiros (sempre cultura invariante).</summary>
-    public void Write(long value) => _sink.WriteStr(value.ToString(CultureInfo.InvariantCulture));
+    public bool Write(long value) => WriteStr(value.ToString(CultureInfo.InvariantCulture));
 
     /// <summary>Rust: <c>write!(f, "{}", n)</c> para inteiros sem sinal (sempre cultura invariante).</summary>
-    public void Write(ulong value) => _sink.WriteStr(value.ToString(CultureInfo.InvariantCulture));
+    public bool Write(ulong value) => WriteStr(value.ToString(CultureInfo.InvariantCulture));
 
     /// <summary>
     /// Rust: <c>write!(f, "texto {} texto {:#}", a, b)</c> → <c>f.Write($"texto {a} texto {b:#}")</c>.
     /// O texto já foi escrito pelo <see cref="FormatterInterpolatedStringHandler"/> durante a chamada.
     /// </summary>
-    public void Write([InterpolatedStringHandlerArgument("")] ref FormatterInterpolatedStringHandler handler)
+    public bool Write([InterpolatedStringHandlerArgument("")] ref FormatterInterpolatedStringHandler handler) =>
+        !_root._error;
+
+    private bool WriteDisplay(IDisplay value, bool alternate)
     {
+        if (_root._error)
+        {
+            return false;
+        }
+        value.Fmt(new Formatter(_sink, alternate, _root));
+        return !_root._error;
     }
 
     /// <summary>
@@ -110,38 +141,29 @@ public sealed class Formatter : IFmtWrite
     /// <see cref="InvalidOperationException"/>: são casos que exigem tradução explícita, e falhar alto
     /// evita uma divergência silenciosa (por exemplo, um <c>enum</c> C# imprimiria o nome do membro).
     /// </remarks>
-    public void WriteValue<T>(T value, bool alternate = false)
-    {
-        switch (value)
-        {
-            case IDisplay display:
-                display.Fmt(new Formatter(_sink, alternate));
-                break;
-            default:
-                WritePrimitive(value);
-                break;
-        }
-    }
+    public bool WriteValue<T>(T value, bool alternate = false) =>
+        value is IDisplay display ? WriteDisplay(display, alternate) : WritePrimitive(value);
 
     /// <summary>
     /// Rust: <c>value.fmt(f)</c> para um valor de tipo genérico: repassa ESTE formatador (e seus flags)
     /// quando o valor é <see cref="IDisplay"/>. Para os demais tipos aceitos por <see cref="WriteValue{T}"/>,
     /// o resultado é o mesmo de uma lacuna <c>{}</c>.
     /// </summary>
-    public void FmtInPlace<T>(T value)
+    public bool FmtInPlace<T>(T value)
     {
-        switch (value)
+        if (value is not IDisplay display)
         {
-            case IDisplay display:
-                display.Fmt(this);
-                break;
-            default:
-                WritePrimitive(value);
-                break;
+            return WritePrimitive(value);
         }
+        if (_root._error)
+        {
+            return false;
+        }
+        display.Fmt(this);
+        return !_root._error;
     }
 
-    private void WritePrimitive<T>(T value)
+    private bool WritePrimitive<T>(T value)
     {
         switch (value)
         {
@@ -149,17 +171,13 @@ public sealed class Formatter : IFmtWrite
                 throw new InvalidOperationException(
                     "Valor nulo formatado como Display. No Rust não existe null: trate o Option explicitamente.");
             case string s:
-                _sink.WriteStr(s);
-                break;
+                return WriteStr(s);
             case char c:
-                WriteChar(c);
-                break;
+                return WriteChar(c);
             case bool b:
-                _sink.WriteStr(b ? "true" : "false");
-                break;
+                return WriteStr(b ? "true" : "false");
             case Keyword keyword:
-                _sink.WriteStr(keyword.ToSql());
-                break;
+                return WriteStr(keyword.ToSql());
             case Enum e:
                 throw new InvalidOperationException(
                     $"O enum C# '{e.GetType().Name}' não tem Display. Enums Rust com Display são traduzidos como records (convencoes.md §6).");
@@ -167,8 +185,7 @@ public sealed class Formatter : IFmtWrite
                 throw new InvalidOperationException(
                     "Ponto flutuante formatado como Display: o formato do Rust difere do .NET; trate explicitamente.");
             case sbyte or byte or short or ushort or int or uint or long or ulong:
-                _sink.WriteStr(((IFormattable)value).ToString(null, CultureInfo.InvariantCulture));
-                break;
+                return WriteStr(((IFormattable)value).ToString(null, CultureInfo.InvariantCulture));
             default:
                 throw new InvalidOperationException(
                     $"O tipo '{value.GetType().FullName}' não implementa IDisplay e não tem formatação definida.");
@@ -191,15 +208,17 @@ public sealed class Formatter : IFmtWrite
         return sb.ToString();
     }
 
-    void IFmtWrite.WriteStr(string value) => _sink.WriteStr(value);
-
     private sealed class StringBuilderWrite : IFmtWrite
     {
         private readonly StringBuilder _buffer;
 
         public StringBuilderWrite(StringBuilder buffer) => _buffer = buffer;
 
-        public void WriteStr(string value) => _buffer.Append(value);
+        public bool WriteStr(string value)
+        {
+            _buffer.Append(value);
+            return true;
+        }
     }
 }
 
@@ -221,18 +240,18 @@ public ref struct FormatterInterpolatedStringHandler
     }
 
     /// <summary>Trecho literal do formato.</summary>
-    public void AppendLiteral(string value) => _formatter.WriteStr(value);
+    public bool AppendLiteral(string value) => _formatter.WriteStr(value);
 
     /// <summary>Lacuna <c>{x}</c>.</summary>
-    public void AppendFormatted<T>(T value) => _formatter.WriteValue(value);
+    public bool AppendFormatted<T>(T value) => _formatter.WriteValue(value);
 
     /// <summary>Lacuna <c>{x:#}</c> (Rust <c>{:#}</c>).</summary>
-    public void AppendFormatted<T>(T value, string? format)
+    public bool AppendFormatted<T>(T value, string? format)
     {
         if (format != "#")
         {
             throw new InvalidOperationException($"Especificador de formato não suportado: '{format}'. Use só '#'.");
         }
-        _formatter.WriteValue(value, alternate: true);
+        return _formatter.WriteValue(value, alternate: true);
     }
 }

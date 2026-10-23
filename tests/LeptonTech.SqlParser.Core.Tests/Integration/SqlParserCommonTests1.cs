@@ -153,7 +153,7 @@ public class SqlParserCommonTests1
                     {
                         case SetExpr.Values { Value: var values }:
                             Assert.Equal(values.Rows.ToArray(), expectedRows);
-                            Assert.True(values.ValueKeyword == expectedValueKeyword);
+                            Assert.Equal(values.ValueKeyword, expectedValueKeyword);
                             break;
                         default:
                             throw new InvalidOperationException("unreachable!()");
@@ -437,6 +437,7 @@ public class SqlParserCommonTests1
                 Table: new TableWithJoins(
                     Relation: TestUtils.TableFromName(ObjectName.From(Sequence.Of(new Ident("t1")))),
                     Joins: Sequence<Join>.Empty),
+                OnCluster: null,
                 Assignments: Sequence.Of(new Assignment(
                     Target: new AssignmentTarget.ColumnName(ObjectName.From(Sequence.Of(new Ident("name")))),
                     Value: new Expr.CompoundIdentifier(Sequence.Of(new Ident("t2"), new Ident("name"))))),
@@ -499,7 +500,8 @@ public class SqlParserCommonTests1
                 Output: null,
                 Or: null,
                 OrderBy: Sequence<OrderByExpr>.Empty,
-                Limit: null)));
+                Limit: null,
+                Settings: null)));
 
         sql = "UPDATE T SET a = b FROM U, (SELECT foo FROM V) AS W WHERE 1 = 1";
         dialects.VerifiedStmt(sql);
@@ -511,7 +513,7 @@ public class SqlParserCommonTests1
         var sql = "UPDATE users AS u SET u.username = 'new_user' WHERE u.username = 'old_user'";
         switch (VerifiedStmt(sql))
         {
-            case Statement.Update { Value: { Or: null, Limit: null } update } when update.OptimizerHints.IsEmpty:
+            case Statement.Update { Value: { Or: null, Limit: null, OnCluster: null, Settings: null } update } when update.OptimizerHints.IsEmpty:
                 Assert.Equal(
                     new TableWithJoins(
                         Relation: new TableFactor.Table(
@@ -632,16 +634,23 @@ public class SqlParserCommonTests1
     [Fact]
     public void parse_invalid_table_name()
     {
-        Assert.Throws<ParserException>(() =>
+        var ast = Assert.Throws<ParserException>(() =>
             TestUtils.AllDialects().RunParserMethod("db.public..customer", parser =>
                 parser.ParseObjectName(false)));
+        Assert.Equal(
+            new ParserError.ParserErrorValue(
+                "Expected: identifier, found: . at Line: 1, Column: 11"),
+            ast.Error);
     }
 
     [Fact]
     public void parse_no_table_name()
     {
-        Assert.Throws<ParserException>(() =>
+        var ast = Assert.Throws<ParserException>(() =>
             TestUtils.AllDialects().RunParserMethod("", parser => parser.ParseObjectName(false)));
+        Assert.Equal(
+            new ParserError.ParserErrorValue("Expected: identifier, found: EOF"),
+            ast.Error);
     }
 
     [Fact]
@@ -1951,10 +1960,10 @@ public class SqlParserCommonTests1
             VerifiedExpr(sql),
             new Expr.UnaryOp(
                 Op: new UnaryOperator.Not(),
-                Expr: new Expr.InList(
+                Expr: new Expr.In(
                     Expr: new Expr.Identifier(new Ident("a")),
-                    List: Sequence.Of<Expr>(new Expr.Value(
-                        new Value.SingleQuotedString("a").WithEmptySpan())),
+                    Target: new InTarget.List(Sequence.Of<Expr>(new Expr.Value(
+                        new Value.SingleQuotedString("a").WithEmptySpan()))),
                     Negated: true,
                     Global: false)));
     }
@@ -2164,11 +2173,11 @@ public class SqlParserCommonTests1
             var sql = $"SELECT * FROM customers WHERE segment {(negated ? "NOT " : "")}IN ('HIGH', 'MED')";
             var select = VerifiedOnlySelect(sql);
             Assert.Equal(
-                new Expr.InList(
+                new Expr.In(
                     Expr: new Expr.Identifier(new Ident("segment")),
-                    List: Sequence.Of<Expr>(
+                    Target: new InTarget.List(Sequence.Of<Expr>(
                         new Expr.Value(new Value.SingleQuotedString("HIGH").WithEmptySpan()),
-                        new Expr.Value(new Value.SingleQuotedString("MED").WithEmptySpan())),
+                        new Expr.Value(new Value.SingleQuotedString("MED").WithEmptySpan()))),
                     Negated: negated,
                     Global: false),
                 select.Selection!);
@@ -2183,9 +2192,9 @@ public class SqlParserCommonTests1
         var sql = "SELECT * FROM customers WHERE segment IN (SELECT segm FROM bar)";
         var select = VerifiedOnlySelect(sql);
         Assert.Equal(
-            new Expr.InSubquery(
+            new Expr.In(
                 Expr: new Expr.Identifier(new Ident("segment")),
-                Subquery: VerifiedQuery("SELECT segm FROM bar"),
+                Target: new InTarget.Subquery(VerifiedQuery("SELECT segm FROM bar")),
                 Negated: false,
                 Global: false),
             select.Selection!);
@@ -2197,10 +2206,10 @@ public class SqlParserCommonTests1
         var sql = "SELECT * FROM customers WHERE segment IN ((SELECT segm FROM bar) UNION (SELECT segm FROM bar2))";
         var select = VerifiedOnlySelect(sql);
         Assert.Equal(
-            new Expr.InSubquery(
+            new Expr.In(
                 Expr: new Expr.Identifier(new Ident("segment")),
-                Subquery: VerifiedQuery(
-                    "(SELECT segm FROM bar) UNION (SELECT segm FROM bar2)"),
+                Target: new InTarget.Subquery(VerifiedQuery(
+                    "(SELECT segm FROM bar) UNION (SELECT segm FROM bar2)")),
                 Negated: false,
                 Global: false),
             select.Selection!);
@@ -2214,10 +2223,11 @@ public class SqlParserCommonTests1
             var sql = $"SELECT * FROM customers WHERE segment {(negated ? "NOT " : "")}IN UNNEST(expr)";
             var select = VerifiedOnlySelect(sql);
             Assert.Equal(
-                new Expr.InUnnest(
+                new Expr.In(
                     Expr: new Expr.Identifier(new Ident("segment")),
-                    ArrayExpr: VerifiedExpr("expr"),
-                    Negated: negated),
+                    Target: new InTarget.Unnest(VerifiedExpr("expr")),
+                    Negated: negated,
+                    Global: false),
                 select.Selection!);
         }
         Chk(false);

@@ -140,7 +140,10 @@ public class SqlParserSQLiteTests
         var sql = "CREATE TABLE t (a INT) WITHOUT ROWID";
         switch (SqliteAndGeneric().VerifiedStmt(sql))
         {
-            case Statement.CreateTable { Value: { WithoutRowid: true } createTable }:
+            case Statement.CreateTable { Value: var createTable }:
+                Assert.Equal(
+                    createTable.SqliteTableOptions.Options,
+                    Sequence.Of<SqliteTableOption>(new SqliteTableOption.WithoutRowid()));
                 Assert.Equal("t", createTable.Name.ToString());
                 break;
             default:
@@ -399,7 +402,9 @@ public class SqlParserSQLiteTests
         if (Sqlite().VerifiedStmt(sql) is Statement.CreateTable { Value: var createTable })
         {
             Assert.Equal("Fruits", createTable.Name.ToString());
-            Assert.True(createTable.Strict);
+            Assert.Equal(
+                createTable.SqliteTableOptions.Options,
+                Sequence.Of<SqliteTableOption>(new SqliteTableOption.Strict()));
         }
     }
 
@@ -501,8 +506,10 @@ public class SqlParserSQLiteTests
                 Table: new TableWithJoins(
                     Relation: TestUtils.TableFromName(ObjectName.From(Sequence.Of(new Ident("x")))),
                     Joins: Sequence<Join>.Empty),
+                OnCluster: null,
                 From: null,
                 Returning: null,
+                Settings: null,
                 Output: null,
                 OrderBy: Sequence<OrderByExpr>.Empty,
                 Limit: null,
@@ -514,9 +521,9 @@ public class SqlParserSQLiteTests
     {
         var sql = "SELECT * FROM t1 WHERE a IN ()";
         var select = Sqlite().VerifiedOnlySelect(sql);
-        if (select.Selection! is Expr.InList inList)
+        if (select.Selection! is Expr.In { Target: InTarget.List { Value: var list } })
         {
-            Assert.Equal(0, inList.List.Count);
+            Assert.Equal(0, list.Count);
         }
         else
         {
@@ -614,8 +621,13 @@ public class SqlParserSQLiteTests
         Sqlite().VerifiedOnlySelect(@"SELECT count(*) FROM messages WHERE msg_text REGEXP '\d+'");
 
         // Should return an error, not panic
-        Assert.Throws<ParserException>(() => Sqlite().ParseSqlStatements("SELECT 1 REGEXP"));
-        Assert.Throws<ParserException>(() => Sqlite().ParseSqlStatements("SELECT 1 MATCH"));
+        foreach (var sql in new[] { "SELECT 1 REGEXP", "SELECT 1 MATCH" })
+        {
+            Assert.Equal(
+                Assert.Throws<ParserException>(() => Sqlite().ParseSqlStatements(sql)).Error,
+                new ParserError.ParserErrorValue(
+                    "Expected: an expression, found: EOF"));
+        }
     }
 
     [Fact]
@@ -631,7 +643,10 @@ public class SqlParserSQLiteTests
         Sqlite().VerifiedOnlySelect(@"SELECT count(*) FROM files WHERE name GLOB '*.txt'");
 
         // Should return an error, not panic
-        Assert.Throws<ParserException>(() => Sqlite().ParseSqlStatements("SELECT 1 GLOB"));
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => Sqlite().ParseSqlStatements("SELECT 1 GLOB")).Error,
+            new ParserError.ParserErrorValue(
+                "Expected: an expression, found: EOF"));
     }
 
     [Fact]
@@ -914,11 +929,15 @@ public class SqlParserSQLiteTests
         Sqlite().VerifiedStmt("SELECT 𒀀");
         Sqlite().VerifiedStmt("SELECT 𒀀𒀁");
         // U+DFFFE is not alphabetic, so GenericDialect rejects it as an identifier.
-        // assert!(sqlparser::parser::Parser::parse_sql(&GenericDialect {}, "SELECT ..").is_err())
-        Assert.Throws<ParserException>(() => Parser.ParseSql(new GenericDialect(), "SELECT 󟿾"));
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => Parser.ParseSql(new GenericDialect(), "SELECT \U000DFFFE")).Error,
+            new ParserError.ParserErrorValue(
+                "Expected: an expression, found: \U000DFFFE at Line: 1, Column: 8"));
         // SQLite rejects U+007F as an unrecognized token.
-        // assert!(sqlite().parse_sql_statements("SELECT \u{007f}").is_err())
-        Assert.Throws<ParserException>(() => Sqlite().ParseSqlStatements("SELECT \u007f"));
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => Sqlite().ParseSqlStatements("SELECT \u007f")).Error,
+            new ParserError.ParserErrorValue(
+                "Expected: an expression, found: \u007f"));
     }
 
     [Fact]
@@ -929,8 +948,10 @@ public class SqlParserSQLiteTests
         Sqlite().VerifiedStmt(
             """CREATE TABLE '""' ('id' INT UNSIGNED NOT NULL, 'name' TEXT NOT NULL, 'zip' INT UNSIGNED NULL)""");
         // Generic dialect does not support this
-        // assert!(sqlparser::parser::Parser::parse_sql(&GenericDialect {}, "CREATE TABLE t ('a')").is_err())
-        Assert.Throws<ParserException>(() => Parser.ParseSql(new GenericDialect(), "CREATE TABLE t ('a')"));
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => Parser.ParseSql(new GenericDialect(), "CREATE TABLE t ('a')")).Error,
+            new ParserError.ParserErrorValue(
+                "Expected: column name or constraint definition, found: 'a' at Line: 1, Column: 17"));
     }
 
     [Fact]
@@ -941,9 +962,10 @@ public class SqlParserSQLiteTests
         Sqlite().VerifiedStmt("SELECT CAST(a AS)");
 
         // Rejected by dialects without the flag
-        // assert!(..parse_sql_statements(..).is_err())
-        Assert.Throws<ParserException>(() => new TestedDialects(new List<Dialect> { new GenericDialect() })
-            .ParseSqlStatements("SELECT CAST(a AS)"));
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => new TestedDialects(new List<Dialect> { new GenericDialect() })
+                .ParseSqlStatements("SELECT CAST(a AS)")).Error,
+            new ParserError.ParserErrorValue("Expected: a data type name, found: )"));
     }
 
     [Fact]
@@ -959,6 +981,100 @@ public class SqlParserSQLiteTests
         TestUtils.AllDialectsWhere(d => d.SupportsNationalStringLiteral).VerifiedStmt("SELECT N'hello'");
     }
 
+    [Fact]
+    public void parse_create_table_options_list()
+    {
+        foreach (var (suffix, leadingComma, options) in new (string, bool, Sequence<SqliteTableOption>)[]
+        {
+            (" WITHOUT ROWID, STRICT", false, Sequence.Of<SqliteTableOption>(new SqliteTableOption.WithoutRowid(), new SqliteTableOption.Strict())),
+            (" STRICT, WITHOUT ROWID", false, Sequence.Of<SqliteTableOption>(new SqliteTableOption.Strict(), new SqliteTableOption.WithoutRowid())),
+            (" STRICT, STRICT", false, Sequence.Of<SqliteTableOption>(new SqliteTableOption.Strict(), new SqliteTableOption.Strict())),
+            (", STRICT", true, Sequence.Of<SqliteTableOption>(new SqliteTableOption.Strict())),
+            (", WITHOUT ROWID, STRICT", true, Sequence.Of<SqliteTableOption>(new SqliteTableOption.WithoutRowid(), new SqliteTableOption.Strict())),
+        })
+        {
+            var sql = $"CREATE TABLE t (a INT){suffix}";
+            switch (SqliteAndGeneric().VerifiedStmt(sql))
+            {
+                case Statement.CreateTable { Value: var createTable }:
+                    TestUtils.AssertEqualWithMessage(
+                        createTable.SqliteTableOptions,
+                        new SqliteTableOptions(
+                            LeadingComma: leadingComma,
+                            Options: options),
+                        sql);
+                    break;
+                default:
+                    throw new InvalidOperationException(Unreachable);
+            }
+        }
+        SqliteAndGeneric().OneStatementParsesTo(
+            "CREATE TABLE t (a INT) , STRICT",
+            "CREATE TABLE t (a INT), STRICT");
+
+        foreach (var (suffix, error) in new (string, string)[]
+        {
+            (
+                " WITHOUT ROWID STRICT",
+                "Expected: end of statement, found: STRICT"
+            ),
+            (
+                " STRICT WITHOUT ROWID",
+                "Expected: end of statement, found: WITHOUT"
+            ),
+            (" STRICT,", "Expected: WITHOUT ROWID or STRICT, found: EOF"),
+            (" STRICT, WITHOUT", "Expected: ROWID, found: EOF"),
+            (",", "Expected: end of statement, found: ,"),
+            (", , STRICT", "Expected: end of statement, found: ,"),
+        })
+        {
+            var sql = $"CREATE TABLE t (a INT){suffix}";
+            var actual = Assert.Throws<ParserException>(() => SqliteAndGeneric().ParseSqlStatements(sql)).Error;
+            // "{sql}: {actual}"
+            Assert.Contains(error, actual.ToString());
+        }
+    }
+
+    [Fact]
+    public void parse_parenthesized_table_factor()
+    {
+        foreach (var (sql, canonical) in new (string, string)[]
+        {
+            ("SELECT * FROM (t)", "SELECT * FROM t"),
+            ("SELECT * FROM ((t))", "SELECT * FROM t"),
+            ("SELECT * FROM (t) AS a", "SELECT * FROM t AS a"),
+            ("SELECT * FROM (t AS a)", "SELECT * FROM t AS a"),
+            (
+                "SELECT * FROM ((SELECT 1) AS s)",
+                "SELECT * FROM (SELECT 1) AS s"
+            ),
+            ("SELECT * FROM f(), (t)", "SELECT * FROM f(), t"),
+        })
+        {
+            SqliteAndGeneric().OneStatementParsesTo(sql, canonical);
+        }
+
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => TestUtils.AllDialectsWhere(d => !d.SupportsParensAroundTableFactor)
+                .ParseSqlStatements("SELECT * FROM (t)")).Error,
+            new ParserError.ParserErrorValue(
+                "Expected: joined table, found: )"));
+    }
+
+    [Fact]
+    public void parse_unterminated_block_comment()
+    {
+        Sqlite().OneStatementParsesTo("SELECT 1 /* x", "SELECT 1");
+        Sqlite().OneStatementParsesTo("SELECT 1 /* x;", "SELECT 1");
+        Assert.Empty(Sqlite().ParseSqlStatements("/* ;"));
+
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => TestUtils.AllDialectsWhere(d => !d.SupportsUnterminatedBlockComments)
+                .ParseSqlStatements("SELECT 1 /* x")).Error,
+            new ParserError.TokenizerError(
+                "Unexpected EOF while in a multi-line comment at Line: 1, Column: 14"));
+    }
+
     private static TestedDialects Sqlite() =>
         new TestedDialects(new List<Dialect> { new SQLiteDialect() });
 
@@ -971,4 +1087,74 @@ public class SqlParserSQLiteTests
             new SQLiteDialect(),
             new GenericDialect(),
         });
+
+    [Fact]
+    public void test_dollar_sign_in_identifier()
+    {
+        // SQLite allows $ anywhere after the first character of an identifier
+        Sqlite().VerifiedStmt("SELECT a$ FROM t");
+        Sqlite().VerifiedStmt("SELECT 1 AS a$");
+        Sqlite().OneStatementParsesTo("CREATE TABLE t(a$ INT)", "CREATE TABLE t (a$ INT)");
+        Sqlite().VerifiedStmt("INSERT INTO t$ VALUES (1)");
+        // AS$ is parsed as the alias name
+        Sqlite().OneStatementParsesTo("SELECT a AS$", "SELECT a AS AS$");
+        // Dialects without $ as an identifier character still reject these identifiers
+        Assert.Throws<ParserException>(() => new TestedDialects(new List<Dialect> { new AnsiDialect() })
+            .ParseSqlStatements("SELECT a$ FROM t"));
+    }
+
+    [Fact]
+    public void parse_bitwise_and_or_share_precedence()
+    {
+        static Expr Num(string n) => Expr.MakeValue(TestUtils.Number(n));
+        static Expr Bin(Expr left, BinaryOperator op, Expr right) =>
+            new Expr.BinaryOp(
+                Left: left,
+                Op: op,
+                Right: right);
+
+        foreach (var (sql, expected) in new (string, Expr)[]
+        {
+            (
+                "6 | 1 & 3",
+                Bin(Bin(Num("6"), new BinaryOperator.BitwiseOr(), Num("1")), new BinaryOperator.BitwiseAnd(), Num("3"))
+            ),
+            (
+                "6 & 3 | 8",
+                Bin(Bin(Num("6"), new BinaryOperator.BitwiseAnd(), Num("3")), new BinaryOperator.BitwiseOr(), Num("8"))
+            ),
+            (
+                "1 & 2 & 3",
+                Bin(Bin(Num("1"), new BinaryOperator.BitwiseAnd(), Num("2")), new BinaryOperator.BitwiseAnd(), Num("3"))
+            ),
+            (
+                "1 | 2 | 3",
+                Bin(Bin(Num("1"), new BinaryOperator.BitwiseOr(), Num("2")), new BinaryOperator.BitwiseOr(), Num("3"))
+            ),
+            (
+                "1 | 2 + 3 & 4 * 5",
+                Bin(
+                    Bin(Num("1"), new BinaryOperator.BitwiseOr(), Bin(Num("2"), new BinaryOperator.Plus(), Num("3"))),
+                    new BinaryOperator.BitwiseAnd(),
+                    Bin(Num("4"), new BinaryOperator.Multiply(), Num("5")))
+            ),
+            (
+                "6 | (1 & 3)",
+                Bin(
+                    Num("6"),
+                    new BinaryOperator.BitwiseOr(),
+                    new Expr.Nested(Bin(Num("1"), new BinaryOperator.BitwiseAnd(), Num("3"))))
+            ),
+            (
+                "1 | 2 = 3 & 4",
+                Bin(
+                    Bin(Num("1"), new BinaryOperator.BitwiseOr(), Num("2")),
+                    new BinaryOperator.Eq(),
+                    Bin(Num("3"), new BinaryOperator.BitwiseAnd(), Num("4")))
+            ),
+        })
+        {
+            TestUtils.AssertEqualWithMessage(Sqlite().VerifiedExpr(sql), expected, sql);
+        }
+    }
 }

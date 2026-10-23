@@ -251,7 +251,7 @@ public class SqlParserPostgresTests3
                 FileFormat: null,
                 Location: null,
                 Query: null,
-                WithoutRowid: false,
+                SqliteTableOptions: SqliteTableOptions.Default(),
                 Like: null,
                 CloneValue: null,
                 Comment: null,
@@ -265,7 +265,6 @@ public class SqlParserPostgresTests3
                 Inherits: null,
                 PartitionOf: null,
                 ForValues: null,
-                Strict: false,
                 CopyGrants: false,
                 EnableSchemaEvolution: null,
                 ChangeTracking: null,
@@ -964,34 +963,48 @@ public class SqlParserPostgresTests3
             "CREATE OPERATOR + (FUNCTION = f, COMMUTATOR = >, NEGATOR = >=)");
 
         // Test all duplicate clause errors
-        foreach (var field in new[]
+        foreach (var (field, keyword) in new (string, string)[]
         {
-            "FUNCTION = f2",
-            "PROCEDURE = p",
-            "LEFTARG = INT4, LEFTARG = INT4",
-            "RIGHTARG = INT4, RIGHTARG = INT4",
-            "COMMUTATOR = -, COMMUTATOR = *",
-            "NEGATOR = -, NEGATOR = *",
-            "RESTRICT = f1, RESTRICT = f2",
-            "JOIN = f1, JOIN = f2",
-            "HASHES, HASHES",
-            "MERGES, MERGES",
+            ("FUNCTION = f2", "FUNCTION"),
+            ("PROCEDURE = p", "PROCEDURE"),
+            ("LEFTARG = INT4, LEFTARG = INT4", "LEFTARG"),
+            ("RIGHTARG = INT4, RIGHTARG = INT4", "RIGHTARG"),
+            ("COMMUTATOR = -, COMMUTATOR = *", "COMMUTATOR"),
+            ("NEGATOR = -, NEGATOR = *", "NEGATOR"),
+            ("RESTRICT = f1, RESTRICT = f2", "RESTRICT"),
+            ("JOIN = f1, JOIN = f2", "JOIN"),
+            ("HASHES, HASHES", "HASHES"),
+            ("MERGES, MERGES", "MERGES"),
         })
         {
-            Assert.Throws<ParserException>(() => Pg()
-                .ParseSqlStatements($"CREATE OPERATOR + (FUNCTION = f, {field})"));
+            Assert.Equal(
+                Assert.Throws<ParserException>(() => Pg().ParseSqlStatements($"CREATE OPERATOR + (FUNCTION = f, {field})"))
+                    .Error,
+                new ParserError.ParserErrorValue(
+                    $"Duplicate or unexpected keyword {keyword} in CREATE OPERATOR"));
         }
 
         // Test missing FUNCTION/PROCEDURE error
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements("CREATE OPERATOR + (LEFTARG = INT4)"));
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => Pg().ParseSqlStatements("CREATE OPERATOR + (LEFTARG = INT4)"))
+                .Error,
+            new ParserError.ParserErrorValue("CREATE OPERATOR requires FUNCTION parameter"));
 
         // Test empty parameter list error
-        Assert.Throws<ParserException>(() => Pg().ParseSqlStatements("CREATE OPERATOR + ()"));
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => Pg().ParseSqlStatements("CREATE OPERATOR + ()")).Error,
+            new ParserError.ParserErrorValue(
+                "Expected: one of FUNCTION or PROCEDURE or LEFTARG or RIGHTARG or COMMUTATOR or NEGATOR or RESTRICT or JOIN or HASHES or MERGES, found: )"));
 
         // Test nested empty parentheses error
-        Assert.Throws<ParserException>(() => Pg().ParseSqlStatements("CREATE OPERATOR > (()"));
-        Assert.Throws<ParserException>(() => Pg().ParseSqlStatements("CREATE OPERATOR > ())"));
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => Pg().ParseSqlStatements("CREATE OPERATOR > (()")).Error,
+            new ParserError.ParserErrorValue(
+                "Expected: one of FUNCTION or PROCEDURE or LEFTARG or RIGHTARG or COMMUTATOR or NEGATOR or RESTRICT or JOIN or HASHES or MERGES, found: ("));
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => Pg().ParseSqlStatements("CREATE OPERATOR > ())")).Error,
+            new ParserError.ParserErrorValue(
+                "Expected: one of FUNCTION or PROCEDURE or LEFTARG or RIGHTARG or COMMUTATOR or NEGATOR or RESTRICT or JOIN or HASHES or MERGES, found: )"));
     }
 
     [Fact]
@@ -1066,11 +1079,15 @@ public class SqlParserPostgresTests3
 
         // Test error: DROP OPERATOR with no operators
         sql = "DROP OPERATOR (INTEGER, INTEGER)";
-        Assert.Throws<ParserException>(() => Pg().ParseSqlStatements(sql));
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => Pg().ParseSqlStatements(sql)).Error,
+            new ParserError.ParserErrorValue("Expected: (, found: INTEGER"));
 
         // Test error: DROP OPERATOR IF EXISTS with no operators
         var sql2 = "DROP OPERATOR IF EXISTS (INTEGER, INTEGER)";
-        Assert.Throws<ParserException>(() => Pg().ParseSqlStatements(sql2));
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => Pg().ParseSqlStatements(sql2)).Error,
+            new ParserError.ParserErrorValue("Expected: (, found: INTEGER"));
     }
 
     [Fact]
@@ -1345,199 +1362,166 @@ public class SqlParserPostgresTests3
                     SchemaName: Name("new_schema")))));
 
         // Test error cases
-        // Missing USING clause
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements("ALTER OPERATOR FAMILY my_ops ADD OPERATOR 1 < (INT4, INT2)"));
+        foreach (var (invalidSql, expected) in new (string, string)[]
+        {
+            // Missing USING clause
+            ("ALTER OPERATOR FAMILY my_ops ADD OPERATOR 1 < (INT4, INT2)", "Expected: USING, found: ADD"),
+            // Invalid operation
+            (
+                "ALTER OPERATOR FAMILY my_ops USING btree INVALID_OPERATION",
+                "Expected: ADD, DROP, RENAME TO, OWNER TO, or SET SCHEMA after ALTER OPERATOR FAMILY, found: INVALID_OPERATION"
+            ),
+            // Missing operator name in ADD OPERATOR
+            ("ALTER OPERATOR FAMILY my_ops USING btree ADD OPERATOR 1 (INT4, INT2)", "Expected: (, found: INT4"),
+            // Missing function name in ADD FUNCTION
+            ("ALTER OPERATOR FAMILY my_ops USING btree ADD FUNCTION 1 (INT4, INT2)", "Expected: identifier, found: EOF"),
+            // Missing parentheses in DROP OPERATOR
+            ("ALTER OPERATOR FAMILY my_ops USING btree DROP OPERATOR 1 INT4, INT2", "Expected: (, found: INT4"),
+            // Invalid operator name (empty)
+            ("ALTER OPERATOR FAMILY my_ops USING btree ADD OPERATOR 1  (INT4, INT2)", "Expected: (, found: INT4"),
+            // Invalid operator name (special characters)
+            ("ALTER OPERATOR FAMILY my_ops USING btree ADD OPERATOR 1 @#$ (INT4, INT2)", "Expected: (, found: #"),
+            // Negative strategy number
+            ("ALTER OPERATOR FAMILY my_ops USING btree ADD OPERATOR -1 < (INT4, INT2)", "Expected: literal int, found: -"),
+            // Non-integer strategy number
+            (
+                "ALTER OPERATOR FAMILY my_ops USING btree ADD OPERATOR 1.5 < (INT4, INT2)",
+                "Could not parse '1.5' as u64: invalid digit found in string"
+            ),
+            // Missing closing parenthesis in operator types
+            ("ALTER OPERATOR FAMILY my_ops USING btree ADD OPERATOR 1 < (INT4, INT2", "Expected: ), found: EOF"),
+            // Missing opening parenthesis in operator types
+            ("ALTER OPERATOR FAMILY my_ops USING btree ADD OPERATOR 1 < INT4, INT2)", "Expected: (, found: INT4"),
+            // Empty operator types
+            ("ALTER OPERATOR FAMILY my_ops USING btree ADD OPERATOR 1 < ()", "Expected: a data type name, found: )"),
+            // Invalid data type (using punctuation)
+            ("ALTER OPERATOR FAMILY my_ops USING btree ADD OPERATOR 1 < (@#$%, INT2)", "Expected: a data type name, found: @"),
+            // Incomplete FOR clause
+            ("ALTER OPERATOR FAMILY my_ops USING btree ADD OPERATOR 1 < (INT4, INT2) FOR", "Expected: SEARCH or ORDER BY after FOR, found: EOF"),
+            // Invalid FOR clause keyword
+            ("ALTER OPERATOR FAMILY my_ops USING btree ADD OPERATOR 1 < (INT4, INT2) FOR INVALID", "Expected: SEARCH or ORDER BY after FOR, found: INVALID"),
+            // FOR ORDER BY without sort family
+            (
+                "ALTER OPERATOR FAMILY my_ops USING btree ADD OPERATOR 1 < (INT4, INT2) FOR ORDER BY",
+                "Expected: identifier, found: EOF"
+            ),
+            // Missing function name in ADD FUNCTION
+            ("ALTER OPERATOR FAMILY my_ops USING btree ADD FUNCTION 1 (INT4, INT2)", "Expected: identifier, found: EOF"),
+            // Invalid function name
+            ("ALTER OPERATOR FAMILY my_ops USING btree ADD FUNCTION 1 123invalid(INT4, INT2)", "Expected: identifier, found: 123"),
+            // Negative support number
+            ("ALTER OPERATOR FAMILY my_ops USING btree ADD FUNCTION -1 func(INT4, INT2)", "Expected: literal int, found: -"),
+            // Non-integer support number
+            (
+                "ALTER OPERATOR FAMILY my_ops USING btree ADD FUNCTION 1.5 func(INT4, INT2)",
+                "Could not parse '1.5' as u64: invalid digit found in string"
+            ),
+            // Missing closing parenthesis in function operator types
+            ("ALTER OPERATOR FAMILY my_ops USING btree ADD FUNCTION 1 (INT4, INT2 func()", "Expected: ), found: func"),
+            // Missing closing parenthesis in function arguments
+            ("ALTER OPERATOR FAMILY my_ops USING btree ADD FUNCTION 1 func(INT4, INT2", "Expected: ), found: EOF"),
+            // Invalid data type in function arguments
+            ("ALTER OPERATOR FAMILY my_ops USING btree ADD FUNCTION 1 func(@#$%, INT2)", "Expected: a data type name, found: @"),
+            // DROP OPERATOR with FOR clause (not allowed)
+            (
+                "ALTER OPERATOR FAMILY my_ops USING btree DROP OPERATOR 1 (INT4, INT2) FOR SEARCH",
+                "Expected: end of statement, found: FOR"
+            ),
+            // DROP FUNCTION with function arguments (not allowed)
+            (
+                "ALTER OPERATOR FAMILY my_ops USING btree DROP FUNCTION 1 (INT4, INT2) func(INT4)",
+                "Expected: end of statement, found: func"
+            ),
+            // Multiple ADD items with error in middle
+            (
+                "ALTER OPERATOR FAMILY my_ops USING btree ADD OPERATOR 1 < (INT4, INT2), INVALID_ITEM",
+                "Expected: OPERATOR or FUNCTION, found: INVALID_ITEM"
+            ),
+            // Multiple DROP items with error in middle
+            (
+                "ALTER OPERATOR FAMILY my_ops USING btree DROP OPERATOR 1 (INT4, INT2), INVALID_ITEM",
+                "Expected: OPERATOR or FUNCTION, found: INVALID_ITEM"
+            ),
+            // RENAME TO with invalid new name
+            ("ALTER OPERATOR FAMILY my_ops USING btree RENAME TO 123invalid", "Expected: identifier, found: 123"),
+            // OWNER TO with invalid owner
+            (
+                "ALTER OPERATOR FAMILY my_ops USING btree OWNER TO 123invalid",
+                "Expected: CURRENT_USER, CURRENT_ROLE, SESSION_USER or identifier after OWNER TO. sql parser error: Expected: identifier, found: 123"
+            ),
+            // SET SCHEMA with invalid schema name
+            ("ALTER OPERATOR FAMILY my_ops USING btree SET SCHEMA 123invalid", "Expected: identifier, found: 123"),
+            // Schema-qualified operator family name with invalid schema
+            (
+                "ALTER OPERATOR FAMILY 123invalid.my_ops USING btree ADD OPERATOR 1 < (INT4, INT2)",
+                "Expected: identifier, found: 123"
+            ),
+            // Missing operator family name
+            ("ALTER OPERATOR FAMILY USING btree ADD OPERATOR 1 < (INT4, INT2)", "Expected: USING, found: btree"),
+            // Extra tokens at end
+            (
+                "ALTER OPERATOR FAMILY my_ops USING btree ADD OPERATOR 1 < (INT4, INT2) EXTRA",
+                "Expected: end of statement, found: EXTRA"
+            ),
+            // Incomplete statement
+            ("ALTER OPERATOR FAMILY my_ops USING btree ADD", "Expected: OPERATOR or FUNCTION, found: EOF"),
+            // Very long numbers
+            (
+                "ALTER OPERATOR FAMILY my_ops USING btree ADD OPERATOR 999999999999999999999 < (INT4, INT2)",
+                "Could not parse '999999999999999999999' as u64: number too large to fit in target type"
+            ),
+            // Multiple FOR clauses
+            (
+                "ALTER OPERATOR FAMILY my_ops USING btree ADD OPERATOR 1 < (INT4, INT2) FOR SEARCH FOR ORDER BY sort_family",
+                "Expected: end of statement, found: FOR"
+            ),
+            // FOR SEARCH with extra tokens
+            (
+                "ALTER OPERATOR FAMILY my_ops USING btree ADD OPERATOR 1 < (INT4, INT2) FOR SEARCH EXTRA",
+                "Expected: end of statement, found: EXTRA"
+            ),
+            // FOR ORDER BY with invalid sort family
+            (
+                "ALTER OPERATOR FAMILY my_ops USING btree ADD OPERATOR 1 < (INT4, INT2) FOR ORDER BY 123invalid",
+                "Expected: identifier, found: 123"
+            ),
+        })
+        {
+            Assert.Equal(
+                Assert.Throws<ParserException>(() => Pg().ParseSqlStatements(invalidSql)).Error,
+                new ParserError.ParserErrorValue(expected));
+        }
 
-        // Invalid operation
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements("ALTER OPERATOR FAMILY my_ops USING btree INVALID_OPERATION"));
+        // Function with empty operator types
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => Pg().ParseSqlStatements(
+                "ALTER OPERATOR FAMILY my_ops USING btree ADD FUNCTION 1 () func"))
+                .Error,
+            new ParserError.ParserErrorValue("Expected: identifier, found: )"));
 
-        // Missing operator name in ADD OPERATOR
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements(
-                "ALTER OPERATOR FAMILY my_ops USING btree ADD OPERATOR 1 (INT4, INT2)"));
-
-        // Missing function name in ADD FUNCTION
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements(
-                "ALTER OPERATOR FAMILY my_ops USING btree ADD FUNCTION 1 (INT4, INT2)"));
-
-        // Missing parentheses in DROP OPERATOR
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements("ALTER OPERATOR FAMILY my_ops USING btree DROP OPERATOR 1 INT4, INT2"));
-
-        // Invalid operator name (empty)
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements(
-                "ALTER OPERATOR FAMILY my_ops USING btree ADD OPERATOR 1  (INT4, INT2)"));
-
-        // Invalid operator name (special characters)
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements(
-                "ALTER OPERATOR FAMILY my_ops USING btree ADD OPERATOR 1 @#$ (INT4, INT2)"));
-
-        // Negative strategy number
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements(
-                "ALTER OPERATOR FAMILY my_ops USING btree ADD OPERATOR -1 < (INT4, INT2)"));
-
-        // Non-integer strategy number
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements(
-                "ALTER OPERATOR FAMILY my_ops USING btree ADD OPERATOR 1.5 < (INT4, INT2)"));
-
-        // Missing closing parenthesis in operator types
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements(
-                "ALTER OPERATOR FAMILY my_ops USING btree ADD OPERATOR 1 < (INT4, INT2"));
-
-        // Missing opening parenthesis in operator types
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements(
-                "ALTER OPERATOR FAMILY my_ops USING btree ADD OPERATOR 1 < INT4, INT2)"));
-
-        // Empty operator types
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements("ALTER OPERATOR FAMILY my_ops USING btree ADD OPERATOR 1 < ()"));
-
-        // Invalid data type (using punctuation)
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements(
-                "ALTER OPERATOR FAMILY my_ops USING btree ADD OPERATOR 1 < (@#$%, INT2)"));
-
-        // Incomplete FOR clause
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements(
-                "ALTER OPERATOR FAMILY my_ops USING btree ADD OPERATOR 1 < (INT4, INT2) FOR"));
-
-        // Invalid FOR clause keyword
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements(
-                "ALTER OPERATOR FAMILY my_ops USING btree ADD OPERATOR 1 < (INT4, INT2) FOR INVALID"));
-
-        // FOR ORDER BY without sort family
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements(
-                "ALTER OPERATOR FAMILY my_ops USING btree ADD OPERATOR 1 < (INT4, INT2) FOR ORDER BY"));
-
-        // Missing function name in ADD FUNCTION
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements(
-                "ALTER OPERATOR FAMILY my_ops USING btree ADD FUNCTION 1 (INT4, INT2)"));
-
-        // Invalid function name
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements(
-                "ALTER OPERATOR FAMILY my_ops USING btree ADD FUNCTION 1 123invalid(INT4, INT2)"));
-
-        // Negative support number
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements(
-                "ALTER OPERATOR FAMILY my_ops USING btree ADD FUNCTION -1 func(INT4, INT2)"));
-
-        // Non-integer support number
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements(
-                "ALTER OPERATOR FAMILY my_ops USING btree ADD FUNCTION 1.5 func(INT4, INT2)"));
-
-        // Missing closing parenthesis in function operator types
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements(
-                "ALTER OPERATOR FAMILY my_ops USING btree ADD FUNCTION 1 (INT4, INT2 func()"));
-
-        // Missing closing parenthesis in function arguments
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements(
-                "ALTER OPERATOR FAMILY my_ops USING btree ADD FUNCTION 1 func(INT4, INT2"));
-
-        // Invalid data type in function arguments
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements(
-                "ALTER OPERATOR FAMILY my_ops USING btree ADD FUNCTION 1 func(@#$%, INT2)"));
-
-        // DROP OPERATOR with FOR clause (not allowed)
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements(
-                "ALTER OPERATOR FAMILY my_ops USING btree DROP OPERATOR 1 (INT4, INT2) FOR SEARCH"));
-
-        // DROP FUNCTION with function arguments (not allowed)
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements(
-                "ALTER OPERATOR FAMILY my_ops USING btree DROP FUNCTION 1 (INT4, INT2) func(INT4)"));
-
-        // Multiple ADD items with error in middle
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements(
-                "ALTER OPERATOR FAMILY my_ops USING btree ADD OPERATOR 1 < (INT4, INT2), INVALID_ITEM"));
-
-        // Multiple DROP items with error in middle
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements(
-                "ALTER OPERATOR FAMILY my_ops USING btree DROP OPERATOR 1 (INT4, INT2), INVALID_ITEM"));
-
-        // RENAME TO with invalid new name
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements("ALTER OPERATOR FAMILY my_ops USING btree RENAME TO 123invalid"));
-
-        // OWNER TO with invalid owner
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements("ALTER OPERATOR FAMILY my_ops USING btree OWNER TO 123invalid"));
-
-        // SET SCHEMA with invalid schema name
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements("ALTER OPERATOR FAMILY my_ops USING btree SET SCHEMA 123invalid"));
-
-        // Schema-qualified operator family name with invalid schema
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements(
-                "ALTER OPERATOR FAMILY 123invalid.my_ops USING btree ADD OPERATOR 1 < (INT4, INT2)"));
-
-        // Missing operator family name
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements("ALTER OPERATOR FAMILY USING btree ADD OPERATOR 1 < (INT4, INT2)"));
-
-        // Extra tokens at end
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements(
-                "ALTER OPERATOR FAMILY my_ops USING btree ADD OPERATOR 1 < (INT4, INT2) EXTRA"));
-
-        // Incomplete statement
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements("ALTER OPERATOR FAMILY my_ops USING btree ADD"));
-
-        // Very long numbers
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements("ALTER OPERATOR FAMILY my_ops USING btree ADD OPERATOR 999999999999999999999 < (INT4, INT2)"));
-
-        // Multiple FOR clauses
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements("ALTER OPERATOR FAMILY my_ops USING btree ADD OPERATOR 1 < (INT4, INT2) FOR SEARCH FOR ORDER BY sort_family"));
-
-        // FOR SEARCH with extra tokens
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements("ALTER OPERATOR FAMILY my_ops USING btree ADD OPERATOR 1 < (INT4, INT2) FOR SEARCH EXTRA"));
-
-        // FOR ORDER BY with invalid sort family
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements("ALTER OPERATOR FAMILY my_ops USING btree ADD OPERATOR 1 < (INT4, INT2) FOR ORDER BY 123invalid"));
-
-        // Function with empty operator types but missing function args parens
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements("ALTER OPERATOR FAMILY my_ops USING btree ADD FUNCTION 1 () func"));
-
-        // Function with mismatched parentheses
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements(
-                "ALTER OPERATOR FAMILY my_ops USING btree ADD FUNCTION 1 (INT4 func(INT2"));
-
-        // DROP with empty types
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements("ALTER OPERATOR FAMILY my_ops USING btree DROP OPERATOR 1 ()"));
-
-        // DROP FUNCTION with empty types
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements("ALTER OPERATOR FAMILY my_ops USING btree DROP FUNCTION 1 ()"));
+        foreach (var (invalidSql, expected) in new (string, string)[]
+        {
+            // Function with mismatched parentheses
+            (
+                "ALTER OPERATOR FAMILY my_ops USING btree ADD FUNCTION 1 (INT4 func(INT2",
+                "Expected: ), found: func"
+            ),
+            // DROP with empty types
+            (
+                "ALTER OPERATOR FAMILY my_ops USING btree DROP OPERATOR 1 ()",
+                "Expected: a data type name, found: )"
+            ),
+            // DROP FUNCTION with empty types
+            (
+                "ALTER OPERATOR FAMILY my_ops USING btree DROP FUNCTION 1 ()",
+                "Expected: a data type name, found: )"
+            ),
+        })
+        {
+            Assert.Equal(
+                Assert.Throws<ParserException>(() => Pg().ParseSqlStatements(invalidSql)).Error,
+                new ParserError.ParserErrorValue(expected));
+        }
     }
 
     [Fact]
@@ -1599,64 +1583,63 @@ public class SqlParserPostgresTests3
         }
 
         // Test error cases
-        // Missing USING clause
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements("ALTER OPERATOR CLASS int_ops RENAME TO integer_ops"));
-
-        // Invalid operation
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements("ALTER OPERATOR CLASS int_ops USING btree INVALID_OPERATION"));
-
-        // Missing new name for RENAME TO
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements("ALTER OPERATOR CLASS int_ops USING btree RENAME TO"));
-
-        // Missing owner for OWNER TO
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements("ALTER OPERATOR CLASS int_ops USING btree OWNER TO"));
-
-        // Missing schema for SET SCHEMA
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements("ALTER OPERATOR CLASS int_ops USING btree SET SCHEMA"));
-
-        // Invalid new name
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements("ALTER OPERATOR CLASS int_ops USING btree RENAME TO 123invalid"));
-
-        // Invalid owner
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements("ALTER OPERATOR CLASS int_ops USING btree OWNER TO 123invalid"));
-
-        // Invalid schema name
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements("ALTER OPERATOR CLASS int_ops USING btree SET SCHEMA 123invalid"));
-
-        // Missing operator class name
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements("ALTER OPERATOR CLASS USING btree RENAME TO integer_ops"));
-
-        // Extra tokens at end
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements(
-                "ALTER OPERATOR CLASS int_ops USING btree RENAME TO integer_ops EXTRA"));
-
-        // Missing index method
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements("ALTER OPERATOR CLASS int_ops RENAME TO integer_ops"));
-
-        // Invalid index method
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements("ALTER OPERATOR CLASS int_ops USING 123invalid RENAME TO integer_ops"));
-
-        // Trying to use ADD operation (only valid for OPERATOR FAMILY)
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements(
-                "ALTER OPERATOR CLASS int_ops USING btree ADD OPERATOR 1 < (INT4, INT2)"));
-
-        // Trying to use DROP operation (only valid for OPERATOR FAMILY)
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements(
-                "ALTER OPERATOR CLASS int_ops USING btree DROP OPERATOR 1 (INT4, INT2)"));
+        foreach (var (invalidSql, expected) in new (string, string)[]
+        {
+            // Missing USING clause
+            ("ALTER OPERATOR CLASS int_ops RENAME TO integer_ops", "Expected: USING, found: RENAME"),
+            // Invalid operation
+            (
+                "ALTER OPERATOR CLASS int_ops USING btree INVALID_OPERATION",
+                "Expected: RENAME TO, OWNER TO, or SET SCHEMA after ALTER OPERATOR CLASS, found: INVALID_OPERATION"
+            ),
+            // Missing new name for RENAME TO
+            ("ALTER OPERATOR CLASS int_ops USING btree RENAME TO", "Expected: identifier, found: EOF"),
+            // Missing owner for OWNER TO
+            (
+                "ALTER OPERATOR CLASS int_ops USING btree OWNER TO",
+                "Expected: CURRENT_USER, CURRENT_ROLE, SESSION_USER or identifier after OWNER TO. sql parser error: Expected: identifier, found: EOF"
+            ),
+            // Missing schema for SET SCHEMA
+            ("ALTER OPERATOR CLASS int_ops USING btree SET SCHEMA", "Expected: identifier, found: EOF"),
+            // Invalid new name
+            ("ALTER OPERATOR CLASS int_ops USING btree RENAME TO 123invalid", "Expected: identifier, found: 123"),
+            // Invalid owner
+            (
+                "ALTER OPERATOR CLASS int_ops USING btree OWNER TO 123invalid",
+                "Expected: CURRENT_USER, CURRENT_ROLE, SESSION_USER or identifier after OWNER TO. sql parser error: Expected: identifier, found: 123"
+            ),
+            // Invalid schema name
+            ("ALTER OPERATOR CLASS int_ops USING btree SET SCHEMA 123invalid", "Expected: identifier, found: 123"),
+            // Missing operator class name
+            ("ALTER OPERATOR CLASS USING btree RENAME TO integer_ops", "Expected: USING, found: btree"),
+            // Extra tokens at end
+            (
+                "ALTER OPERATOR CLASS int_ops USING btree RENAME TO integer_ops EXTRA",
+                "Expected: end of statement, found: EXTRA"
+            ),
+            // Missing index method
+            ("ALTER OPERATOR CLASS int_ops RENAME TO integer_ops", "Expected: USING, found: RENAME"),
+            // Invalid index method
+            (
+                "ALTER OPERATOR CLASS int_ops USING 123invalid RENAME TO integer_ops",
+                "Expected: identifier, found: 123"
+            ),
+            // Trying to use ADD operation (only valid for OPERATOR FAMILY)
+            (
+                "ALTER OPERATOR CLASS int_ops USING btree ADD OPERATOR 1 < (INT4, INT2)",
+                "Expected: RENAME TO, OWNER TO, or SET SCHEMA after ALTER OPERATOR CLASS, found: ADD"
+            ),
+            // Trying to use DROP operation (only valid for OPERATOR FAMILY)
+            (
+                "ALTER OPERATOR CLASS int_ops USING btree DROP OPERATOR 1 (INT4, INT2)",
+                "Expected: RENAME TO, OWNER TO, or SET SCHEMA after ALTER OPERATOR CLASS, found: DROP"
+            ),
+        })
+        {
+            Assert.Equal(
+                Assert.Throws<ParserException>(() => Pg().ParseSqlStatements(invalidSql)).Error,
+                new ParserError.ParserErrorValue(expected));
+        }
     }
 
     [Fact]
@@ -1856,19 +1839,38 @@ public class SqlParserPostgresTests3
             });
         }
 
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements("ALTER AGGREGATE alt_func1(INT) DEPENDS ON EXTENSION ext1"));
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements("ALTER AGGREGATE alt_func1(INT) NO DEPENDS ON EXTENSION ext1"));
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements("ALTER AGGREGATE alt_func1(OUT INT) OWNER TO joe"));
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements("ALTER AGGREGATE alt_func1(INOUT INT) OWNER TO joe"));
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements("ALTER AGGREGATE alt_func1(INT = 1) OWNER TO joe"));
-
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements("ALTER AGGREGATE alt_func1(INT) IMMUTABLE"));
+        foreach (var (sql, expected) in new (string, string)[]
+        {
+            (
+                "ALTER AGGREGATE alt_func1(INT) DEPENDS ON EXTENSION ext1",
+                "Expected: RENAME TO, OWNER TO, or SET SCHEMA after ALTER AGGREGATE, found: DEPENDS"
+            ),
+            (
+                "ALTER AGGREGATE alt_func1(INT) NO DEPENDS ON EXTENSION ext1",
+                "Expected: RENAME TO, OWNER TO, or SET SCHEMA after ALTER AGGREGATE, found: NO"
+            ),
+            (
+                "ALTER AGGREGATE alt_func1(OUT INT) OWNER TO joe",
+                "Expected: IN or argument type in aggregate signature, found: OUT"
+            ),
+            (
+                "ALTER AGGREGATE alt_func1(INOUT INT) OWNER TO joe",
+                "Expected: IN or argument type in aggregate signature, found: INOUT"
+            ),
+            (
+                "ALTER AGGREGATE alt_func1(INT = 1) OWNER TO joe",
+                "Expected: ',' or ')' or ORDER BY after aggregate argument type, found: ="
+            ),
+            (
+                "ALTER AGGREGATE alt_func1(INT) IMMUTABLE",
+                "Expected: RENAME TO, OWNER TO, or SET SCHEMA after ALTER AGGREGATE, found: IMMUTABLE"
+            ),
+        })
+        {
+            Assert.Equal(
+                Assert.Throws<ParserException>(() => Pg().ParseSqlStatements(sql)).Error,
+                new ParserError.ParserErrorValue(expected));
+        }
     }
 
     [Fact]
@@ -1887,12 +1889,18 @@ public class SqlParserPostgresTests3
         PgAndGeneric().VerifiedStmt("""CREATE TEXT SEARCH TEMPLATE t ("Init" = init_function)""");
 
         // Object type must be an unquoted keyword-like token in this position.
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements("""CREATE TEXT SEARCH "DICTIONARY" d (template = simple)"""));
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => Pg()
+                .ParseSqlStatements("""CREATE TEXT SEARCH "DICTIONARY" d (template = simple)"""))
+                .Error,
+            new ParserError.ParserErrorValue(
+                "Expected: one of DICTIONARY or CONFIGURATION or TEMPLATE or PARSER, found: \"DICTIONARY\""));
 
         // CREATE options are key-value pairs in PostgreSQL syntax.
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements("CREATE TEXT SEARCH DICTIONARY d (template)"));
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => Pg().ParseSqlStatements("CREATE TEXT SEARCH DICTIONARY d (template)"))
+                .Error,
+            new ParserError.ParserErrorValue("Expected: =, found: )"));
     }
 
     [Fact]
@@ -1976,11 +1984,15 @@ public class SqlParserPostgresTests3
 
         // Test error: DROP OPERATOR FAMILY with no names
         var sql1 = "DROP OPERATOR FAMILY USING btree";
-        Assert.Throws<ParserException>(() => PgAndGeneric().ParseSqlStatements(sql1));
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => PgAndGeneric().ParseSqlStatements(sql1)).Error,
+            new ParserError.ParserErrorValue("Expected: USING, found: btree"));
 
         // Test error: DROP OPERATOR FAMILY IF EXISTS with no names
         var sql2 = "DROP OPERATOR FAMILY IF EXISTS USING btree";
-        Assert.Throws<ParserException>(() => PgAndGeneric().ParseSqlStatements(sql2));
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => PgAndGeneric().ParseSqlStatements(sql2)).Error,
+            new ParserError.ParserErrorValue("Expected: USING, found: btree"));
     }
 
     [Fact]
@@ -2034,11 +2046,15 @@ public class SqlParserPostgresTests3
 
         // Test error: DROP OPERATOR CLASS with no names
         var sql1 = "DROP OPERATOR CLASS USING btree";
-        Assert.Throws<ParserException>(() => PgAndGeneric().ParseSqlStatements(sql1));
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => PgAndGeneric().ParseSqlStatements(sql1)).Error,
+            new ParserError.ParserErrorValue("Expected: USING, found: btree"));
 
         // Test error: DROP OPERATOR CLASS IF EXISTS with no names
         var sql2 = "DROP OPERATOR CLASS IF EXISTS USING btree";
-        Assert.Throws<ParserException>(() => PgAndGeneric().ParseSqlStatements(sql2));
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => PgAndGeneric().ParseSqlStatements(sql2)).Error,
+            new ParserError.ParserErrorValue("Expected: USING, found: btree"));
     }
 
     [Fact]
@@ -2329,9 +2345,11 @@ public class SqlParserPostgresTests3
         }
 
         // Test nested empty parentheses error in function arguments
-        Assert.Throws<ParserException>(() => Pg()
-            .ParseSqlStatements(
-                "CREATE OPERATOR CLASS test_ops FOR TYPE INT4 USING btree AS FUNCTION 1 cas_cmp(()"));
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => Pg().ParseSqlStatements(
+                "CREATE OPERATOR CLASS test_ops FOR TYPE INT4 USING btree AS FUNCTION 1 cas_cmp(()"))
+                .Error,
+            new ParserError.ParserErrorValue("Expected: a data type name, found: ("));
     }
 
     [Fact]
@@ -2576,40 +2594,43 @@ public class SqlParserPostgresTests3
     [Fact]
     public void parse_create_table_partition_of_errors()
     {
-        var sql = "CREATE TABLE p PARTITION OF parent";
-        var err = Assert.Throws<ParserException>(() => PgAndGeneric().ParseSqlStatements(sql)).Error.ToString();
-        // "Expected error about FOR VALUES, got: {err}"
-        Assert.Contains("FOR VALUES or DEFAULT", err);
-
-        sql = "CREATE TABLE p PARTITION OF parent WITH (fillfactor = 70)";
-        err = Assert.Throws<ParserException>(() => PgAndGeneric().ParseSqlStatements(sql)).Error.ToString();
-        // "Expected error about FOR VALUES, got: {err}"
-        Assert.Contains("FOR VALUES or DEFAULT", err);
-
-        sql = "CREATE TABLE p PARTITION OF parent FOR VALUES RANGE (1, 10)";
-        err = Assert.Throws<ParserException>(() => PgAndGeneric().ParseSqlStatements(sql)).Error.ToString();
-        // "Expected error about invalid keyword after FOR VALUES, got: {err}"
-        Assert.Contains("IN, FROM, or WITH", err);
-
-        sql = "CREATE TABLE p PARTITION OF parent FOR VALUES FROM (1)";
-        err = Assert.Throws<ParserException>(() => PgAndGeneric().ParseSqlStatements(sql)).Error.ToString();
-        // "Expected error about missing TO clause, got: {err}"
-        Assert.Contains("TO", err);
-
-        sql = "CREATE TABLE p PARTITION OF parent FOR VALUES IN ()";
-        err = Assert.Throws<ParserException>(() => PgAndGeneric().ParseSqlStatements(sql)).Error.ToString();
-        // "Expected error about empty value list in IN clause, got: {err}"
-        Assert.Contains("at least one value", err);
-
-        sql = "CREATE TABLE p PARTITION OF parent FOR VALUES FROM () TO (10)";
-        err = Assert.Throws<ParserException>(() => PgAndGeneric().ParseSqlStatements(sql)).Error.ToString();
-        // "Expected error about empty FROM list, got: {err}"
-        Assert.Contains("at least one value", err);
-
-        sql = "CREATE TABLE p PARTITION OF parent FOR VALUES FROM (1) TO ()";
-        err = Assert.Throws<ParserException>(() => PgAndGeneric().ParseSqlStatements(sql)).Error.ToString();
-        // "Expected error about empty TO list, got: {err}"
-        Assert.Contains("at least one value", err);
+        foreach (var (sql, err) in new (string, string)[]
+        {
+            (
+                "CREATE TABLE p PARTITION OF parent",
+                "Expected: FOR VALUES or DEFAULT after PARTITION OF, found: EOF"
+            ),
+            (
+                "CREATE TABLE p PARTITION OF parent WITH (fillfactor = 70)",
+                "Expected: FOR VALUES or DEFAULT after PARTITION OF, found: WITH"
+            ),
+            (
+                "CREATE TABLE p PARTITION OF parent FOR VALUES RANGE (1, 10)",
+                "Expected: IN, FROM, or WITH after FOR VALUES, found: RANGE"
+            ),
+            (
+                "CREATE TABLE p PARTITION OF parent FOR VALUES FROM (1)",
+                "Expected: TO, found: EOF"
+            ),
+            (
+                "CREATE TABLE p PARTITION OF parent FOR VALUES IN ()",
+                "Expected: at least one value, found: )"
+            ),
+            (
+                "CREATE TABLE p PARTITION OF parent FOR VALUES FROM () TO (10)",
+                "Expected: at least one value, found: )"
+            ),
+            (
+                "CREATE TABLE p PARTITION OF parent FOR VALUES FROM (1) TO ()",
+                "Expected: at least one value, found: )"
+            ),
+        })
+        {
+            TestUtils.AssertEqualWithMessage<ParserError>(
+                Assert.Throws<ParserException>(() => PgAndGeneric().ParseSqlStatements(sql)).Error,
+                new ParserError.ParserErrorValue(err),
+                sql);
+        }
     }
 
     [Fact]
@@ -3101,6 +3122,97 @@ public class SqlParserPostgresTests3
     }
 
     [Fact]
+    public void parse_insert_overriding()
+    {
+        foreach (var (sql, expected) in new (string, InsertOverriding)[]
+        {
+            (
+                "INSERT INTO t (id, a) OVERRIDING SYSTEM VALUE VALUES (1, 'x')",
+                new InsertOverriding.System()
+            ),
+            (
+                "INSERT INTO t (id, a) OVERRIDING USER VALUE VALUES (1, 'x')",
+                new InsertOverriding.User()
+            ),
+            (
+                "INSERT INTO t (id, a) OVERRIDING SYSTEM VALUE SELECT id, a FROM u",
+                new InsertOverriding.System()
+            ),
+            (
+                "INSERT INTO t (id) OVERRIDING USER VALUE VALUES (1) ON CONFLICT DO NOTHING RETURNING id",
+                new InsertOverriding.User()
+            ),
+        })
+        {
+            switch (PgAndGeneric().VerifiedStmt(sql))
+            {
+                case Statement.Insert { Value: var insert }:
+                    Assert.Equal(expected, insert.Overriding);
+                    break;
+                case var statement:
+                    throw new InvalidOperationException($"Expected INSERT statement, got: {statement}");
+            }
+        }
+
+        // Without a column list, PostgreSQL's implicit table alias must not swallow `OVERRIDING`.
+        foreach (var sql in new[]
+        {
+            "INSERT INTO t OVERRIDING SYSTEM VALUE VALUES (1, 'x')",
+            "INSERT INTO t OVERRIDING USER VALUE SELECT * FROM u",
+        })
+        {
+            switch (Pg().VerifiedStmt(sql))
+            {
+                case Statement.Insert { Value: var insert }:
+                    Assert.Null(insert.TableAlias);
+                    Assert.NotNull(insert.Overriding);
+                    break;
+                case var statement:
+                    throw new InvalidOperationException($"Expected INSERT statement, got: {statement}");
+            }
+        }
+        Pg().VerifiedStmt("INSERT INTO t AS x (id) OVERRIDING SYSTEM VALUE VALUES (1)");
+
+        // An INSERT without the clause has none.
+        switch (PgAndGeneric().VerifiedStmt("INSERT INTO t (id) VALUES (1)"))
+        {
+            case Statement.Insert { Value: var insert }:
+                Assert.Null(insert.Overriding);
+                break;
+            case var statement:
+                throw new InvalidOperationException($"Expected INSERT statement, got: {statement}");
+        }
+
+        // `OVERRIDING` takes `SYSTEM` or `USER`, then `VALUE`, and is followed by a query: PostgreSQL's
+        // grammar does not allow it before `DEFAULT VALUES`.
+        foreach (var (sql, err) in new (string, string)[]
+        {
+            (
+                "INSERT INTO t (id) OVERRIDING VALUE VALUES (1)",
+                "Expected: SYSTEM or USER, found: VALUE"
+            ),
+            (
+                "INSERT INTO t (id) OVERRIDING SYSTEM VALUES (1)",
+                "Expected: VALUE, found: VALUES"
+            ),
+            (
+                "INSERT INTO t (id) OVERRIDING DEFAULT VALUE VALUES (1)",
+                "Expected: SYSTEM or USER, found: DEFAULT"
+            ),
+            (
+                "INSERT INTO t OVERRIDING SYSTEM VALUE DEFAULT VALUES",
+                "Expected: SELECT, VALUES, or a subquery in the query body, found: DEFAULT"
+            ),
+        })
+        {
+            TestUtils.AssertEqualWithMessage<ParserError>(
+                Assert.Throws<ParserException>(() => PgAndGeneric().ParseSqlStatements(sql)).Error,
+                new ParserError.ParserErrorValue(err),
+                sql);
+        }
+    }
+
+    [Fact]
     public void parse_insert_by_name_keywords_as_table_and_alias()
     {
         // Without a table name, `BY NAME` is not an INSERT BY NAME clause. PostgreSQL
@@ -3197,6 +3309,119 @@ public class SqlParserPostgresTests3
     {
         PgAndGeneric().VerifiedStmt("SELECT B''''");
         PgAndGeneric().VerifiedStmt("SELECT B'it''s'");
+    }
+
+    [Fact]
+    public void parse_join_using_alias()
+    {
+        var sql = "SELECT * FROM t1 JOIN t2 USING (id) AS joined_cols";
+        var dialect = new PostgreSqlDialect();
+        var parser = new Parser(dialect).TryWithSql(sql);
+        var statement = parser.ParseStatement();
+        if (statement is not Statement.Query { Value: var query })
+        {
+            throw new InvalidOperationException("Expected a query statement");
+        }
+        if (query.Body is not SetExpr.Select { Value: var select })
+        {
+            throw new InvalidOperationException("Expected a SELECT query");
+        }
+        var join = select.From[0].Joins[0];
+
+        Assert.Equal<JoinOperator>(
+            new JoinOperator.Join(new JoinConstraint.UsingAlias(
+                Sequence.Of(ObjectName.From(Sequence.Of(new Ident("id")))),
+                new Ident("joined_cols"))),
+            join.JoinOperator);
+        Assert.Equal(
+            new Span(new Location(1, 33), new Location(1, 51)),
+            join.JoinOperator.Span());
+        Assert.Equal(
+            "SELECT * FROM t1 JOIN t2 USING(id) AS joined_cols",
+            select.ToString());
+    }
+
+    [Fact]
+    public void parse_string_literal_alias_rejected()
+    {
+        foreach (var (sql, expected) in new (string, string)[]
+        {
+            ("SELECT 1 'x'", "Expected: end of statement, found: 'x'"),
+            (
+                "SELECT (a) 'x' FROM t",
+                "Expected: end of statement, found: 'x'"
+            ),
+            (
+                "SELECT a AS 'x' FROM t",
+                "Expected: an identifier after AS, found: 'x'"
+            ),
+            (
+                "SELECT a FROM t 'x'",
+                "Expected: end of statement, found: 'x'"
+            ),
+            (
+                "SELECT a FROM t AS 'x'",
+                "Expected: an identifier after AS, found: 'x'"
+            ),
+        })
+        {
+            TestUtils.AssertEqualWithMessage<ParserError>(
+                Assert.Throws<ParserException>(() => Pg().ParseSqlStatements(sql)).Error,
+                new ParserError.ParserErrorValue(expected),
+                sql);
+        }
+        Pg().VerifiedStmt("SELECT a AS \"x\" FROM t AS \"y\"");
+    }
+
+    [Fact]
+    public void parse_custom_type_typed_string()
+    {
+        Assert.Equal<Expr>(
+            Pg().VerifiedExpr("public.mood 'happy'"),
+            new Expr.TypedString(new TypedString(
+                DataType: new DataType.Custom(
+                    ObjectName.From(Sequence.Of(Ident.From("public"), Ident.From("mood"))),
+                    Sequence<string>.Empty),
+                Value: new Value.SingleQuotedString("happy").WithEmptySpan(),
+                UsesOdbcSyntax: false)));
+        Pg().VerifiedStmt("SELECT mood 'happy'");
+        Pg().VerifiedStmt("SELECT count(*) FROM t WHERE m = mood 'sad'");
+        Pg().VerifiedStmt("SELECT pg_typeof(mood 'happy')");
+        Pg().VerifiedStmt("SELECT \"mood\" 'happy'");
+        Pg().VerifiedStmt("SELECT status 'on'");
+        Pg().VerifiedStmt("SELECT left 'x'");
+        Pg().VerifiedStmt("SELECT pg_catalog.coalesce 'x'");
+        Pg().VerifiedStmt("SELECT mood E'happy'");
+        Pg().VerifiedStmt("SELECT mood $$happy$$");
+
+        Assert.True(Pg().VerifiedExpr("NOT 'a' LIKE 'b'") is Expr.UnaryOp { Op: UnaryOperator.Not });
+        Assert.True(Pg().VerifiedExpr("point '1,2'") is Expr.TypedString
+        {
+            Value.DataType: DataType.GeometricType { Value: GeometricTypeKind.Point },
+        });
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => Pg().ParseSqlStatements("SELECT pg_typeof(coalesce 'x')"))
+                .Error,
+            new ParserError.ParserErrorValue("Expected: ), found: 'x'"));
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => Pg().ParseSqlStatements("SELECT mood 5")).Error,
+            new ParserError.ParserErrorValue("Expected: end of statement, found: 5"));
+    }
+
+    [Fact]
+    public void parse_geometric_keyword_as_column_name()
+    {
+        Pg().VerifiedStmt("SELECT circle FROM t");
+        Pg().VerifiedStmt("SELECT point FROM t");
+    }
+
+    [Fact]
+    public void parse_geometric_typed_literal_error_propagates()
+    {
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => Pg().ParseSqlStatements("SELECT circle( FROM t"))
+                .Error,
+            new ParserError.ParserErrorValue("Expected: a value, found: ("));
     }
 }
 #pragma warning restore xUnit2013

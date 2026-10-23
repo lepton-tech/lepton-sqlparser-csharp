@@ -1269,10 +1269,12 @@ public class SqlParserBigQueryTests
                     Joins: Sequence<Join>.Empty)));
         }
 
-        static void TestTableIdentErr(string ident)
+        static void TestTableIdentErr(string ident, string expected)
         {
             var sql = $"SELECT 1 FROM {ident}";
-            Assert.Throws<ParserException>(() => Bigquery().ParseSqlStatements(sql));
+            Assert.Equal(
+                Assert.Throws<ParserException>(() => Bigquery().ParseSqlStatements(sql)).Error,
+                new ParserError.ParserErrorValue(expected));
         }
 
         TestTableIdent("`spa ce`", null, Sequence.Of(Ident.WithQuote('`', "spa ce")));
@@ -1291,14 +1293,14 @@ public class SqlParserBigQueryTests
             null,
             Sequence.Of(Ident.WithQuote('`', "5abc"), new Ident("dataField")));
 
-        TestTableIdentErr("5abc.dataField");
+        TestTableIdentErr("5abc.dataField", "Expected: identifier, found: 5");
 
         TestTableIdent(
             "abc5.dataField",
             null,
             Sequence.Of(new Ident("abc5"), new Ident("dataField")));
 
-        TestTableIdentErr("abc5!.dataField");
+        TestTableIdentErr("abc5!.dataField", "Expected: end of statement, found: !");
 
         TestTableIdent(
             "`GROUP`.dataField",
@@ -1364,12 +1366,18 @@ public class SqlParserBigQueryTests
             "foo-bar.baz-123",
             Sequence.Of(new Ident("foo-bar"), new Ident("baz-123")));
 
-        TestTableIdentErr("foo-`bar`");
-        TestTableIdentErr("`foo`-bar");
-        TestTableIdentErr("foo-123a");
-        TestTableIdentErr("foo - bar");
-        TestTableIdentErr("123-bar");
-        TestTableIdentErr("bar-");
+        TestTableIdentErr(
+            "foo-`bar`",
+            "Expected: continuation of hyphenated identifier, found: `bar`");
+        TestTableIdentErr("`foo`-bar", "Expected: end of statement, found: -");
+        TestTableIdentErr(
+            "foo-123a",
+            "Expected: whitespace following hyphenated identifier, found: a");
+        TestTableIdentErr("foo - bar", "Expected: end of statement, found: -");
+        TestTableIdentErr("123-bar", "Expected: identifier, found: 123");
+        TestTableIdentErr(
+            "bar-",
+            "Expected: continuation of hyphenated identifier, found: EOF");
     }
 
     [Fact]
@@ -1428,7 +1436,10 @@ public class SqlParserBigQueryTests
                 Joins: Sequence<Join>.Empty)));
 
         var sql2 = "SELECT 1 FROM t1 FOR SYSTEM TIME AS OF 'some_timestamp'";
-        Assert.Throws<ParserException>(() => Bigquery().ParseSqlStatements(sql2));
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => Bigquery().ParseSqlStatements(sql2)).Error,
+            new ParserError.ParserErrorValue(
+                "Expected: one of UPDATE or SHARE, found: SYSTEM"));
     }
 
     [Fact]

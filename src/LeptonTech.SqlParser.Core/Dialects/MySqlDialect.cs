@@ -36,6 +36,12 @@ public class MySqlDialect : Dialect
         Keyword.STRAIGHT_JOIN,
     };
 
+    /// <summary>
+    /// Only select-list aliases may use string quoting, see
+    /// <see href="https://dev.mysql.com/doc/refman/8.4/en/problems-with-alias.html"/>
+    /// </summary>
+    public override bool SupportsStringLiteralTableAlias(bool @explicit) => false;
+
     public override bool IsIdentifierStart(char ch) =>
         // See https://dev.mysql.com/doc/refman/8.0/en/identifiers.html.
         // Identifiers which begin with a digit are recognized while tokenizing numbers,
@@ -68,6 +74,8 @@ public class MySqlDialect : Dialect
     public override bool IgnoresWildcardEscapes => true;
 
     public override bool SupportsNumericPrefix => true;
+
+    public override bool SupportsLiteralPrefixInQualifiedName => true;
 
     public override bool SupportsBitwiseShiftOperators => true;
 
@@ -137,6 +145,8 @@ public class MySqlDialect : Dialect
 
     public override bool RequiresSingleLineCommentWhitespace => true;
 
+    public override bool SupportsHashComment => true;
+
     public override bool SupportsMatchAgainst => true;
 
     public override bool SupportsSelectModifiers => true;
@@ -157,12 +167,29 @@ public class MySqlDialect : Dialect
 
     public override bool SupportsDataTypeSignedSuffix => true;
 
+    public override bool SupportsDataTypeZerofillSuffix => true;
+
     public override bool SupportsCrossJoinConstraint => true;
 
     /// <summary>
     /// See: <see href="https://dev.mysql.com/doc/refman/8.4/en/expressions.html"/>
     /// </summary>
     public override bool SupportsDoubleAmpersandOperator => true;
+
+    /// <summary>
+    /// <c>&amp;&amp;</c> binds like <c>AND</c>.
+    /// See: <see href="https://dev.mysql.com/doc/refman/8.4/en/operator-precedence.html"/>
+    /// </summary>
+    public override byte? GetNextPrecedence(Parser parser)
+    {
+        switch (parser.PeekTokenRef().Token)
+        {
+            case Token.Overlap:
+                return PrecValue(Precedence.And);
+            default:
+                return null;
+        }
+    }
 
     /// <summary>
     /// Deprecated functionality by MySQL but still supported

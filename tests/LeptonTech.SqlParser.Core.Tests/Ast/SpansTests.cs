@@ -292,8 +292,6 @@ public class SpansTests
         var r = Parser.ParseSql(new GenericDialect(), sql);
         Assert.Equal(1, r.Count);
 
-        // dbg!(&r[0]); (saída de depuração: não traduzida)
-
         var stmtSpan = r[0].Span();
 
         Assert.Equal(stmtSpan.Start, Location.From((2, 11)));
@@ -317,6 +315,41 @@ public class SpansTests
 
         Assert.Equal(stmtSpan.Start, Location.From((2, 7)));
         Assert.Equal(stmtSpan.End, Location.From((4, 24)));
+    }
+
+    [Fact]
+    public void test_delete_on_cluster_settings_span()
+    {
+        var sql =
+            "DELETE FROM foo ON CLUSTER c1\n" +
+            "WHERE x = 42\n" +
+            "SETTINGS lightweight_deletes_sync = 0";
+
+        var r = Parser.ParseSql(new ClickHouseDialect(), sql);
+        Assert.Equal(1, r.Count);
+
+        var stmtSpan = r[0].Span();
+
+        Assert.Equal(stmtSpan.Start, Location.From((1, 1)));
+        Assert.Equal(stmtSpan.End, Location.From((3, 38)));
+    }
+
+    [Fact]
+    public void test_update_on_cluster_settings_span()
+    {
+        var sql =
+            "UPDATE foo ON CLUSTER c1\n" +
+            "SET bar = 3\n" +
+            "WHERE x = 42\n" +
+            "SETTINGS update_parallel_mode = 'auto'";
+
+        var r = Parser.ParseSql(new ClickHouseDialect(), sql);
+        Assert.Equal(1, r.Count);
+
+        var stmtSpan = r[0].Span();
+
+        Assert.Equal(stmtSpan.Start, Location.From((1, 1)));
+        Assert.Equal(stmtSpan.End, Location.From((4, 39)));
     }
 
     [Fact]
@@ -613,6 +646,25 @@ public class SpansTests
             case var stmt:
                 Assert.Fail($"expected ALTER TABLE; got {stmt}");
                 break;
+        }
+    }
+
+    [Fact]
+    public void test_in_expression_spans()
+    {
+        foreach (var (sql, expected) in new (string, string)[]
+        {
+            ("  needle IN (first, last)", "needle IN (first, last"),
+            (
+                "  needle IN (SELECT last FROM items)",
+                "needle IN (SELECT last FROM items"
+            ),
+            ("  needle IN UNNEST(items)", "needle IN UNNEST(items"),
+        })
+        {
+            var test = new SpanTest(new GenericDialect(), sql);
+            var expr = test.Parser.ParseExpr();
+            TestUtils.AssertEqualWithMessage(test.GetSource(expr.Span()), expected, sql);
         }
     }
 }

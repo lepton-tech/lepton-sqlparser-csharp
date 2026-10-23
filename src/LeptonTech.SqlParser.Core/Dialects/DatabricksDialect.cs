@@ -32,6 +32,19 @@ public class DatabricksDialect : Dialect
     public override bool IsDelimitedIdentifierStart(char ch) => ch is '`';
 
     /// <summary>
+    /// Aliases are identifiers, see <c>column_alias</c> in
+    /// <see href="https://docs.databricks.com/aws/en/sql/language-manual/sql-ref-syntax-qry-select.html"/> and
+    /// <see href="https://docs.databricks.com/aws/en/sql/language-manual/sql-ref-identifiers.html"/>
+    /// </summary>
+    public override bool SupportsStringLiteralColumnAlias(bool @explicit) => false;
+
+    /// <summary>
+    /// Aliases are identifiers, see
+    /// <see href="https://docs.databricks.com/aws/en/sql/language-manual/sql-ref-identifiers.html"/>
+    /// </summary>
+    public override bool SupportsStringLiteralTableAlias(bool @explicit) => false;
+
+    /// <summary>
     /// See <see href="https://docs.databricks.com/en/sql/language-manual/sql-ref-identifiers.html"/>
     /// </summary>
     public override char? IdentifierQuoteStyle(string identifier) => '`';

@@ -130,6 +130,13 @@ internal enum ParserState
     ColumnDefinition,
 }
 
+/// <summary>Whether an alias names a select item or a table.</summary>
+internal enum AliasKind
+{
+    Column,
+    Table,
+}
+
 /// <summary>
 /// Copy marker for a <see cref="ParserError"/> cached by the <c>parse_prefix</c> failure
 /// memoization, so the caches hold no strings.

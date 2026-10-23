@@ -286,21 +286,30 @@ public sealed partial class Parser
     public Comments IntoComments()
     {
         var comments = new Comments();
+        Location? prevTokenEnd = null;
         foreach (var t in _tokens)
         {
+            Comment comment;
             switch (t.Token)
             {
                 case Token.Whitespace { Value: Whitespace.SingleLineComment singleLine }:
-                    comments.Offer(new CommentWithSpan(
-                        Comment: new Comment.SingleLine(Content: singleLine.Comment, Prefix: singleLine.Prefix),
-                        Span: t.Span));
+                    comment = new Comment.SingleLine(Content: singleLine.Comment, Prefix: singleLine.Prefix);
                     break;
                 case Token.Whitespace { Value: Whitespace.MultiLineComment multiLine }:
-                    comments.Offer(new CommentWithSpan(
-                        Comment: new Comment.MultiLine(multiLine.Value),
-                        Span: t.Span));
+                    comment = new Comment.MultiLine(multiLine.Value);
                     break;
+                case Token.Whitespace or Token.EOF:
+                    continue;
+                default:
+                    comments.SetNextTokenStart(t.Span.Start);
+                    prevTokenEnd = t.Span.End;
+                    continue;
             }
+            comments.Offer(new CommentWithSpan(
+                Comment: comment,
+                Span: t.Span,
+                PrevTokenEnd: prevTokenEnd,
+                NextTokenStart: null));
         }
         return comments;
     }

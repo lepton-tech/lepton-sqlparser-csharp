@@ -31,6 +31,7 @@ namespace LeptonTech.SqlParser.Core.Ast;
 /// </param>
 /// <param name="Tables">Multi tables delete are supported in mysql</param>
 /// <param name="From">FROM</param>
+/// <param name="OnCluster">ClickHouse <c>ON CLUSTER</c></param>
 /// <param name="Using">USING (Snowflake, Postgres, MySQL)</param>
 /// <param name="Selection">WHERE</param>
 /// <param name="Returning">RETURNING</param>
@@ -40,17 +41,20 @@ namespace LeptonTech.SqlParser.Core.Ast;
 /// </param>
 /// <param name="OrderBy">ORDER BY (MySQL)</param>
 /// <param name="Limit">LIMIT (MySQL)</param>
+/// <param name="Settings">ClickHouse <c>SETTINGS</c></param>
 public sealed partial record Delete(
     AttachedToken DeleteToken,
     Sequence<OptimizerHint> OptimizerHints,
     Sequence<ObjectName> Tables,
     FromTable From,
+    Ident? OnCluster,
     Sequence<TableWithJoins>? Using,
     Expr? Selection,
     Sequence<SelectItem>? Returning,
     OutputClause? Output,
     Sequence<OrderByExpr> OrderBy,
-    Expr? Limit) : IDisplay
+    Expr? Limit,
+    Sequence<Setting>? Settings) : IDisplay
 {
     public void Fmt(Formatter f)
     {
@@ -75,6 +79,10 @@ public sealed partial record Delete(
                 break;
             default:
                 throw new InvalidOperationException($"Variante de FromTable não tratada: {From.GetType().Name}");
+        }
+        if (OnCluster is { } onCluster)
+        {
+            f.Write($" ON CLUSTER {onCluster}");
         }
         if (Output is { } output)
         {
@@ -112,6 +120,12 @@ public sealed partial record Delete(
             f.WriteStr("LIMIT");
             SpaceOrNewline.Instance.Fmt(f);
             new Indent<Expr>(limit).Fmt(f);
+        }
+        if (Settings is { } settings)
+        {
+            SpaceOrNewline.Instance.Fmt(f);
+            f.WriteStr("SETTINGS");
+            DisplayUtils.IndentedList(f, settings);
         }
     }
 

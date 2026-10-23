@@ -110,14 +110,8 @@ public abstract partial record Expr
                 }
                 break;
             }
-            case InList inList:
-                f.Write($"{inList.Expr} {(inList.Global ? "GLOBAL " : "")}{(inList.Negated ? "NOT " : "")}IN ({DisplayCommaSeparated(inList.List)})");
-                break;
-            case InSubquery inSubquery:
-                f.Write($"{inSubquery.Expr} {(inSubquery.Global ? "GLOBAL " : "")}{(inSubquery.Negated ? "NOT " : "")}IN ({inSubquery.Subquery})");
-                break;
-            case InUnnest inUnnest:
-                f.Write($"{inUnnest.Expr} {(inUnnest.Negated ? "NOT " : "")}IN UNNEST({inUnnest.ArrayExpr})");
+            case In inExpr:
+                f.Write($"{inExpr.Expr} {(inExpr.Global ? "GLOBAL " : "")}{(inExpr.Negated ? "NOT " : "")}IN {inExpr.Target}");
                 break;
             case Between between:
                 f.Write($"{between.Expr} {(between.Negated ? "NOT " : "")}BETWEEN {between.Low} AND {between.High}");
@@ -222,14 +216,17 @@ public abstract partial record Expr
                         f.Write($"{op} {expr}");
                         break;
                     case UnaryOperator.Minus or UnaryOperator.BangNot:
+                        // Written before the check, so an enclosing
+                        // `starts_with_operator_char` stops at this operator.
+                        if (!f.Write($"{op}"))
+                        {
+                            return;
+                        }
                         if (StartsWithOperatorChar(expr))
                         {
-                            f.Write($"{op} {expr}");
+                            f.WriteStr(" ");
                         }
-                        else
-                        {
-                            f.Write($"{op}{expr}");
-                        }
+                        f.Write($"{expr}");
                         break;
                     case UnaryOperator.Plus or UnaryOperator.PGPrefixFactorial:
                         f.Write($"{op}{expr}");

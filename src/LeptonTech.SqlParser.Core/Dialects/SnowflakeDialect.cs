@@ -113,6 +113,8 @@ public class SnowflakeDialect : Dialect
     // see https://docs.snowflake.com/en/sql-reference/identifiers-syntax.html
     public override bool IsIdentifierStart(char ch) => (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || ch == '_';
 
+    public override bool SupportsHashComment => true;
+
     /// <summary>
     /// See <see href="https://docs.snowflake.com/en/sql-reference/identifiers-syntax"/>
     /// </summary>
@@ -742,6 +744,11 @@ public class SnowflakeDialect : Dialect
 
     public override bool SupportsCommaSeparatedTrim => true;
 
+    /// <summary>
+    /// See <see href="https://docs.snowflake.com/en/sql-reference/sql/alter-table"/>
+    /// </summary>
+    public override bool SupportsAddColumnIfNotExists => true;
+
     // Rust: funções livres de snowflake.rs (linhas 700–1990, depois do `impl Dialect`) → membros `static`
     // do tipo do arquivo (convencoes.md §13, caso 5); `pub fn` → `public`, `fn` → `internal` (casos 20 e
     // 52). `parse_snowflake_stage_name` é reexportada por dialect/mod.rs e usada pelo parser.
@@ -927,7 +934,7 @@ public class SnowflakeDialect : Dialect
     /// <see href="https://docs.snowflake.com/en/sql-reference/sql/create-table"/>
     /// <see href="https://docs.snowflake.com/en/sql-reference/sql/create-iceberg-table"/>
     /// </remarks>
-    // #[allow(clippy::too_many_arguments)]: não traduzido.
+    // #[expect(clippy::too_many_arguments, reason = ..)]: não traduzido.
     public static CreateTable ParseCreateTable(
         bool orReplace,
         bool? global,
@@ -2349,6 +2356,7 @@ public class SnowflakeDialect : Dialect
             Assignments: Sequence<Assignment>.Empty,
             Partitioned: null,
             AfterColumns: Sequence<Ident>.Empty,
+            Overriding: null,
             HasTableKeyword: false,
             On: null,
             Returning: null,

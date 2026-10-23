@@ -852,6 +852,11 @@ public class SqlParserCommonTests5
         dialects.VerifiedStmt("SELECT * FROM tbl |> AGGREGATE GROUP BY a, b");
         dialects.VerifiedStmt("SELECT * FROM tbl |> AGGREGATE SUM(c) GROUP BY a, b");
         dialects.VerifiedStmt("SELECT * FROM tbl |> AGGREGATE SUM(c) ASC");
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => dialects
+                .ParseSqlStatements("SELECT * FROM tbl |> AGGREGATE COUNT(*) AS 1")).Error,
+            new ParserError.ParserErrorValue(
+                "Expected: an identifier after AS, found: 1"));
     }
 
     [Fact]
@@ -1098,103 +1103,135 @@ public class SqlParserCommonTests5
                     "SELECT * FROM users |> INTERSECT ALL BY NAME (SELECT * FROM admins)")).Error);
 
         // Test that CALL without function name fails
-        Assert.Throws<ParserException>(
-            () => dialects.ParseSqlStatements("SELECT * FROM users |> CALL"));
-
-        // Test that CALL without parentheses fails
-        Assert.Throws<ParserException>(
-            () => dialects.ParseSqlStatements("SELECT * FROM users |> CALL my_function"));
-
-        // Test that CALL with invalid function syntax fails
-        Assert.Throws<ParserException>(
-            () => dialects.ParseSqlStatements("SELECT * FROM users |> CALL 123 invalid"));
-
-        // Test that CALL with malformed arguments fails
-        Assert.Throws<ParserException>(
-            () => dialects.ParseSqlStatements("SELECT * FROM users |> CALL my_function(,)"));
-
-        // Test that CALL with invalid alias syntax fails
-        Assert.Throws<ParserException>(
-            () => dialects.ParseSqlStatements("SELECT * FROM users |> CALL my_function() AS"));
-
-        // Test that PIVOT without parentheses fails
-        Assert.Throws<ParserException>(
-            () => dialects.ParseSqlStatements("SELECT * FROM users |> PIVOT SUM(amount) FOR month IN ('Jan')"));
-
-        // Test that PIVOT without FOR keyword fails
-        Assert.Throws<ParserException>(
-            () => dialects.ParseSqlStatements("SELECT * FROM users |> PIVOT(SUM(amount) month IN ('Jan'))"));
-
-        // Test that PIVOT without IN keyword fails
-        Assert.Throws<ParserException>(
-            () => dialects.ParseSqlStatements("SELECT * FROM users |> PIVOT(SUM(amount) FOR month ('Jan'))"));
-
-        // Test that PIVOT with empty IN list fails
-        Assert.Throws<ParserException>(
-            () => dialects.ParseSqlStatements("SELECT * FROM users |> PIVOT(SUM(amount) FOR month IN ())"));
-
-        // Test that PIVOT with invalid alias syntax fails
-        Assert.Throws<ParserException>(
-            () => dialects.ParseSqlStatements("SELECT * FROM users |> PIVOT(SUM(amount) FOR month IN ('Jan')) AS"));
-
-        // Test UNPIVOT negative cases
-
-        // Test that UNPIVOT without parentheses fails
-        Assert.Throws<ParserException>(
-            () => dialects.ParseSqlStatements("SELECT * FROM users |> UNPIVOT value FOR name IN col1, col2"));
-
-        // Test that UNPIVOT without FOR keyword fails
-        Assert.Throws<ParserException>(
-            () => dialects.ParseSqlStatements("SELECT * FROM users |> UNPIVOT(value name IN (col1, col2))"));
-
-        // Test that UNPIVOT without IN keyword fails
-        Assert.Throws<ParserException>(
-            () => dialects.ParseSqlStatements("SELECT * FROM users |> UNPIVOT(value FOR name (col1, col2))"));
-
-        // Test that UNPIVOT with missing value column fails
-        Assert.Throws<ParserException>(
-            () => dialects.ParseSqlStatements("SELECT * FROM users |> UNPIVOT(FOR name IN (col1, col2))"));
-
-        // Test that UNPIVOT with missing name column fails
-        Assert.Throws<ParserException>(
-            () => dialects.ParseSqlStatements("SELECT * FROM users |> UNPIVOT(value FOR IN (col1, col2))"));
-
-        // Test that UNPIVOT with empty IN list fails
-        Assert.Throws<ParserException>(
-            () => dialects.ParseSqlStatements("SELECT * FROM users |> UNPIVOT(value FOR name IN ())"));
-
-        // Test that UNPIVOT with invalid alias syntax fails
-        Assert.Throws<ParserException>(
-            () => dialects.ParseSqlStatements("SELECT * FROM users |> UNPIVOT(value FOR name IN (col1, col2)) AS"));
-
-        // Test that UNPIVOT with missing closing parenthesis fails
-        Assert.Throws<ParserException>(
-            () => dialects.ParseSqlStatements("SELECT * FROM users |> UNPIVOT(value FOR name IN (col1, col2)"));
-
-        // Test that JOIN without table name fails
-        Assert.Throws<ParserException>(
-            () => dialects.ParseSqlStatements("SELECT * FROM users |> JOIN ON users.id = orders.user_id"));
-
-        // Test that CROSS JOIN with ON condition fails
-        Assert.Throws<ParserException>(
-            () => dialects.ParseSqlStatements(
-                "SELECT * FROM users |> CROSS JOIN orders ON users.id = orders.user_id"));
-
-        // Test that CROSS JOIN with USING condition fails
-        Assert.Throws<ParserException>(
-            () => dialects.ParseSqlStatements("SELECT * FROM users |> CROSS JOIN orders USING (user_id)"));
-
-        // Test that JOIN with empty USING list fails
-        Assert.Throws<ParserException>(
-            () => dialects.ParseSqlStatements("SELECT * FROM users |> JOIN orders USING ()"));
-
-        // Test that JOIN with malformed ON condition fails
-        Assert.Throws<ParserException>(
-            () => dialects.ParseSqlStatements("SELECT * FROM users |> JOIN orders ON"));
-
-        // Test that JOIN with invalid USING syntax fails
-        Assert.Throws<ParserException>(
-            () => dialects.ParseSqlStatements("SELECT * FROM users |> JOIN orders USING user_id"));
+        foreach (var (sql, errMsg) in new (string, string)[]
+        {
+            (
+                "SELECT * FROM users |> CALL",
+                "Expected: identifier, found: EOF"
+            ),
+            // Test that CALL without parentheses fails
+            (
+                "SELECT * FROM users |> CALL my_function",
+                "Expected: (, found: EOF"
+            ),
+            // Test that CALL with invalid function syntax fails
+            (
+                "SELECT * FROM users |> CALL 123 invalid",
+                "Expected: identifier, found: 123"
+            ),
+            // Test that CALL with malformed arguments fails
+            (
+                "SELECT * FROM users |> CALL my_function(,)",
+                "Expected: an expression, found: ,"
+            ),
+            // Test that CALL with invalid alias syntax fails
+            (
+                "SELECT * FROM users |> CALL my_function() AS",
+                "Expected: identifier, found: EOF"
+            ),
+            // Test that PIVOT without parentheses fails
+            (
+                "SELECT * FROM users |> PIVOT SUM(amount) FOR month IN ('Jan')",
+                "Expected: (, found: SUM"
+            ),
+            // Test that PIVOT without FOR keyword fails
+            (
+                "SELECT * FROM users |> PIVOT(SUM(amount) month IN ('Jan'))",
+                "Expected: FOR, found: IN"
+            ),
+            // Test that PIVOT without IN keyword fails
+            (
+                "SELECT * FROM users |> PIVOT(SUM(amount) FOR month ('Jan'))",
+                "Expected: IN, found: ("
+            ),
+            // Test that PIVOT with empty IN list fails
+            (
+                "SELECT * FROM users |> PIVOT(SUM(amount) FOR month IN ())",
+                "Expected: an expression, found: )"
+            ),
+            // Test that PIVOT with invalid alias syntax fails
+            (
+                "SELECT * FROM users |> PIVOT(SUM(amount) FOR month IN ('Jan')) AS",
+                "Expected: identifier, found: EOF"
+            ),
+            // Test UNPIVOT negative cases
+            // Test that UNPIVOT without parentheses fails
+            (
+                "SELECT * FROM users |> UNPIVOT value FOR name IN col1, col2",
+                "Expected: (, found: value"
+            ),
+            // Test that UNPIVOT without FOR keyword fails
+            (
+                "SELECT * FROM users |> UNPIVOT(value name IN (col1, col2))",
+                "Expected: FOR, found: name"
+            ),
+            // Test that UNPIVOT without IN keyword fails
+            (
+                "SELECT * FROM users |> UNPIVOT(value FOR name (col1, col2))",
+                "Expected: IN, found: ("
+            ),
+            // Test that UNPIVOT with missing value column fails
+            (
+                "SELECT * FROM users |> UNPIVOT(FOR name IN (col1, col2))",
+                "Expected: FOR, found: name"
+            ),
+            // Test that UNPIVOT with missing name column fails
+            (
+                "SELECT * FROM users |> UNPIVOT(value FOR IN (col1, col2))",
+                "Expected: IN, found: ("
+            ),
+            // Test that UNPIVOT with empty IN list fails
+            (
+                "SELECT * FROM users |> UNPIVOT(value FOR name IN ())",
+                "Expected: identifier, found: )"
+            ),
+            // Test that UNPIVOT with invalid alias syntax fails
+            (
+                "SELECT * FROM users |> UNPIVOT(value FOR name IN (col1, col2)) AS",
+                "Expected: identifier, found: EOF"
+            ),
+            // Test that UNPIVOT with missing closing parenthesis fails
+            (
+                "SELECT * FROM users |> UNPIVOT(value FOR name IN (col1, col2)",
+                "Expected: ), found: EOF"
+            ),
+            // Test that JOIN without table name fails
+            (
+                "SELECT * FROM users |> JOIN ON users.id = orders.user_id",
+                "Expected: end of statement, found: ."
+            ),
+            // Test that CROSS JOIN with ON condition fails
+            (
+                "SELECT * FROM users |> CROSS JOIN orders ON users.id = orders.user_id",
+                "Expected: end of statement, found: ON"
+            ),
+            // Test that CROSS JOIN with USING condition fails
+            (
+                "SELECT * FROM users |> CROSS JOIN orders USING (user_id)",
+                "Expected: end of statement, found: USING"
+            ),
+            // Test that JOIN with empty USING list fails
+            (
+                "SELECT * FROM users |> JOIN orders USING ()",
+                "Expected: identifier, found: )"
+            ),
+            // Test that JOIN with malformed ON condition fails
+            (
+                "SELECT * FROM users |> JOIN orders ON",
+                "Expected: an expression, found: EOF"
+            ),
+            // Test that JOIN with invalid USING syntax fails
+            (
+                "SELECT * FROM users |> JOIN orders USING user_id",
+                "Expected: a list of columns in parentheses, found: user_id"
+            ),
+        })
+        {
+            var res = Assert.Throws<ParserException>(() => dialects.ParseSqlStatements(sql));
+            Assert.Equal(
+                new ParserError.ParserErrorValue(errMsg),
+                res.Error);
+        }
     }
 
     [Fact]
@@ -2425,16 +2462,22 @@ public class SqlParserCommonTests5
             }
         }
 
-        var invalidSqls = new[]
+        foreach (var (sql, err) in new (string, string)[]
         {
-            "SELECT * FROM SEMANTIC_VIEW(model DIMENSIONS dim1 INVALID inv1)",
-            "SELECT * FROM SEMANTIC_VIEW(model DIMENSIONS dim1 DIMENSIONS dim2)",
-        };
-
-        foreach (var sql in invalidSqls)
+            (
+                "SELECT * FROM SEMANTIC_VIEW(model DIMENSIONS dim1 INVALID inv1)",
+                "Expected one of DIMENSIONS, METRICS, FACTS or WHERE, got INVALID"
+            ),
+            (
+                "SELECT * FROM SEMANTIC_VIEW(model DIMENSIONS dim1 DIMENSIONS dim2)",
+                "DIMENSIONS clause can only be specified once"
+            ),
+        })
         {
-            // Rust: assert!(result.is_err(), "Expected error for invalid SQL: {sql}");
-            Assert.Throws<ParserException>(() => dialects.ParseSqlStatements(sql));
+            TestUtils.AssertEqualWithMessage<ParserError>(
+                Assert.Throws<ParserException>(() => dialects.ParseSqlStatements(sql)).Error,
+                new ParserError.ParserErrorValue(err),
+                sql);
         }
 
         var astSql =
@@ -2950,8 +2993,10 @@ public class SqlParserCommonTests5
     public void test_set_authorization_without_scope_errors()
     {
         // This should return a parser error, not panic.
-        // Rust: assert!(res.is_err(), "SET AUTHORIZATION without a scope modifier (e.g. SESSION) should error");
-        Assert.Throws<ParserException>(() => ParseSqlStatements("SET AUTHORIZATION TIME TIME"));
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => ParseSqlStatements("SET AUTHORIZATION TIME TIME")).Error,
+            new ParserError.ParserErrorValue(
+                "Expected: SESSION, LOCAL, or other scope modifier before AUTHORIZATION, found: AUTHORIZATION"));
     }
 
     [Fact]
@@ -2979,6 +3024,8 @@ public class SqlParserCommonTests5
     {
         var dialects = TestUtils.AllDialectsWhere(d => d.SupportsDoubleAmpersandOperator);
         dialects.OneStatementParsesTo("SELECT x && y", "SELECT x AND y");
+        dialects.OneStatementParsesTo("SELECT x = a && c", "SELECT x = a AND c");
+        dialects.OneStatementParsesTo("SELECT x < 1 && y > 2", "SELECT x < 1 AND y > 2");
     }
 
     [Fact]
@@ -3138,9 +3185,11 @@ public class SqlParserCommonTests5
         TestUtils.AllDialectsWhere(d => d.SupportsSelectItemMultiColumnAlias)
             .VerifiedStmt("SELECT stack(2, 'a', 'b', 'c', 'd') AS (col1, col2) FROM t");
 
-        Assert.Throws<ParserException>(
-            () => TestUtils.AllDialectsWhere(d => !d.SupportsSelectItemMultiColumnAlias)
-                .ParseSqlStatements("SELECT stack(2, 'a', 'b') AS (col1, col2)"));
+        Assert.Equal(
+            new ParserError.ParserErrorValue("Expected: an identifier after AS, found: ("),
+            Assert.Throws<ParserException>(
+                () => TestUtils.AllDialectsWhere(d => !d.SupportsSelectItemMultiColumnAlias)
+                    .ParseSqlStatements("SELECT stack(2, 'a', 'b') AS (col1, col2)")).Error);
     }
 
     [Fact]
@@ -3162,9 +3211,11 @@ public class SqlParserCommonTests5
         dialects.VerifiedOnlySelect("SELECT foo(lower(a) AS x, b AS y)");
         dialects.VerifiedOnlySelect("SELECT foo(a AS \"x y\")");
         dialects.VerifiedOnlySelect("SELECT foo(bar(a AS x) AS y)");
-        Assert.Throws<ParserException>(
-            () => TestUtils.AllDialectsExcept(d => d.SupportsAliasedFunctionArgs)
-                .ParseSqlStatements("SELECT foo(a AS x)"));
+        Assert.Equal(
+            new ParserError.ParserErrorValue("Expected: ), found: AS"),
+            Assert.Throws<ParserException>(
+                () => TestUtils.AllDialectsExcept(d => d.SupportsAliasedFunctionArgs)
+                    .ParseSqlStatements("SELECT foo(a AS x)")).Error);
     }
 
     [Fact]
@@ -3205,8 +3256,10 @@ public class SqlParserCommonTests5
         }
 
         // XMLPARSE needs both a mode word and a value.
-        Assert.Throws<ParserException>(
-            () => dialects.ParseSqlStatements("SELECT xmlparse('<a/>')"));
+        Assert.Equal(
+            new ParserError.ParserErrorValue("Expected: an expression, found: )"),
+            Assert.Throws<ParserException>(
+                () => dialects.ParseSqlStatements("SELECT xmlparse('<a/>')")).Error);
 
         // Going through the ordinary function-call path, XMLPARSE accepts the same
         // trailing clauses as any other function.
@@ -3217,8 +3270,10 @@ public class SqlParserCommonTests5
         // and the special `CONTENT <expr>` syntax is rejected.
         var others = TestUtils.AllDialectsExcept(d => d.SupportsXmlExpressions);
         others.VerifiedOnlySelect("SELECT xmlparse(1)");
-        Assert.Throws<ParserException>(
-            () => others.ParseSqlStatements("SELECT xmlparse(content '<a/>')"));
+        Assert.Equal(
+            new ParserError.ParserErrorValue("Expected: ), found: '<a/>'"),
+            Assert.Throws<ParserException>(
+                () => others.ParseSqlStatements("SELECT xmlparse(content '<a/>')")).Error);
     }
 
     /// <summary>
@@ -3595,19 +3650,23 @@ public class SqlParserCommonTests5
             default:
                 throw Unreachable();
         }
-        // assert!(..parse_sql_statements(..).is_err())
-        Assert.Throws<ParserException>(() => dialects
-            .ParseSqlStatements("ALTER TABLE tab ADD COLUMN c INT AFTER"));
+        Assert.Equal(
+            new ParserError.ParserErrorValue("Expected: identifier, found: EOF"),
+            Assert.Throws<ParserException>(() => dialects
+                .ParseSqlStatements("ALTER TABLE tab ADD COLUMN c INT AFTER")).Error);
 
         dialects = TestUtils.AllDialectsWhere(d => !d.SupportsAlterColumnPosition);
-        foreach (var sql in new[]
+        foreach (var (sql, found) in new (string, string)[]
         {
-            "ALTER TABLE tab ADD COLUMN c INT FIRST",
-            "ALTER TABLE tab ADD COLUMN c INT AFTER b",
+            ("ALTER TABLE tab ADD COLUMN c INT FIRST", "FIRST"),
+            ("ALTER TABLE tab ADD COLUMN c INT AFTER b", "AFTER"),
         })
         {
-            // assert!(dialects.parse_sql_statements(sql).is_err(), "{sql}")
-            Assert.Throws<ParserException>(() => dialects.ParseSqlStatements(sql));
+            TestUtils.AssertEqualWithMessage<ParserError>(
+                Assert.Throws<ParserException>(() => dialects.ParseSqlStatements(sql)).Error,
+                new ParserError.ParserErrorValue(
+                    $"Expected: end of statement, found: {found}"),
+                sql);
         }
     }
 
@@ -3676,32 +3735,34 @@ public class SqlParserCommonTests5
 
         var select = VerifiedOnlySelect("SELECT * FROM t WHERE x IN ((SELECT a FROM u), 1)");
         Assert.Equal(
-            new Expr.InList(
+            new Expr.In(
                 Expr: x(),
-                List: Sequence.Of(subquery(), Expr.MakeValue(TestUtils.Number("1"))),
+                Target: new InTarget.List(Sequence.Of(subquery(), Expr.MakeValue(TestUtils.Number("1")))),
                 Negated: false,
                 Global: false),
             select.Selection!);
 
         select = VerifiedOnlySelect("SELECT * FROM t WHERE x NOT IN (((SELECT a FROM u)), 1)");
         Assert.Equal(
-            new Expr.InList(
+            new Expr.In(
                 Expr: x(),
-                List: Sequence.Of<Expr>(new Expr.Nested(subquery()), Expr.MakeValue(TestUtils.Number("1"))),
+                Target: new InTarget.List(Sequence.Of<Expr>(
+                    new Expr.Nested(subquery()),
+                    Expr.MakeValue(TestUtils.Number("1")))),
                 Negated: true,
                 Global: false),
             select.Selection!);
 
         select = VerifiedOnlySelect("SELECT * FROM t WHERE x IN ((SELECT a FROM u) + 1, 2)");
         Assert.Equal(
-            new Expr.InList(
+            new Expr.In(
                 Expr: x(),
-                List: Sequence.Of<Expr>(
+                Target: new InTarget.List(Sequence.Of<Expr>(
                     new Expr.BinaryOp(
                         Left: subquery(),
                         Op: new BinaryOperator.Plus(),
                         Right: Expr.MakeValue(TestUtils.Number("1"))),
-                    Expr.MakeValue(TestUtils.Number("2"))),
+                    Expr.MakeValue(TestUtils.Number("2")))),
                 Negated: false,
                 Global: false),
             select.Selection!);
@@ -3709,15 +3770,15 @@ public class SqlParserCommonTests5
         select = PgAndGeneric()
             .VerifiedOnlySelect("SELECT * FROM t WHERE x IN ((SELECT a FROM u)[1], 2)");
         Assert.True(
-            select.Selection is Expr.InList { List: var list }
+            select.Selection is Expr.In { Target: InTarget.List { Value: var list } }
             && list[0] is Expr.CompoundFieldAccess { Root: var root }
             && root.Equals(subquery()));
 
         select = VerifiedOnlySelect("SELECT * FROM t WHERE x IN ((SELECT a FROM u))");
         Assert.Equal(
-            new Expr.InSubquery(
+            new Expr.In(
                 Expr: x(),
-                Subquery: VerifiedQuery("(SELECT a FROM u)"),
+                Target: new InTarget.Subquery(VerifiedQuery("(SELECT a FROM u)")),
                 Negated: false,
                 Global: false),
             select.Selection!);
@@ -3869,6 +3930,293 @@ public class SqlParserCommonTests5
                 return ControlFlow<ValueTuple>.Continue; // core::ops::ControlFlow::<()>::Continue(())
             });
             TestUtils.AssertEqualWithMessage(positions, 1, dialect.GetType().Name);
+        }
+    }
+
+    [Fact]
+    public void parse_array_suffix_after_nested_type()
+    {
+        // When `>>` closes two types at once, a following array suffix belongs to the outer one.
+        var dialects = TestUtils.AllDialectsWhere(d => d.SupportsStructLiteral && d.SupportsArrayTypedefWithBrackets);
+        dialects.VerifiedStmt("SELECT CAST(NULL AS STRUCT<a STRUCT<b INT>>[])");
+        dialects.VerifiedStmt("SELECT CAST(NULL AS STRUCT<a STRUCT<b INT>[]>)");
+        dialects.VerifiedStmt("SELECT CAST(NULL AS STRUCT<a STRUCT<b STRUCT<c INT>>>[])");
+        dialects.VerifiedStmt("SELECT CAST(NULL AS STRUCT<a STRUCT<b INT>>[][2])");
+        dialects.VerifiedStmt("SELECT CAST(NULL AS ARRAY<ARRAY<INT>>[])");
+        dialects.VerifiedStmt("SELECT CAST(NULL AS ARRAY<STRUCT<a INT>>[])");
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => dialects.ParseSqlStatements("SELECT CAST(NULL AS STRUCT<a STRUCT<b INT>>[)")).Error,
+            new ParserError.ParserErrorValue(
+                "Expected: ], found: )"));
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => dialects.ParseSqlStatements("SELECT CAST(NULL AS STRUCT<a STRUCT<b INT>>[x])")).Error,
+            new ParserError.ParserErrorValue(
+                "Expected: ], found: x"));
+
+        dialects = TestUtils.AllDialectsWhere(d => d.SupportsStructLiteral);
+        dialects.VerifiedStmt("SELECT CAST(NULL AS STRUCT<a STRUCT<b INT>> ARRAY)");
+        dialects.VerifiedStmt("SELECT CAST(NULL AS STRUCT<a STRUCT<b INT>> ARRAY[2])");
+        dialects.VerifiedStmt("SELECT CAST(NULL AS ARRAY<STRUCT<a INT>> ARRAY)");
+
+        TestUtils.AllDialectsWhere(d => d.SupportsStructLiteral && d.SupportsMapLiteralWithAngleBrackets)
+            .VerifiedStmt("SELECT CAST(NULL AS MAP<INT, STRUCT<a INT>> ARRAY)");
+    }
+
+    [Fact]
+    public void parse_cte_materialization()
+    {
+        foreach (var (directive, expected) in new (string, CteAsMaterialized?)[]
+        {
+            ("", null),
+            ("MATERIALIZED ", new CteAsMaterialized.Materialized()),
+            (
+                "NOT MATERIALIZED ",
+                new CteAsMaterialized.NotMaterialized()
+            ),
+        })
+        {
+            var sql = $"WITH c AS {directive}(SELECT 1) SELECT * FROM c";
+            new TestedDialects(new List<Dialect> { new DuckDbDialect() }).VerifiedQuery(sql);
+            var query = TestUtils.AllDialectsWhere(d => d.SupportsCteMaterialization).VerifiedQuery(sql);
+            Assert.Equal(query.With!.CteTables[0].Materialized, expected);
+            if (expected is not null)
+            {
+                Assert.Throws<ParserException>(() => TestUtils.AllDialectsWhere(d => !d.SupportsCteMaterialization)
+                    .ParseSqlStatements(sql));
+            }
+        }
+    }
+
+    [Fact]
+    public void unary_prefix_operator_renders_apart_from_cast_operand()
+    {
+        foreach (var (op, expected) in new (UnaryOperator, string)[]
+        {
+            (new UnaryOperator.Minus(), "- -x::INT"),
+            (new UnaryOperator.BangNot(), "! !x::INT"),
+        })
+        {
+            var cast = new Expr.Cast(
+                Kind: CastKind.DoubleColon,
+                Expr: new Expr.UnaryOp(
+                    Op: op,
+                    Expr: new Expr.Identifier(new Ident("x"))),
+                DataType: new DataType.Int(null),
+                Format: null);
+            var expr = new Expr.UnaryOp(
+                Op: op,
+                Expr: cast);
+            Assert.Equal(expr.ToString(), expected);
+        }
+    }
+
+    [Fact]
+    public void parse_string_literal_alias()
+    {
+        foreach (var (sql, canonical, table, @explicit, error) in new (string, string, bool, bool, string)[]
+        {
+            (
+                "SELECT 1 AS 'x'",
+                "SELECT 1 AS 'x'",
+                false,
+                true,
+                "Expected: an identifier after AS, found: 'x'"
+            ),
+            (
+                "SELECT 1 'x'",
+                "SELECT 1 AS 'x'",
+                false,
+                false,
+                "Expected: end of statement, found: 'x'"
+            ),
+            (
+                "SELECT a FROM t AS 'y'",
+                "SELECT a FROM t AS 'y'",
+                true,
+                true,
+                "Expected: an identifier after AS, found: 'y'"
+            ),
+            (
+                "SELECT a FROM t 'y'",
+                "SELECT a FROM t 'y'",
+                true,
+                false,
+                "Expected: end of statement, found: 'y'"
+            ),
+        })
+        {
+            Func<Dialect, bool> supported = d =>
+            {
+                if (table)
+                {
+                    return d.SupportsStringLiteralTableAlias(@explicit);
+                }
+                else
+                {
+                    return d.SupportsStringLiteralColumnAlias(@explicit);
+                }
+            };
+            TestUtils.AllDialectsWhere(supported).OneStatementParsesTo(sql, canonical);
+            TestUtils.AssertEqualWithMessage<ParserError>(
+                Assert.Throws<ParserException>(() => TestUtils.AllDialectsWhere(d => !supported(d))
+                    .ParseSqlStatements(sql)).Error,
+                new ParserError.ParserErrorValue(error),
+                sql);
+        }
+    }
+
+    [Fact]
+    public void parse_string_literal_alias_per_engine()
+    {
+        var forms = new[]
+        {
+            "SELECT 1 AS 'x'",
+            "SELECT 1 'x'",
+            "SELECT a FROM t AS 'y'",
+            "SELECT a FROM t 'y'",
+        };
+        var dialects = new (Dialect, bool[])[]
+        {
+            (new PostgreSqlDialect(), new[] { false, false, false, false }),
+            (new SQLiteDialect(), new[] { true, true, true, true }),
+            (new DuckDbDialect(), new[] { true, false, true, false }),
+            (new MySqlDialect(), new[] { true, true, false, false }),
+            (
+                new SparkSqlDialect(),
+                new[] { false, false, false, false }
+            ),
+            (new DatabricksDialect(), new[] { false, false, false, false }),
+            (new HiveDialect(), new[] { false, false, false, false }),
+            (new ClickHouseDialect(), new[] { false, false, false, false }),
+        };
+        foreach (var (dialect, accepted) in dialects)
+        {
+            foreach (var (sql, formAccepted) in forms.Zip(accepted, (s, a) => (s, a)))
+            {
+                bool isOk;
+                try
+                {
+                    Parser.ParseSql(dialect, sql);
+                    isOk = true;
+                }
+                catch (ParserException)
+                {
+                    isOk = false;
+                }
+                TestUtils.AssertEqualWithMessage(
+                    isOk,
+                    formAccepted,
+                    $"{dialect.GetType().Name}: {sql}");
+            }
+        }
+    }
+
+    [Fact]
+    public void display_nested_unary_minus_in_linear_time()
+    {
+        var depth = 200;
+        var sql = $"SELECT {string.Concat(Enumerable.Repeat("- ", depth - 1))}-x";
+        var statement = new Parser(new GenericDialect())
+            .WithRecursionLimit(depth * 10)
+            .TryWithSql(sql)
+            .ParseStatement();
+
+        string? printed = null;
+        SpawnAndRecvTimeout(
+            () => printed = statement.ToString(),
+            TimeSpan.FromSeconds(5),
+            "display should not take exponential time");
+        Assert.Equal(printed, sql);
+    }
+
+    [Fact]
+    public void parse_window_spec_keyword_base_window_name()
+    {
+        var dialects = TestUtils.AllDialects();
+        foreach (var name in new[] { "w", "id", "part" })
+        {
+            var sql = $"SELECT count(*) OVER ({name} ORDER BY a) FROM t";
+            var select = dialects.VerifiedOnlySelect(sql);
+            switch (TestUtils.ExprFromProjection(select.Projection[0]))
+            {
+                case Expr.Function { Value.Over: WindowType.WindowSpec { Value: var spec } }:
+                    TestUtils.AssertEqualWithMessage(spec.WindowName, new Ident(name), sql);
+                    break;
+                case var other:
+                    throw new InvalidOperationException($"{sql}: unexpected {other}");
+            }
+        }
+        dialects.VerifiedStmt("SELECT count(*) OVER (ORDER BY a) FROM t");
+        dialects.VerifiedStmt("SELECT count(*) OVER (PARTITION BY a) FROM t");
+        dialects.VerifiedStmt(
+            "SELECT count(*) OVER (ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) FROM t");
+    }
+
+    [Fact]
+    public void parse_qualified_column_named_like_a_literal_prefix()
+    {
+        var dialects = TestUtils.AllDialectsWhere(d => d.SupportsLiteralPrefixInQualifiedName);
+        foreach (var (prefix, value) in new (string, string)[]
+        {
+            ("x", "ff"),
+            ("X", "ff"),
+            ("b", "01"),
+            ("B", "01"),
+            ("n", "nat"),
+            ("N", "nat"),
+            ("r", "raw"),
+            ("R", "raw"),
+            ("e", "es"),
+            ("E", "es"),
+        })
+        {
+            dialects.OneStatementParsesTo(
+                $"SELECT t.{prefix}'{value}' FROM t",
+                $"SELECT t.{prefix} AS '{value}' FROM t");
+        }
+        dialects.OneStatementParsesTo("SELECT t.u&'uni' FROM t", "SELECT t.u & 'uni' FROM t");
+    }
+
+    [Fact]
+    public void tokenize_qualified_literal_prefix_without_capability()
+    {
+        TestUtils.AllDialectsWhere(d => !d.SupportsLiteralPrefixInQualifiedName).TokenizesTo(
+            "t.x'ff'",
+            new List<Token>
+            {
+                Token.MakeWord("t", null),
+                new Token.Period(),
+                new Token.HexStringLiteral("ff"),
+            });
+    }
+
+    [Fact]
+    public void parse_qualified_literal_prefix_requires_adjacent_period()
+    {
+        var dialects = TestUtils.AllDialectsWhere(d => d.SupportsLiteralPrefixInQualifiedName);
+        foreach (var sql in new[]
+        {
+            "SELECT t. x'ff' FROM t",
+            "SELECT t./* comment */x'ff' FROM t",
+        })
+        {
+            TestUtils.AssertEqualWithMessage<ParserError>(
+                Assert.Throws<ParserException>(() => dialects.ParseSqlStatements(sql)).Error,
+                new ParserError.ParserErrorValue(
+                    "Expected: an identifier or a '*' after '.', found: X'ff'"),
+                sql);
+        }
+        foreach (var (sql, token) in new (string, Token)[]
+        {
+            ("x'ff'", new Token.HexStringLiteral("ff")),
+            (
+                "b'01'",
+                new Token.SingleQuotedByteStringLiteral("01")
+            ),
+            ("n'nat'", new Token.NationalStringLiteral("nat")),
+        })
+        {
+            dialects.TokenizesTo(sql, new List<Token> { token });
         }
     }
 }

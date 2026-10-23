@@ -32,6 +32,53 @@ public class DisplayUtilsTests
         Assert.Equal("  line 1\n  line 2", Formatter.FormatAlternate(indent));
     }
 
+    [Fact]
+    public void test_first_char_stops_at_first_char()
+    {
+        var chunks = new TestFirstCharStopsAtFirstChar.Chunks();
+        Assert.Equal('a', DisplayUtils.FirstChar(chunks));
+        TestUtils.AssertEqualWithMessage(chunks.Value, 2, "rendered past the first char");
+        Assert.Null(DisplayUtils.FirstChar(""));
+    }
+
+    private static class TestFirstCharStopsAtFirstChar
+    {
+        internal sealed class Chunks : IDisplay
+        {
+            internal int Value;
+
+            public void Fmt(Formatter f)
+            {
+                foreach (var chunk in new[] { "", "ab", "c" })
+                {
+                    Value += 1;
+                    if (!f.WriteStr(chunk))
+                    {
+                        return;
+                    }
+                }
+            }
+        }
+    }
+
+    [Fact]
+    public void test_first_char_keeps_first_char_when_errors_are_ignored()
+    {
+        Assert.Equal('a', DisplayUtils.FirstChar(new TestFirstCharKeepsFirstCharWhenErrorsAreIgnored.IgnoresErrors()));
+    }
+
+    private static class TestFirstCharKeepsFirstCharWhenErrorsAreIgnored
+    {
+        internal sealed class IgnoresErrors : IDisplay
+        {
+            public void Fmt(Formatter f)
+            {
+                f.WriteStr("a");
+                f.WriteStr("b");
+            }
+        }
+    }
+
     private sealed class TwoLines : IDisplay
     {
         public void Fmt(Formatter f)

@@ -290,7 +290,12 @@ public sealed partial class Parser
         Ident? windowName;
         switch (PeekTokenRef().Token)
         {
-            case Token.Word { Value: var word } when word.Keyword == Keyword.NoKeyword:
+            case Token.Word { Value: var w }
+                when w.Keyword is not (Keyword.PARTITION
+                    or Keyword.ORDER
+                    or Keyword.ROWS
+                    or Keyword.RANGE
+                    or Keyword.GROUPS):
                 windowName = ParseOptionalIdent();
                 break;
             default:

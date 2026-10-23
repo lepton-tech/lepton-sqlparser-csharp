@@ -41,36 +41,132 @@ public class SqlParserCommentsTests
             "\n" +
             "  -- end-of-script-with-no-newline";
 
-        Comments comments;
-        try
-        {
-            (_, comments) = Parser.ParseSqlWithComments(new GenericDialect(), sql);
-        }
-        catch (ParserException e)
-        {
-            throw new InvalidOperationException($"Invalid sql script: {e.Error}");
-        }
+        var comments = TestUtils.AllDialects().OneOfIdenticalResults(dialect =>
+            Parser.ParseSqlWithComments(dialect, sql).Comments.ToVec());
 
         Assert.Equal(
-            comments.ToVec(), // Vec::from(comments)
+            comments,
             new List<CommentWithSpan>
             {
                 new CommentWithSpan(
                     Comment: new Comment.SingleLine(
                         Content: " second line comment",
                         Prefix: "--"),
-                    Span: new Span(Location.From((2, 1)), Location.From((2, 23)))),
+                    Span: new Span(Location.From((2, 1)), Location.From((2, 23))),
+                    PrevTokenEnd: null,
+                    NextTokenStart: new Location(3, 1)),
                 new CommentWithSpan(
                     Comment: new Comment.MultiLine(" inline comment after `from` "),
-                    Span: new Span(Location.From((3, 15)), Location.From((3, 48)))),
+                    Span: new Span(Location.From((3, 15)), Location.From((3, 48))),
+                    PrevTokenEnd: new Location(3, 14),
+                    NextTokenStart: new Location(3, 49)),
                 new CommentWithSpan(
                     Comment: new Comment.MultiLine("select\nsome\nmore"),
-                    Span: new Span(Location.From((5, 1)), Location.From((7, 7)))),
+                    Span: new Span(Location.From((5, 1)), Location.From((7, 7))),
+                    PrevTokenEnd: new Location(3, 54),
+                    NextTokenStart: null),
                 new CommentWithSpan(
                     Comment: new Comment.SingleLine(
                         Content: " end-of-script-with-no-newline",
                         Prefix: "--"),
-                    Span: new Span(Location.From((9, 3)), Location.From((9, 35)))),
+                    Span: new Span(Location.From((9, 3)), Location.From((9, 35))),
+                    PrevTokenEnd: new Location(3, 54),
+                    NextTokenStart: null),
+            });
+    }
+
+    [Fact]
+    public void parse_sql_with_comments_between_tokens()
+    {
+        var sql =
+            "SELECT 1; /* a */\n" +
+            "\n" +
+            "-- b\n" +
+            "/* c */ SELECT 2";
+        var comments = TestUtils.AllDialects().OneOfIdenticalResults(dialect =>
+            Parser.ParseSqlWithComments(dialect, sql).Comments.ToVec());
+
+        Assert.Equal(
+            comments,
+            new List<CommentWithSpan>
+            {
+                new CommentWithSpan(
+                    Comment: new Comment.MultiLine(" a "),
+                    Span: new Span(Location.From((1, 11)), Location.From((1, 18))),
+                    PrevTokenEnd: new Location(1, 10),
+                    NextTokenStart: new Location(4, 9)),
+                new CommentWithSpan(
+                    Comment: new Comment.SingleLine(
+                        Content: " b",
+                        Prefix: "--"),
+                    Span: new Span(Location.From((3, 1)), Location.From((3, 5))),
+                    PrevTokenEnd: new Location(1, 10),
+                    NextTokenStart: new Location(4, 9)),
+                new CommentWithSpan(
+                    Comment: new Comment.MultiLine(" c "),
+                    Span: new Span(Location.From((4, 1)), Location.From((4, 8))),
+                    PrevTokenEnd: new Location(1, 10),
+                    NextTokenStart: new Location(4, 9)),
+            });
+    }
+
+    [Fact]
+    public void parse_sql_with_comments_only()
+    {
+        foreach (var (sql, expected) in new (string, List<CommentWithSpan>)[]
+        {
+            ("", new List<CommentWithSpan>()),
+            (
+                "-- a\n" +
+                "/* b */",
+                new List<CommentWithSpan>
+                {
+                    new CommentWithSpan(
+                        Comment: new Comment.SingleLine(
+                            Content: " a",
+                            Prefix: "--"),
+                        Span: new Span(Location.From((1, 1)), Location.From((1, 5))),
+                        PrevTokenEnd: null,
+                        NextTokenStart: null),
+                    new CommentWithSpan(
+                        Comment: new Comment.MultiLine(" b "),
+                        Span: new Span(Location.From((2, 1)), Location.From((2, 8))),
+                        PrevTokenEnd: null,
+                        NextTokenStart: null),
+                }
+            ),
+        })
+        {
+            var comments = TestUtils.AllDialects().OneOfIdenticalResults(dialect =>
+                Parser.ParseSqlWithComments(dialect, sql).Comments.ToVec());
+            Assert.Equal(comments, expected);
+        }
+    }
+
+    [Fact]
+    public void into_comments_with_eof()
+    {
+        var tokens = new Tokenizer(new GenericDialect(), "SELECT 1; -- tail")
+            .TokenizeWithLocation();
+        var eof = tokens[tokens.Count - 1].Span.End;
+        tokens.Add(new TokenWithSpan(
+            Token: new Token.EOF(),
+            Span: new Span(eof, eof)));
+        var comments = new Parser(new GenericDialect())
+            .WithTokensWithLocations(tokens)
+            .IntoComments();
+
+        Assert.Equal(
+            comments.ToVec(),
+            new List<CommentWithSpan>
+            {
+                new CommentWithSpan(
+                    Comment: new Comment.SingleLine(
+                        Content: " tail",
+                        Prefix: "--"),
+                    Span: new Span(Location.From((1, 11)), Location.From((1, 18))),
+                    PrevTokenEnd: new Location(1, 10),
+                    NextTokenStart: null),
             });
     }
 }
