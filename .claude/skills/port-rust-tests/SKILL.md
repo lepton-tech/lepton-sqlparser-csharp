@@ -103,6 +103,8 @@ As tabelas abaixo consolidam as decisões de tradução de testes das ondas B e 
 | `assert!(matches!(res, Err(ParserError::ParserError(_))))` | `Assert.IsType<ParserError.ParserErrorValue>(Assert.Throws<ParserException>(..).Error)` |
 | `res.unwrap_err().to_string()` (e `.contains(m)`) | `Assert.Throws<ParserException>(..).Error.ToString()` (o `Display`, com o prefixo `sql parser error: `); `Assert.Contains(m, ..)` |
 | `Parser::parse_sql(&d, sql).unwrap_err()` | `Assert.Throws<ParserException>(() => Parser.ParseSql(d, sql)).Error` |
+| `assert_eq!(dialects.parse_sql_statements(sql), Err(ParserError::ParserError("msg".to_string())))` (resultado primeiro) / com `"{sql}"` no fim | `Assert.Equal(Assert.Throws<ParserException>(() => dialects.ParseSqlStatements(sql)).Error, new ParserError.ParserErrorValue("msg"))`, na ordem do Rust / `TestUtils.AssertEqualWithMessage<ParserError>(.., .., sql)` (tipo explícito: o esperado é a variante) |
+| `struct` que implementa `fmt::Write` e devolve `Err(fmt::Error)`; `assert_eq!(write!(w, "{x}"), Err(fmt::Error))`; `try_for_each(\|s\| f.write_str(s))` / `let _ = f.write_str(..)` num `Display` de teste | Classe de escopo com `: IFmtWrite` cujo `WriteStr` devolve `false` no lugar do `Err`; `Assert.False(new Formatter(w).Write($"{x}"))`; `foreach` com `if (!f.WriteStr(s)) { return; }` / `f.WriteStr(..);` (`convencoes.md` §13, caso 141) |
 | `assert_eq!(result, Err(e))` com `try_with_sql(..).unwrap()` antes | Crie o parser **fora** do `Assert.Throws`, para um erro do tokenizer não se confundir com o esperado |
 | `let ParserError::ParserError(msg) = .. else { panic!(..) }` | `Assert.IsType<ParserError.ParserErrorValue>(ex.Error).Value` |
 | `parsed.err()` | Função local que devolve `ParserError?` (`null` = `None`) |

@@ -417,16 +417,21 @@ public class SqlParserMySqlTests1
     [Fact]
     public void parse_show_extended_full()
     {
-        // assert!(..is_ok()): se o parse falhar, a ParserException derruba o teste.
-        MysqlAndGeneric().ParseSqlStatements("SHOW EXTENDED FULL TABLES");
-        MysqlAndGeneric().ParseSqlStatements("SHOW EXTENDED FULL COLUMNS FROM mytable");
+        MysqlAndGeneric().VerifiedStmt("SHOW EXTENDED FULL TABLES");
+        MysqlAndGeneric().VerifiedStmt("SHOW EXTENDED FULL COLUMNS FROM mytable");
         // SHOW EXTENDED/FULL can only be used with COLUMNS and TABLES
-        Assert.Throws<ParserException>(() => MysqlAndGeneric()
-            .ParseSqlStatements("SHOW EXTENDED FULL CREATE TABLE mytable"));
-        Assert.Throws<ParserException>(() => MysqlAndGeneric()
-            .ParseSqlStatements("SHOW EXTENDED FULL COLLATION"));
-        Assert.Throws<ParserException>(() => MysqlAndGeneric()
-            .ParseSqlStatements("SHOW EXTENDED FULL VARIABLES"));
+        foreach (var sql in new[]
+        {
+            "SHOW EXTENDED FULL CREATE TABLE mytable",
+            "SHOW EXTENDED FULL COLLATION",
+            "SHOW EXTENDED FULL VARIABLES",
+        })
+        {
+            Assert.Equal(
+                Assert.Throws<ParserException>(() => MysqlAndGeneric().ParseSqlStatements(sql)).Error,
+                new ParserError.ParserErrorValue(
+                    "EXTENDED/FULL are not supported with this type of SHOW query"));
+        }
     }
 
     [Fact]
@@ -1409,10 +1414,16 @@ public class SqlParserMySqlTests1
     public void parse_unterminated_escape()
     {
         var sql = @"SELECT 'I\'m not fine\'";
-        Assert.ThrowsAny<Exception>(() => Mysql().OneStatementParsesTo(sql, ""));
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => Mysql().ParseSqlStatements(sql)).Error,
+            new ParserError.TokenizerError(
+                "Unterminated string literal at Line: 1, Column: 8"));
 
         sql = @"SELECT 'I\\'m not fine'";
-        Assert.ThrowsAny<Exception>(() => Mysql().OneStatementParsesTo(sql, ""));
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => Mysql().ParseSqlStatements(sql)).Error,
+            new ParserError.TokenizerError(
+                "Unterminated string literal at Line: 1, Column: 23"));
     }
 
     [Fact]
@@ -1613,6 +1624,44 @@ public class SqlParserMySqlTests1
                     DataType: new DataType.DoublePrecisionUnsigned(),
                     Options: Sequence<ColumnOptionDef>.Empty)),
             columns);
+    }
+
+    [Fact]
+    public void parse_zerofill()
+    {
+        foreach (var dataType in new[]
+        {
+            "TINYINT",
+            "SMALLINT",
+            "MEDIUMINT",
+            "INT",
+            "INTEGER",
+            "BIGINT",
+            "INT2",
+            "INT4",
+            "INT8",
+            "DECIMAL",
+            "DEC",
+            "NUMERIC",
+            "FLOAT",
+            "FLOAT4",
+            "FLOAT8",
+            "DOUBLE",
+            "REAL",
+        })
+        {
+            MysqlAndGeneric().VerifiedStmt($"CREATE TABLE t (a {dataType} ZEROFILL)");
+        }
+        MysqlAndGeneric().VerifiedStmt("CREATE TABLE t (a INT(10) UNSIGNED ZEROFILL)");
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => MysqlAndGeneric().ParseSqlStatements("CREATE TABLE t (a VARCHAR(10) ZEROFILL)")).Error,
+            new ParserError.ParserErrorValue(
+                "Expected: ',' or ')' after column definition, found: ZEROFILL"));
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => TestUtils.AllDialectsExcept(d => d.SupportsDataTypeZerofillSuffix)
+                .ParseSqlStatements("CREATE TABLE t (a INT ZEROFILL)")).Error,
+            new ParserError.ParserErrorValue(
+                "Expected: ',' or ')' after column definition, found: ZEROFILL"));
     }
 
     [Fact]

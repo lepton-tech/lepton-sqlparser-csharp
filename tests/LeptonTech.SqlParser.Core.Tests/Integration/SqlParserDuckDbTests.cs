@@ -671,7 +671,7 @@ public class SqlParserDuckDbTests
                 FileFormat: null,
                 Location: null,
                 Query: null,
-                WithoutRowid: false,
+                SqliteTableOptions: SqliteTableOptions.Default(),
                 Like: null,
                 CloneValue: null,
                 Comment: null,
@@ -685,7 +685,6 @@ public class SqlParserDuckDbTests
                 Inherits: null,
                 PartitionOf: null,
                 ForValues: null,
-                Strict: false,
                 CopyGrants: false,
                 EnableSchemaEvolution: null,
                 ChangeTracking: null,
@@ -846,11 +845,56 @@ public class SqlParserDuckDbTests
             "SELECT a /* outer /* inner */ still comment */ FROM t",
             "SELECT a FROM t");
 
-        var err = Assert.Throws<ParserException>(() => DuckDb()
-            .ParseSqlStatements("SELECT a /* outer /* inner */ FROM t")).Error;
-        // assert!(err.to_string().contains(..), "{err}")
-        Assert.Contains(
-            "Unexpected EOF while in a multi-line comment",
-            err.ToString());
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => DuckDb().ParseSqlStatements("SELECT a /* outer /* inner */ FROM t")).Error,
+            new ParserError.TokenizerError(
+                "Unexpected EOF while in a multi-line comment at Line: 1, Column: 37"));
+    }
+
+    [Fact]
+    public void parse_create_macro_without_arguments()
+    {
+        DuckDbAndGeneric().VerifiedStmt("CREATE MACRO four() AS 4");
+        DuckDbAndGeneric()
+            .VerifiedStmt("CREATE OR REPLACE TEMPORARY MACRO nothing() AS TABLE SELECT 1");
+        DuckDb().OneStatementParsesTo("CREATE FUNCTION add() AS 1", "CREATE MACRO add() AS 1");
+    }
+
+    [Fact]
+    public void display_create_macro_propagates_argument_list_errors()
+    {
+        foreach (var sql in new[]
+        {
+            "CREATE MACRO four() AS 4",
+            "CREATE MACRO add(a, b) AS a + b",
+            "CREATE MACRO nothing() AS TABLE SELECT 1",
+        })
+        {
+            var statement = DuckDbAndGeneric().VerifiedStmt(sql);
+            foreach (var rejected in new[] { '(', ')' })
+            {
+                var writer = new DisplayCreateMacroPropagatesArgumentListErrors.RejectingWriter(rejected);
+                Assert.False(new Formatter(writer).Write($"{statement}"));
+            }
+        }
+    }
+
+    private static class DisplayCreateMacroPropagatesArgumentListErrors
+    {
+        internal sealed class RejectingWriter : IFmtWrite
+        {
+            private readonly char _value;
+
+            internal RejectingWriter(char value) => _value = value;
+
+            public bool WriteStr(string value)
+            {
+                if (value.IndexOf(_value) >= 0)
+                {
+                    return false;
+                }
+                return true;
+            }
+        }
     }
 }

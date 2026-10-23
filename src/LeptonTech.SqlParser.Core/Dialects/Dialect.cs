@@ -166,6 +166,15 @@ public abstract partial class Dialect
     public virtual bool SupportsNationalStringLiteral => true;
 
     /// <summary>
+    /// Treats literal prefixes immediately after <c>.</c> as unquoted identifiers.
+    /// <para>
+    /// <see href="https://dev.mysql.com/doc/refman/8.4/en/identifiers.html">MySQL</see>,
+    /// <see href="https://mariadb.com/docs/server/reference/sql-structure/sql-language-structure/identifier-names">MariaDB</see>
+    /// </para>
+    /// </summary>
+    public virtual bool SupportsLiteralPrefixInQualifiedName => false;
+
+    /// <summary>
     /// Determine whether the dialect strips the backslash when escaping LIKE wildcards (%, _).
     /// <para>
     /// [MySQL] has a special case when escaping single quoted strings which leaves these unescaped
@@ -269,6 +278,15 @@ public abstract partial class Dialect
     /// </para>
     /// </summary>
     public virtual bool SupportsAlterUserAsAlterRole => false;
+
+    /// <summary>
+    /// Returns true if the dialect supports <c>AS MATERIALIZED</c> and <c>AS NOT MATERIALIZED</c>
+    /// in a common table expression.
+    /// <code>
+    /// WITH cte AS MATERIALIZED (SELECT 1) SELECT * FROM cte
+    /// </code>
+    /// </summary>
+    public virtual bool SupportsCteMaterialization => false;
 
     /// <summary>
     /// Returns true if the dialects supports <c>group sets, roll up, or cube</c> expressions.
@@ -1141,7 +1159,8 @@ public abstract partial class Dialect
     /// SELECT * FROM (mytable) AS alias;
     /// </code>
     /// <para>
-    /// <see href="https://docs.snowflake.com/en/sql-reference/constructs/from">Snowflake</see>
+    /// <see href="https://docs.snowflake.com/en/sql-reference/constructs/from">Snowflake</see>,
+    /// <see href="https://www.sqlite.org/syntax/table-or-subquery.html">SQLite</see>
     /// </para>
     /// </summary>
     public virtual bool SupportsParensAroundTableFactor => false;
@@ -1240,10 +1259,31 @@ public abstract partial class Dialect
     public virtual bool SupportsNestedComments => false;
 
     /// <summary>
+    /// Returns true if the dialect supports <c>#</c> as the start of a single line comment,
+    /// e.g. <c>SELECT 1 # comment</c>
+    /// </summary>
+    public virtual bool SupportsHashComment => false;
+
+    /// <summary>
+    /// Returns true if <c>#</c> starts a single line comment only when followed by an ASCII
+    /// space or <c>!</c>, so <c># comment</c> and <c>#! comment</c> are comments but <c>#comment</c> is not.
+    /// </summary>
+    public virtual bool RequiresHashCommentSpace => false;
+
+    /// <summary>
     /// Returns true if the dialect supports optimizer hints in multiline comments
     /// e.g. <c>/*!50110 KEY_BLOCK_SIZE = 1024*/</c>
     /// </summary>
     public virtual bool SupportsMultilineCommentHints => false;
+
+    /// <summary>
+    /// Returns true if the dialect accepts an unterminated block comment at end of input
+    /// e.g. <c>SELECT 1 /* comment</c>
+    /// <para>
+    /// <see href="https://www.sqlite.org/lang_comment.html">SQLite</see>
+    /// </para>
+    /// </summary>
+    public virtual bool SupportsUnterminatedBlockComments => false;
 
     /// <summary>
     /// Returns true if this dialect supports treating the equals operator <c>=</c> within a <c>SelectItem</c>
@@ -1474,6 +1514,25 @@ public abstract partial class Dialect
     public virtual bool IsTableFactorAlias(bool @explicit, Keyword kw, Parser parser) => @explicit || IsTableAlias(kw, parser);
 
     /// <summary>
+    /// Returns true if a single-quoted string can name a select item, as in <c>SELECT 1 AS 'x'</c>.
+    /// <c>explicit</c> is true when the alias follows <c>AS</c>.
+    /// <para>
+    /// <see href="https://dev.mysql.com/doc/refman/8.4/en/problems-with-alias.html">MySQL</see>,
+    /// <see href="https://www.sqlite.org/lang_keywords.html">SQLite</see>
+    /// </para>
+    /// </summary>
+    public virtual bool SupportsStringLiteralColumnAlias(bool @explicit) => true;
+
+    /// <summary>
+    /// Returns true if a single-quoted string can name a table, as in <c>FROM t AS 'x'</c>.
+    /// <c>explicit</c> is true when the alias follows <c>AS</c>.
+    /// <para>
+    /// <see href="https://www.sqlite.org/lang_keywords.html">SQLite</see>
+    /// </para>
+    /// </summary>
+    public virtual bool SupportsStringLiteralTableAlias(bool @explicit) => true;
+
+    /// <summary>
     /// Returns true if this dialect supports querying historical table data
     /// by specifying which version of the data to query.
     /// </summary>
@@ -1585,6 +1644,15 @@ public abstract partial class Dialect
     public virtual bool SupportsAlterColumnPosition => false;
 
     /// <summary>
+    /// Returns true if the dialect supports <c>ALTER TABLE ... ADD [COLUMN] IF NOT EXISTS &lt;col&gt;</c>.
+    /// Example:
+    /// <code>
+    ///  ALTER TABLE tbl ADD COLUMN IF NOT EXISTS c INT
+    /// </code>
+    /// </summary>
+    public virtual bool SupportsAddColumnIfNotExists => false;
+
+    /// <summary>
     /// Returns true if the dialect considers the specified ident as a function
     /// that returns an identifier. Typically used to generate identifiers
     /// programmatically.
@@ -1611,6 +1679,20 @@ public abstract partial class Dialect
     /// </para>
     /// </summary>
     public virtual bool SupportsDataTypeSignedSuffix => false;
+
+    /// <summary>
+    /// Returns true if this dialect allows an optional <c>ZEROFILL</c> suffix after numeric data types.
+    /// <para>
+    /// Example:
+    /// </para>
+    /// <code>
+    /// CREATE TABLE t (i INT(10) UNSIGNED ZEROFILL);
+    /// </code>
+    /// <para>
+    /// <see href="https://dev.mysql.com/doc/refman/8.4/en/numeric-type-syntax.html"/>
+    /// </para>
+    /// </summary>
+    public virtual bool SupportsDataTypeZerofillSuffix => false;
 
     /// <summary>
     /// Returns true if the dialect supports the <c>INTERVAL</c> data type with [Postgres]-style options.
@@ -1948,6 +2030,9 @@ public abstract partial class Dialect
     /// </para>
     /// </summary>
     public virtual bool SupportsXmlExpressions => false;
+
+    /// <summary>Whether a custom type name may introduce a typed string.</summary>
+    public virtual bool IsCustomTypeTypedString(Keyword firstKeyword, bool qualified) => false;
 
     /// <summary>
     /// Returns true if the dialect supports aliased function arguments,

@@ -30,6 +30,7 @@ namespace LeptonTech.SqlParser.Core.Ast;
 /// </para>
 /// </param>
 /// <param name="Table">TABLE</param>
+/// <param name="OnCluster">ClickHouse <c>ON CLUSTER</c></param>
 /// <param name="Assignments">Column assignments</param>
 /// <param name="From">Table which provide value to be set</param>
 /// <param name="Selection">WHERE</param>
@@ -44,10 +45,12 @@ namespace LeptonTech.SqlParser.Core.Ast;
 /// See <see href="https://dev.mysql.com/doc/refman/8.4/en/update.html"/>
 /// </param>
 /// <param name="Limit">LIMIT</param>
+/// <param name="Settings">ClickHouse <c>SETTINGS</c></param>
 public sealed partial record Update(
     AttachedToken UpdateToken,
     Sequence<OptimizerHint> OptimizerHints,
     TableWithJoins Table,
+    Ident? OnCluster,
     Sequence<Assignment> Assignments,
     UpdateTableFromKind? From,
     Expr? Selection,
@@ -55,7 +58,8 @@ public sealed partial record Update(
     OutputClause? Output,
     SqliteOnConflict? Or,
     Sequence<OrderByExpr> OrderBy,
-    Expr? Limit) : IDisplay
+    Expr? Limit,
+    Sequence<Setting>? Settings) : IDisplay
 {
     public void Fmt(Formatter f)
     {
@@ -72,6 +76,10 @@ public sealed partial record Update(
             f.WriteStr(" ");
         }
         Table.Fmt(f);
+        if (OnCluster is { } onCluster)
+        {
+            f.Write($" ON CLUSTER {onCluster}");
+        }
         if (From is UpdateTableFromKind.BeforeSet beforeSet)
         {
             SpaceOrNewline.Instance.Fmt(f);
@@ -118,6 +126,12 @@ public sealed partial record Update(
         {
             SpaceOrNewline.Instance.Fmt(f);
             f.Write($"LIMIT {limit}");
+        }
+        if (Settings is { } settings)
+        {
+            SpaceOrNewline.Instance.Fmt(f);
+            f.WriteStr("SETTINGS");
+            DisplayUtils.IndentedList(f, settings);
         }
     }
 

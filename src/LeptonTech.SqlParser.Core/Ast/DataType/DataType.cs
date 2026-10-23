@@ -405,6 +405,11 @@ public abstract partial record DataType : IDisplay
     /// </summary>
     public sealed record DoublePrecisionUnsigned : DataType;
 
+    /// <summary>
+    /// <see href="https://dev.mysql.com/doc/refman/8.4/en/numeric-type-syntax.html">MySQL</see> numeric type padded with zeros, e.g. <c>INT(10) UNSIGNED ZEROFILL</c>.
+    /// </summary>
+    public sealed record Zerofill(DataType Value) : DataType;
+
     /// <summary>Bool is an alias for Boolean, see <see href="https://www.postgresql.org/docs/current/datatype.html">PostgreSQL</see>.</summary>
     public sealed record Bool : DataType;
 
@@ -817,6 +822,9 @@ public abstract partial record DataType : IDisplay
                 break;
             case DoublePrecisionUnsigned:
                 f.Write($"DOUBLE PRECISION UNSIGNED");
+                break;
+            case Zerofill z:
+                f.Write($"{z.Value} ZEROFILL");
                 break;
             case Bool:
                 f.Write($"BOOL");

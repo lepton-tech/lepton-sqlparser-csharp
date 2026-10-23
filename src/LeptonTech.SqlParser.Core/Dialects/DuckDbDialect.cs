@@ -27,6 +27,12 @@ public class DuckDbDialect : Dialect
 {
     // In most cases the redshift dialect is identical to [`PostgresSqlDialect`].
 
+    public override bool SupportsCteMaterialization => true;
+
+    public override bool SupportsStringLiteralColumnAlias(bool @explicit) => @explicit;
+
+    public override bool SupportsStringLiteralTableAlias(bool @explicit) => @explicit;
+
     public override bool SupportsTrailingCommas => true;
 
     public override bool IsIdentifierStart(char ch) => char.IsLetter(ch) || ch == '_';
@@ -115,4 +121,9 @@ public class DuckDbDialect : Dialect
     public override bool SupportsNumericLiteralUnderscores => true;
 
     public override bool SupportsNestedComments => true;
+
+    /// <summary>
+    /// See <see href="https://duckdb.org/docs/stable/sql/statements/alter_table"/>
+    /// </summary>
+    public override bool SupportsAddColumnIfNotExists => true;
 }

@@ -1011,11 +1011,6 @@ public sealed partial class Parser
                     ExpectToken(new Token.RParen());
                     opTypes = types.ToSequence();
                 }
-                else if (ConsumeToken(new Token.LParen()))
-                {
-                    ExpectToken(new Token.RParen());
-                    opTypes = Sequence<DataType>.Empty;
-                }
                 else
                 {
                     opTypes = null;
@@ -1507,7 +1502,8 @@ public sealed partial class Parser
                 Sensitive: sensitive,
                 Scroll: scroll,
                 Hold: hold,
-                ForQuery: query)));
+                ForQuery: query)),
+            Separator: DeclareSeparator.Semicolon);
     }
 
     /// <summary>
@@ -1567,7 +1563,8 @@ public sealed partial class Parser
                 Sensitive: null,
                 Scroll: null,
                 Hold: null,
-                ForQuery: null)));
+                ForQuery: null)),
+            Separator: DeclareSeparator.Semicolon);
     }
 
     /// <summary>
@@ -1716,7 +1713,9 @@ public sealed partial class Parser
             break;
         }
 
-        return new Statement.Declare(Stmts: stmts.ToSequence());
+        return new Statement.Declare(
+            Stmts: stmts.ToSequence(),
+            Separator: DeclareSeparator.Semicolon);
     }
 
     /// <summary>
@@ -1737,7 +1736,9 @@ public sealed partial class Parser
     {
         var stmts = ParseCommaSeparated(p => p.ParseMssqlDeclareStmt());
 
-        return new Statement.Declare(Stmts: stmts);
+        return new Statement.Declare(
+            Stmts: stmts,
+            Separator: DeclareSeparator.Comma);
     }
 
     /// <summary>

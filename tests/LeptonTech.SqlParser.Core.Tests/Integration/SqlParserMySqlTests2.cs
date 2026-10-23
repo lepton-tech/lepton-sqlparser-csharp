@@ -118,7 +118,7 @@ public class SqlParserMySqlTests2
         {
             // Statement::Update(Update { table, assignments, from: _from, selection, returning, or: None,
             //     order_by: _, limit: None, optimizer_hints, update_token: _, output: _ }) if optimizer_hints.is_empty()
-            case Statement.Update { Value: { Or: null, Limit: null } update } when update.OptimizerHints.IsEmpty:
+            case Statement.Update { Value: { Or: null, Limit: null, OnCluster: null, Settings: null } update } when update.OptimizerHints.IsEmpty:
             {
                 Assert.Equal(
                     new TableWithJoins(
@@ -808,11 +808,12 @@ public class SqlParserMySqlTests2
     public void parse_create_table_unallow_constraint_then_index()
     {
         var sql = "CREATE TABLE foo (bar INT, CONSTRAINT constr INDEX index (bar))";
-        Assert.Throws<ParserException>(() => MysqlAndGeneric().ParseSqlStatements(sql));
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => MysqlAndGeneric().ParseSqlStatements(sql)).Error,
+            new ParserError.ParserErrorValue(
+                "Expected: PRIMARY, UNIQUE, FOREIGN, CHECK, or EXCLUDE, found: INDEX"));
 
-        sql = "CREATE TABLE foo (bar INT, INDEX index (bar))";
-        // assert!(..is_ok()): se lançar, o teste falha.
-        MysqlAndGeneric().ParseSqlStatements(sql);
+        MysqlAndGeneric().VerifiedStmt("CREATE TABLE foo (bar INT, INDEX index (bar))");
     }
 
     [Fact]
@@ -1772,20 +1773,36 @@ public class SqlParserMySqlTests2
     [Fact]
     public void parse_select_modifiers_errors()
     {
-        Assert.Throws<ParserException>(() => Mysql()
-            .ParseSqlStatements("SELECT DISTINCT DISTINCT * FROM t"));
-        Assert.Throws<ParserException>(() => Mysql()
-            .ParseSqlStatements("SELECT DISTINCTROW DISTINCTROW * FROM t"));
-        Assert.Throws<ParserException>(() => Mysql()
-            .ParseSqlStatements("SELECT DISTINCT DISTINCTROW * FROM t"));
-        Assert.Throws<ParserException>(() => Mysql()
-            .ParseSqlStatements("SELECT ALL DISTINCT * FROM t"));
-        Assert.Throws<ParserException>(() => Mysql()
-            .ParseSqlStatements("SELECT DISTINCT ALL * FROM t"));
-        Assert.Throws<ParserException>(() => Mysql()
-            .ParseSqlStatements("SELECT ALL DISTINCTROW * FROM t"));
-        Assert.Throws<ParserException>(() => Mysql()
-            .ParseSqlStatements("SELECT ALL ALL * FROM t"));
+        foreach (var (sql, err) in new (string, string)[]
+        {
+            (
+                "SELECT DISTINCT DISTINCT * FROM t",
+                "Expected: HIGH_PRIORITY, STRAIGHT_JOIN, or other MySQL select modifier, found: DISTINCT"
+            ),
+            (
+                "SELECT DISTINCTROW DISTINCTROW * FROM t",
+                "Expected: HIGH_PRIORITY, STRAIGHT_JOIN, or other MySQL select modifier, found: DISTINCTROW"
+            ),
+            (
+                "SELECT DISTINCT DISTINCTROW * FROM t",
+                "Expected: HIGH_PRIORITY, STRAIGHT_JOIN, or other MySQL select modifier, found: DISTINCTROW"
+            ),
+            ("SELECT ALL DISTINCT * FROM t", "Cannot specify ALL then DISTINCT"),
+            ("SELECT DISTINCT ALL * FROM t", "Cannot specify DISTINCT then ALL"),
+            (
+                "SELECT ALL DISTINCTROW * FROM t",
+                "Expected: HIGH_PRIORITY, STRAIGHT_JOIN, or other MySQL select modifier, found: DISTINCTROW"
+            ),
+            (
+                "SELECT ALL ALL * FROM t",
+                "Expected: HIGH_PRIORITY, STRAIGHT_JOIN, or other MySQL select modifier, found: ALL"
+            ),
+        })
+        {
+            Assert.Equal(
+                Assert.Throws<ParserException>(() => Mysql().ParseSqlStatements(sql)).Error,
+                new ParserError.ParserErrorValue(err));
+        }
     }
 
     [Fact]
@@ -2009,21 +2026,23 @@ public class SqlParserMySqlTests2
     [Fact]
     public void parse_create_database_with_charset_errors()
     {
-        // Missing charset name after CHARACTER SET
-        Assert.Throws<ParserException>(() => MysqlAndGeneric()
-            .ParseSqlStatements("CREATE DATABASE mydb DEFAULT CHARACTER SET"));
-
-        // Missing charset name after CHARSET
-        Assert.Throws<ParserException>(() => MysqlAndGeneric()
-            .ParseSqlStatements("CREATE DATABASE mydb CHARSET"));
-
-        // Missing collation name after COLLATE
-        Assert.Throws<ParserException>(() => MysqlAndGeneric()
-            .ParseSqlStatements("CREATE DATABASE mydb DEFAULT COLLATE"));
-
-        // Equals sign but no value
-        Assert.Throws<ParserException>(() => MysqlAndGeneric()
-            .ParseSqlStatements("CREATE DATABASE mydb CHARACTER SET ="));
+        var missing = "Expected: identifier, found: EOF";
+        foreach (var sql in new[]
+        {
+            // Missing charset name after CHARACTER SET
+            "CREATE DATABASE mydb DEFAULT CHARACTER SET",
+            // Missing charset name after CHARSET
+            "CREATE DATABASE mydb CHARSET",
+            // Missing collation name after COLLATE
+            "CREATE DATABASE mydb DEFAULT COLLATE",
+            // Equals sign but no value
+            "CREATE DATABASE mydb CHARACTER SET =",
+        })
+        {
+            Assert.Equal(
+                Assert.Throws<ParserException>(() => MysqlAndGeneric().ParseSqlStatements(sql)).Error,
+                new ParserError.ParserErrorValue(missing));
+        }
     }
 
     [Fact]
@@ -2148,17 +2167,41 @@ public class SqlParserMySqlTests2
         MysqlAndGeneric().VerifiedStmt("ALTER TABLE tab ADD COLUMN a INT FIRST, CHANGE COLUMN b c INT AFTER a, MODIFY COLUMN d INT AFTER c");
 
         // FIRST and AFTER are mutually exclusive, and AFTER needs a target.
-        foreach (var sql in new[]
+        foreach (var (sql, err) in new (string, string)[]
         {
-            "ALTER TABLE tab ADD COLUMN c INT FIRST AFTER b",
-            "ALTER TABLE tab ADD COLUMN c INT AFTER b FIRST",
-            "ALTER TABLE tab ADD COLUMN c INT AFTER",
-            "ALTER TABLE tab CHANGE COLUMN a b INT AFTER",
-            "ALTER TABLE tab MODIFY COLUMN c INT AFTER",
+            (
+                "ALTER TABLE tab ADD COLUMN c INT FIRST AFTER b",
+                "Expected: end of statement, found: AFTER"
+            ),
+            (
+                "ALTER TABLE tab ADD COLUMN c INT AFTER b FIRST",
+                "Expected: end of statement, found: FIRST"
+            ),
+            (
+                "ALTER TABLE tab ADD COLUMN c INT AFTER",
+                "Expected: identifier, found: EOF"
+            ),
+            (
+                "ALTER TABLE tab CHANGE COLUMN a b INT AFTER",
+                "Expected: identifier, found: EOF"
+            ),
+            (
+                "ALTER TABLE tab MODIFY COLUMN c INT AFTER",
+                "Expected: identifier, found: EOF"
+            ),
         })
         {
-            // assert!(mysql_and_generic().parse_sql_statements(sql).is_err(), "{sql}")
-            Assert.Throws<ParserException>(() => MysqlAndGeneric().ParseSqlStatements(sql));
+            TestUtils.AssertEqualWithMessage<ParserError>(
+                Assert.Throws<ParserException>(() => MysqlAndGeneric().ParseSqlStatements(sql)).Error,
+                new ParserError.ParserErrorValue(err),
+                sql);
         }
+    }
+
+    [Fact]
+    public void parse_create_table_engine_name_quoting()
+    {
+        MysqlAndGeneric().VerifiedStmt("CREATE TABLE t (a INT) ENGINE = `InnoDB`");
+        MysqlAndGeneric().VerifiedStmt("CREATE TABLE t (a INT) ENGINE = InnoDB");
     }
 }

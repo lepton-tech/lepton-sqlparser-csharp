@@ -72,7 +72,7 @@ public sealed partial class Parser
 
                     // Rust: `let if_not_exists` interno sombreia o externo (caso 72).
                     bool columnIfNotExists;
-                    if (_dialect is PostgreSqlDialect or BigQueryDialect or DuckDbDialect or GenericDialect)
+                    if (_dialect.SupportsAddColumnIfNotExists)
                     {
                         columnIfNotExists = ParseKeywords(Keyword.IF, Keyword.NOT, Keyword.EXISTS)
                             || ifNotExists;
@@ -1472,11 +1472,6 @@ public sealed partial class Parser
             var types = ParseCommaSeparated(p => p.ParseDataType());
             ExpectToken(new Token.RParen());
             opTypes = types;
-        }
-        else if (ConsumeToken(new Token.LParen()))
-        {
-            ExpectToken(new Token.RParen());
-            opTypes = Sequence<DataType>.Empty;
         }
         else
         {

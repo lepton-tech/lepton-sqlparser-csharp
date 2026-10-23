@@ -34,6 +34,9 @@ Formato: `Rust` → `C#` — motivo — arquivo onde foi definido.
 | `Span::EMPTY` (const privado, "for pattern matching") | não portado; as comparações usam `Span.Empty()` | CS0102: o campo `Empty` colidiria com `fn empty()` → `Empty()` | `Tokenizer/Span.cs` |
 | `core::iter::Once<T>` (std) | `OnceIter<T>` (`internal`) | `Once` já é o método `RustIter.Once` (`core::iter::once`); um tipo genérico homônimo no mesmo namespace tornaria `Once<T>(x)` ambíguo nos arquivos com `using static LeptonTech.SqlParser.Core.RustIter` | `Support/OnceIter.cs` |
 | `alloc::vec::IntoIter<T>` (std) | `VecIntoIter<T>` (`internal`) | `IntoIter` sozinho não diz de qual coleção é e colidiria com os métodos `IntoIter()` (`into_iter`) | `Support/VecIntoIter.cs` |
+| `Parser::geometric_type_kind(&self, Keyword) -> Option<GeometricTypeKind>` (upstream #2689, Rodada 2) | `Parser.GeometricTypeKindOf(Keyword)` | Dentro de `Parser`, um método `GeometricTypeKind` esconderia o tipo `GeometricTypeKind` da AST (`new GeometricTypeKind.Circle()` deixaria de compilar) | `Parser/Parser.Part1b.cs` |
+| `struct FirstChar(Option<char>)` local de `display_utils::first_char` (upstream #2577, Rodada 2) | classe privada `DisplayUtils.FirstCharWrite` | CS0102: a classe aninhada colidiria com o método `DisplayUtils.FirstChar` (`first_char`) | `DisplayUtils/DisplayUtils.cs` |
+| `core::fmt::Error` / `fmt::Result` (std) | `false` / `bool`, devolvidos por `IFmtWrite.WriteStr` e pelos métodos de escrita do `Formatter` | Tipo da std sem equivalente no .NET; o erro é um valor, como no Rust: `convencoes.md` §13, caso 141 | `Support/Formatter.cs` |
 
 ### Exceções de tipo/valor
 
@@ -83,6 +86,7 @@ Consolidado das notas em `onda-a/` (o detalhe e o motivo completo de cada linha 
 | `PartitionBoundValue::Expr(Expr)` | `Expr(Ast.Expr Value)` | Variante com o nome do tipo do campo: tipo qualificado (§6 e caso 38). Não é nome novo, só registro do uso | `Ast/Ddl/PartitionBoundValue.cs` |
 | `FunctionReturnType::DataType(DataType)` / `SetOf(DataType)` | `DataType(Ast.DataType Value)` / `SetOf(Ast.DataType Value)` | Idem (caso 38): dentro do record, `DataType` é a variante | `Ast/Ddl/FunctionReturnType.cs` |
 | `DataType::Collate(Box<DataType>, ObjectName)` (upstream #2553, Rodada 1) | `Collate(DataType DataType, ObjectName Collation)` | Nomes do `Display` (`DataType::Collate(data_type, collation)`) e do parser (`data_type`) | `Ast/DataType/DataType.cs` |
+| `JoinConstraint::UsingAlias(Vec<ObjectName>, Ident)` (upstream #2492, Rodada 2) | `UsingAlias(Sequence<ObjectName> Columns, Ident Alias)` | Nomes do `Display` e de `spans.rs` (`JoinConstraint::UsingAlias(columns, alias)`) | `Ast/Query/JoinConstraint.cs` |
 | `NamedWindowDefinition(pub Ident, pub NamedWindowExpr)` | `NamedWindowDefinition(Ident Name, NamedWindowExpr WindowExpr)` | Doc: `<name> AS <window specification>`; o parser constrói `NamedWindowDefinition(ident, window_expr)` | `Ast/Query/NamedWindowDefinition.cs` |
 | `SelectItem::QualifiedWildcard(SelectItemQualifiedWildcardKind, WildcardAdditionalOptions)` | `QualifiedWildcard(SelectItemQualifiedWildcardKind Kind, WildcardAdditionalOptions AdditionalOptions)` | Nomes do binding no `Display` do Rust (`QualifiedWildcard(kind, additional_options)`) | `Ast/Query/SelectItem.cs` |
 | `MatchRecognizePattern::Repetition(Box<MatchRecognizePattern>, RepetitionQuantifier)` | `Repetition(MatchRecognizePattern Pattern, RepetitionQuantifier Quantifier)` | Nomes do parser (`Repetition(Box::new(pattern), quantifier)`) | `Ast/Query/MatchRecognizePattern.cs` |
@@ -161,6 +165,7 @@ Auxiliares **inventados** nos testes portados (não existem no Rust). Antes de c
 | `s.repeat(n)` | `Repeat(string, int)` | `NoStdRecursionTests.cs` (C17) |
 | `struct MyDialect` declarado dentro de vários testes | classes de escopo `CustomPrefixParser`, `CustomInfixParser`, `CustomStatementParser`, `TestMapSyntaxNotSupportDefault`, cada uma com `MyDialect` aninhado; na Rodada 1 de sincronização, `CustomDialectSupportsTablePartitions` (com `MyDialect` e `WithoutPartitions`), `CustomDialectLambdaKeywordSyntaxWithoutArrow`, `CustomDialectLambdaKeywordDefaultsToArrowSupport` e `CustomDialectLambdaArrowSyntaxWithoutKeyword` | `SqlParserCustomDialectTests.cs` (C17; `sync/rodada1-lotes1-3.md`) |
 | `struct SpanTest<'a>(Parser<'a>, &'a str)` | `SpanTest.Parser`, `SpanTest.Sql` | `Ast/SpansTests.cs` (B7) |
+| `struct` que implementa `fmt::Write` ou `Display` dentro de um teste (Rodada 2: `RejectingWriter(char)`, `Chunks(Cell<usize>)`, `IgnoresErrors`) | classes de escopo `DisplayCreateMacroPropagatesArgumentListErrors.RejectingWriter` (campo `.0` → `_value`), `TestFirstCharStopsAtFirstChar.Chunks` (`Cell<usize>` → campo `int Value`) e `TestFirstCharKeepsFirstCharWhenErrorsAreIgnored.IgnoresErrors`, como os dialetos de teste | `SqlParserDuckDbTests.cs`, `DisplayUtils/DisplayUtilsTests.cs` |
 | `struct WrappedDialect(MySqlDialect)` | campo privado `_inner` | `Dialects/DialectTests.cs` (B7) |
 
 ### Visitor (`ast/visitor.rs` e derive `Visit`/`VisitMut`; onda C, C18)

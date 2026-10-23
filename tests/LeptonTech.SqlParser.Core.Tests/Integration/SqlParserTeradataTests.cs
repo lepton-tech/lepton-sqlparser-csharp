@@ -126,7 +126,10 @@ public class SqlParserTeradataTests
 
         var unsupportedDialects =
             TestUtils.AllDialectsWhere(d => !d.SupportsLeadingCommaBeforeTableOptions);
-        Assert.Throws<ParserException>(() => unsupportedDialects
-            .ParseSqlStatements("CREATE TABLE foo, FALLBACK (id INT)"));
+        Assert.Equal(
+            Assert.Throws<ParserException>(() => unsupportedDialects
+                .ParseSqlStatements("CREATE TABLE foo, FALLBACK (id INT)")).Error,
+            new ParserError.ParserErrorValue(
+                "Expected: end of statement, found: ,"));
     }
 }

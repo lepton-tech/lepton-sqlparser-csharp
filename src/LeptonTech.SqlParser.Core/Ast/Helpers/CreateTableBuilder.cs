@@ -76,7 +76,7 @@ public sealed partial record CreateTableBuilder
         FileFormat = null;
         Location = null;
         Query = null;
-        WithoutRowid = false;
+        SqliteTableOptions = SqliteTableOptions.Default();
         Like = null;
         CloneValue = null;
         Version = null;
@@ -91,7 +91,6 @@ public sealed partial record CreateTableBuilder
         Inherits = null;
         PartitionOf = null;
         ForValues = null;
-        Strict = false;
         CopyGrants = false;
         EnableSchemaEvolution = null;
         ChangeTracking = null;
@@ -180,8 +179,8 @@ public sealed partial record CreateTableBuilder
     /// <summary>Optional <c>AS SELECT</c> query for the table.</summary>
     public Query? Query { get; set; }
 
-    /// <summary>Whether <c>WITHOUT ROWID</c> is set.</summary>
-    public bool WithoutRowid { get; set; }
+    /// <summary>SQLite <c>table-options</c>.</summary>
+    public SqliteTableOptions SqliteTableOptions { get; set; }
 
     /// <summary>Optional <c>LIKE</c> clause kind.</summary>
     public CreateTableLikeKind? Like { get; set; }
@@ -226,8 +225,6 @@ public sealed partial record CreateTableBuilder
     /// <summary>Range of values associated with the partition (<c>FOR VALUES</c>)</summary>
     public ForValues? ForValues { get; set; }
 
-    /// <summary><c>STRICT</c> table flag.</summary>
-    public bool Strict { get; set; }
 
     /// <summary>Whether to copy grants from the source.</summary>
     public bool CopyGrants { get; set; }
@@ -445,10 +442,10 @@ public sealed partial record CreateTableBuilder
         return this;
     }
 
-    /// <summary>Set <c>WITHOUT ROWID</c> option.</summary>
-    public CreateTableBuilder SetWithoutRowid(bool withoutRowid)
+    /// <summary>Set the SQLite <c>table-options</c> list.</summary>
+    public CreateTableBuilder SetSqliteTableOptions(SqliteTableOptions sqliteTableOptions)
     {
-        WithoutRowid = withoutRowid;
+        SqliteTableOptions = sqliteTableOptions;
         return this;
     }
 
@@ -551,12 +548,6 @@ public sealed partial record CreateTableBuilder
         return this;
     }
 
-    /// <summary>Set <c>STRICT</c> option.</summary>
-    public CreateTableBuilder SetStrict(bool strict)
-    {
-        Strict = strict;
-        return this;
-    }
 
     /// <summary>Enable copying grants from source object.</summary>
     public CreateTableBuilder SetCopyGrants(bool copyGrants)
@@ -786,7 +777,7 @@ public sealed partial record CreateTableBuilder
             FileFormat: FileFormat,
             Location: Location,
             Query: Query,
-            WithoutRowid: WithoutRowid,
+            SqliteTableOptions: SqliteTableOptions,
             Like: Like,
             CloneValue: CloneValue,
             Version: Version,
@@ -801,7 +792,6 @@ public sealed partial record CreateTableBuilder
             Inherits: Inherits,
             PartitionOf: PartitionOf,
             ForValues: ForValues,
-            Strict: Strict,
             CopyGrants: CopyGrants,
             EnableSchemaEvolution: EnableSchemaEvolution,
             ChangeTracking: ChangeTracking,
@@ -872,7 +862,7 @@ public sealed partial record CreateTableBuilder
             FileFormat = table.FileFormat,
             Location = table.Location,
             Query = table.Query,
-            WithoutRowid = table.WithoutRowid,
+            SqliteTableOptions = table.SqliteTableOptions,
             Like = table.Like,
             CloneValue = table.CloneValue,
             Version = table.Version,
@@ -887,7 +877,6 @@ public sealed partial record CreateTableBuilder
             Inherits = table.Inherits,
             PartitionOf = table.PartitionOf,
             ForValues = table.ForValues,
-            Strict = table.Strict,
             CopyGrants = table.CopyGrants,
             EnableSchemaEvolution = table.EnableSchemaEvolution,
             ChangeTracking = table.ChangeTracking,

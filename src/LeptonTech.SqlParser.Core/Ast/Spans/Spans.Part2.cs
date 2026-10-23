@@ -374,6 +374,7 @@ public sealed partial record Insert : ISpanned
         //     source,
         //     partitioned,
         //     after_columns,
+        //     overriding: _,        // enum, postgres specific
         //     has_table_keyword: _, // bool
         //     on,
         //     returning,
@@ -492,6 +493,17 @@ public sealed partial record Assignment : ISpanned
     }
 }
 
+// impl Spanned for Setting (spans.rs:1475, em 92e8850)
+public sealed partial record Setting : ISpanned
+{
+    public Span Span()
+    {
+        // let Setting { key, value } = self;
+
+        return Key.Span.Union(Value.Span());
+    }
+}
+
 // impl Spanned for AssignmentTarget (spans.rs:1461)
 public abstract partial record AssignmentTarget : ISpanned
 {
@@ -554,13 +566,15 @@ public abstract partial record Expr : ISpanned
             // Expr::IsDistinctFrom(lhs, rhs) / Expr::IsNotDistinctFrom(lhs, rhs) (nomes.md: Left/Right)
             IsDistinctFrom d => d.Left.Span().Union(d.Right.Span()),
             IsNotDistinctFrom d => d.Left.Span().Union(d.Right.Span()),
-            // Expr::InList { expr, list, negated: _, global: _ }
-            InList inList => UnionSpans(
-                Once(inList.Expr.Span()).Concat(inList.List.Select(item => item.Span()))),
-            // Expr::InSubquery { expr, subquery, negated: _, global: _ }
-            InSubquery inSubquery => inSubquery.Expr.Span().Union(inSubquery.Subquery.Span()),
-            // Expr::InUnnest { expr, array_expr, negated: _ }
-            InUnnest inUnnest => inUnnest.Expr.Span().Union(inUnnest.ArrayExpr.Span()),
+            // Expr::In { expr, target, negated: _, global: _ }
+            In inExpr => inExpr.Target switch
+            {
+                InTarget.List list => UnionSpans(
+                    Once(inExpr.Expr.Span()).Concat(list.Value.Select(item => item.Span()))),
+                InTarget.Subquery subquery => inExpr.Expr.Span().Union(subquery.Value.Span()),
+                InTarget.Unnest arrayExpr => inExpr.Expr.Span().Union(arrayExpr.Value.Span()),
+                _ => throw new InvalidOperationException($"Variante de InTarget não tratada: {inExpr.Target.GetType().Name}"),
+            },
             // Expr::Between { expr, negated: _, low, high }
             Between between => between.Expr.Span().Union(between.Low.Span()).Union(between.High.Span()),
 

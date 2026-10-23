@@ -684,7 +684,10 @@ public class ParserTests
     {
         var sql = "REPLACE INTO t (a) VALUES (&a)";
 
-        Assert.Throws<ParserException>(() => Parser.ParseSql(new GenericDialect(), sql));
+        Assert.Equal(
+            new ParserError.ParserErrorValue(
+                "Expected: an expression, found: & at Line: 1, Column: 28"),
+            Assert.Throws<ParserException>(() => Parser.ParseSql(new GenericDialect(), sql)).Error);
     }
 
     [Fact]
@@ -692,7 +695,10 @@ public class ParserTests
     {
         var sql = "REPLACE INTO t SET ?";
 
-        Assert.Throws<ParserException>(() => Parser.ParseSql(new GenericDialect(), sql));
+        Assert.Equal(
+            new ParserError.ParserErrorValue(
+                "Expected: SELECT, VALUES, or a subquery in the query body, found: SET at Line: 1, Column: 16"),
+            Assert.Throws<ParserException>(() => Parser.ParseSql(new GenericDialect(), sql)).Error);
     }
 
     [Fact]
@@ -700,16 +706,30 @@ public class ParserTests
     {
         var sql = "REPLACE";
 
-        Assert.Throws<ParserException>(() => Parser.ParseSql(new MySqlDialect(), sql));
+        Assert.Equal(
+            new ParserError.ParserErrorValue("Expected: identifier, found: EOF"),
+            Assert.Throws<ParserException>(() => Parser.ParseSql(new MySqlDialect(), sql)).Error);
     }
 
     [Fact]
     public void test_placeholder_invalid_whitespace()
     {
-        foreach (var w in new[] { "  ", "/*invalid*/" })
+        foreach (var (w, expected) in new (string, string)[]
+        {
+            (
+                "  ",
+                "Expected: placeholder, found:   at Line: 3, Column: 4"
+            ),
+            (
+                "/*invalid*/",
+                "Expected: placeholder, found: /*invalid*/ at Line: 3, Column: 4"
+            ),
+        })
         {
             var sql = $"\nSELECT\n  :{w}fooBar";
-            Assert.Throws<ParserException>(() => Parser.ParseSql(new GenericDialect(), sql));
+            Assert.Equal(
+                new ParserError.ParserErrorValue(expected),
+                Assert.Throws<ParserException>(() => Parser.ParseSql(new GenericDialect(), sql)).Error);
         }
     }
 }

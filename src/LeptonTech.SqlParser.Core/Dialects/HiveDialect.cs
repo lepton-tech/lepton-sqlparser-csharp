@@ -27,6 +27,20 @@ public class HiveDialect : Dialect
 {
     public override bool IsDelimitedIdentifierStart(char ch) => (ch == '"') || (ch == '`');
 
+    public override bool SupportsHashComment => true;
+
+    /// <summary>
+    /// The alias is an <c>identifier</c>, see <c>selectItem</c> in
+    /// <see href="https://github.com/apache/hive/blob/master/parser/src/java/org/apache/hadoop/hive/ql/parse/SelectClauseParser.g"/>
+    /// </summary>
+    public override bool SupportsStringLiteralColumnAlias(bool @explicit) => false;
+
+    /// <summary>
+    /// The alias is an <c>identifier</c>, see <c>tableSource</c> in
+    /// <see href="https://github.com/apache/hive/blob/master/parser/src/java/org/apache/hadoop/hive/ql/parse/FromClauseParser.g"/>
+    /// </summary>
+    public override bool SupportsStringLiteralTableAlias(bool @explicit) => false;
+
     /// <summary>
     /// See <see href="https://cwiki.apache.org/confluence/display/Hive/LanguageManual+DDL#LanguageManualDDL-RulesforColumnNames"/>
     /// </summary>

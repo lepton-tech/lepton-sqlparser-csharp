@@ -30,6 +30,9 @@ public abstract partial record JoinConstraint
     /// <summary><c>USING(...)</c> list of column names.</summary>
     public sealed record Using(Sequence<ObjectName> Value) : JoinConstraint;
 
+    /// <summary><c>USING(...) AS alias</c> list of column names with an alias for the joined columns.</summary>
+    public sealed record UsingAlias(Sequence<ObjectName> Columns, Ident Alias) : JoinConstraint;
+
     /// <summary><c>NATURAL</c> join (columns matched automatically).</summary>
     public sealed record Natural : JoinConstraint;
 

@@ -702,8 +702,7 @@ public sealed partial class Parser
             forValues = null;
         }
 
-        // SQLite supports `WITHOUT ROWID` at the end of `CREATE TABLE`
-        var withoutRowid = ParseKeywords(Keyword.WITHOUT, Keyword.ROWID);
+        var sqliteTableOptions = ParseSqliteTableOptions();
 
         var hiveDistribution = ParseHiveDistribution();
         var clusteredBy = ParseOptionalClusteredBy();
@@ -757,8 +756,6 @@ public sealed partial class Parser
         {
             onCommit = null;
         }
-
-        var strict = ParseKeyword(Keyword.STRICT);
 
         // Redshift: BACKUP YES|NO
         bool? backup;
@@ -851,7 +848,7 @@ public sealed partial class Parser
             .SetHiveFormats(hiveFormats)
             .SetGlobal(global)
             .SetQuery(query)
-            .SetWithoutRowid(withoutRowid)
+            .SetSqliteTableOptions(sqliteTableOptions)
             .SetLike(like)
             .CloneClause(clone)
             .CommentAfterColumnDef(commentAfterColumnDef)
@@ -867,12 +864,64 @@ public sealed partial class Parser
             .SetTableOptions(createTableConfig.TableOptions)
             .SetPrimaryKey(primaryKey)
             .SetWithData(withData)
-            .SetStrict(strict)
             .SetBackup(backup)
             .SetDiststyle(diststyle)
             .SetDistkey(distkey)
             .SetSortkey(sortkey)
             .Build();
+    }
+
+    /// <summary>
+    /// Parse SQLite's <c>table-options</c> list, empty when absent, and the
+    /// optional comma before it.
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.sqlite.org/lang_createtable.html"/>.
+    /// </remarks>
+    internal SqliteTableOptions ParseSqliteTableOptions()
+    {
+        var leadingComma = ConsumeToken(new Token.Comma());
+        if (MaybeParseSqliteTableOption() is not { } first)
+        {
+            if (leadingComma)
+            {
+                PrevToken();
+            }
+            return SqliteTableOptions.Default();
+        }
+        var options = new List<SqliteTableOption>(2);
+        options.Add(first);
+        while (ConsumeToken(new Token.Comma()))
+        {
+            switch (MaybeParseSqliteTableOption())
+            {
+                case { } option:
+                    options.Add(option);
+                    break;
+                case null:
+                    return ExpectedRef<SqliteTableOptions>("WITHOUT ROWID or STRICT", PeekTokenRef());
+            }
+        }
+        return new SqliteTableOptions(
+            LeadingComma: leadingComma,
+            Options: options.ToSequence());
+    }
+
+    internal SqliteTableOption? MaybeParseSqliteTableOption()
+    {
+        if (ParseKeyword(Keyword.WITHOUT))
+        {
+            ExpectKeywordIs(Keyword.ROWID);
+            return new SqliteTableOption.WithoutRowid();
+        }
+        else if (ParseKeyword(Keyword.STRICT))
+        {
+            return new SqliteTableOption.Strict();
+        }
+        else
+        {
+            return null;
+        }
     }
 
     /// <summary>Parse <c>MULTISET</c> table-kind prefix on <c>CREATE TABLE</c>.</summary>
@@ -1229,7 +1278,7 @@ public sealed partial class Parser
                     engine = new SqlOption.NamedParenthesizedList(
                         new NamedParenthesizedList(
                             Key: new Ident("ENGINE"),
-                            Name: new Ident(w.Value),
+                            Name: w.IntoIdent(value.Span),
                             Values: parameters));
                     break;
                 }

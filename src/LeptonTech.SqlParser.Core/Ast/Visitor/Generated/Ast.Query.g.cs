@@ -1676,6 +1676,10 @@ namespace LeptonTech.SqlParser.Core.Ast
                     flow = VisitVariant((global::LeptonTech.SqlParser.Core.Ast.JoinConstraint.Using)this, visitor);
                     if (flow.IsBreak) return flow;
                     break;
+                case global::LeptonTech.SqlParser.Core.Ast.JoinConstraint.UsingAlias:
+                    flow = VisitVariant((global::LeptonTech.SqlParser.Core.Ast.JoinConstraint.UsingAlias)this, visitor);
+                    if (flow.IsBreak) return flow;
+                    break;
             }
             return global::LeptonTech.SqlParser.Core.ControlFlow<TBreak>.Continue;
         }
@@ -1712,6 +1716,31 @@ namespace LeptonTech.SqlParser.Core.Ast
             return global::LeptonTech.SqlParser.Core.ControlFlow<TBreak>.Continue;
         }
 
+        // UsingAlias
+        private static global::LeptonTech.SqlParser.Core.ControlFlow<TBreak> VisitVariant<TBreak>(global::LeptonTech.SqlParser.Core.Ast.JoinConstraint.UsingAlias v, global::LeptonTech.SqlParser.Core.Ast.Visitor<TBreak> visitor)
+        {
+            global::LeptonTech.SqlParser.Core.ControlFlow<TBreak> flow;
+            // Columns
+            {
+                var s1 = v.Columns;
+                for (var i2 = 0; i2 < s1.Count; i2++)
+                {
+                    if (s1[i2] is { } x3)
+                    {
+                        flow = x3.Visit(visitor);
+                        if (flow.IsBreak) return flow;
+                    }
+                }
+            }
+            // Alias
+            if (v.Alias is { } x4)
+            {
+                flow = x4.Visit(visitor);
+                if (flow.IsBreak) return flow;
+            }
+            return global::LeptonTech.SqlParser.Core.ControlFlow<TBreak>.Continue;
+        }
+
         /// <inheritdoc/>
         public global::LeptonTech.SqlParser.Core.ControlFlow<TBreak> Visit<TBreak>(global::LeptonTech.SqlParser.Core.Ast.VisitorMut<TBreak> visitor, out global::LeptonTech.SqlParser.Core.Ast.JoinConstraint self)
         {
@@ -1733,6 +1762,9 @@ namespace LeptonTech.SqlParser.Core.Ast
                     break;
                 case global::LeptonTech.SqlParser.Core.Ast.JoinConstraint.Using:
                     flow = VisitMutVariant(ref node, (global::LeptonTech.SqlParser.Core.Ast.JoinConstraint.Using)node, visitor);
+                    break;
+                case global::LeptonTech.SqlParser.Core.Ast.JoinConstraint.UsingAlias:
+                    flow = VisitMutVariant(ref node, (global::LeptonTech.SqlParser.Core.Ast.JoinConstraint.UsingAlias)node, visitor);
                     break;
             }
             return flow;
@@ -1786,6 +1818,51 @@ namespace LeptonTech.SqlParser.Core.Ast
                     if (a2 is not null) x1 = global::LeptonTech.SqlParser.Core.Sequence<global::LeptonTech.SqlParser.Core.Ast.ObjectName>.FromArrayNoCopy(a2);
                 }
                 if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(x1, n.Value)) n = n with { Value = x1 };
+                if (flow.IsBreak) { node = n; return flow; }
+            }
+            node = n;
+            return flow;
+        }
+
+        // UsingAlias
+        private static global::LeptonTech.SqlParser.Core.ControlFlow<TBreak> VisitMutVariant<TBreak>(ref global::LeptonTech.SqlParser.Core.Ast.JoinConstraint node, global::LeptonTech.SqlParser.Core.Ast.JoinConstraint.UsingAlias v, global::LeptonTech.SqlParser.Core.Ast.VisitorMut<TBreak> visitor)
+        {
+            var flow = global::LeptonTech.SqlParser.Core.ControlFlow<TBreak>.Continue;
+            var n = v;
+            // Columns
+            {
+                var x1 = n.Columns;
+                {
+                    global::LeptonTech.SqlParser.Core.Ast.ObjectName[]? a2 = null;
+                    for (var i3 = 0; i3 < x1.Count; i3++)
+                    {
+                        var e4 = x1[i3];
+                        if (e4 is { } y5)
+                        {
+                            flow = global::LeptonTech.SqlParser.Core.Ast.ObjectName.VisitMut(ref y5, visitor);
+                            e4 = y5;
+                        }
+                        if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(e4, x1[i3]))
+                        {
+                            a2 ??= global::System.Linq.Enumerable.ToArray(x1);
+                            a2[i3] = e4;
+                        }
+                        if (flow.IsBreak) break;
+                    }
+                    if (a2 is not null) x1 = global::LeptonTech.SqlParser.Core.Sequence<global::LeptonTech.SqlParser.Core.Ast.ObjectName>.FromArrayNoCopy(a2);
+                }
+                if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(x1, n.Columns)) n = n with { Columns = x1 };
+                if (flow.IsBreak) { node = n; return flow; }
+            }
+            // Alias
+            {
+                var x6 = n.Alias;
+                if (x6 is { } y7)
+                {
+                    flow = global::LeptonTech.SqlParser.Core.Ast.Ident.VisitMut(ref y7, visitor);
+                    x6 = y7;
+                }
+                if (!global::LeptonTech.SqlParser.Core.Ast.VisitSupport.IsSame(x6, n.Alias)) n = n with { Alias = x6 };
                 if (flow.IsBreak) { node = n; return flow; }
             }
             node = n;
