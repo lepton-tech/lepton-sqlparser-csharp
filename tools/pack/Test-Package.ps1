@@ -13,7 +13,7 @@
 
 .EXAMPLE
     pwsh tools/pack/Test-Package.ps1
-    pwsh tools/pack/Test-Package.ps1 -Version 0.63.1-preview.4
+    pwsh tools/pack/Test-Package.ps1 -Version 0.63.1-preview.5
 #>
 [CmdletBinding()]
 param(

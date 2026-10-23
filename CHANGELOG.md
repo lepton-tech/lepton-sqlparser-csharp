@@ -6,6 +6,8 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). A
 
 ## [Não lançado]
 
+## [0.63.1-preview.5] - 2026-10-23
+
 Sincronização com o sqlparser-rs até o commit `9119ec6` (Rodada 2: 46 PRs depois de `dacdbc9`; não há tag nova do Rust). Detalhes por PR em `docs/port/upstream-ledger.md`; impacto na API em [ADR-0009](docs/adr/0009-api-publica-fase-2.md), "Impacto da Rodada 2".
 
 ### Adicionado
